@@ -3,6 +3,7 @@ tor-ft-docker1.points.com:
     docker_host:
       node: list_loading_service-ft-1.lxc.points.com
       enable_nscd: True
+      dependencies: []
     lb_config_node:
       load_balancer_host: list_loading_service-ft.lxc.points.com
       load_balancer_port: 1800
@@ -15,3 +16,4 @@ tor-ft-docker2.points.com:
     docker_host:
       node: list_loading_service-ft-2.lxc.points.com
       enable_nscd: True
+      dependencies: []

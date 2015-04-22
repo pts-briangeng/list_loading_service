@@ -54,7 +54,8 @@ class ListLoadingServiceTestInContainerTask(fabrika.tasks.docker.TestInContainer
             nose_options='-a container_integration',
             port=5000,
             services_profile='testincontainer',
-            test_config='testincontainer.ini', logs_dir=None):
+            test_config='testincontainer.ini',
+            logs_dir=None):
 
         local("mkdir -p {}".format(logs_dir or 'list_loading_service_logs'))
 
@@ -113,9 +114,8 @@ def create_container_profile(configuration_profile_path):
         os.remove(backed_up_configuration(configuration_profile_path))
         print("Done!")
 
-
 test_in_container_task = ListLoadingServiceTestInContainerTask('list_loading_service',
-                                                               service_ready_endpoint='/list_loading_service/',
+                                                               service_ready_endpoint='/_',
                                                                service_ready_status=404)
 
 

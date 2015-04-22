@@ -4,7 +4,6 @@ import flask
 
 from restframework import controllers
 from werkzeug import exceptions as flask_exceptions
-from liblcp import context
 
 
 logger = logging.getLogger(__name__)
@@ -27,10 +26,6 @@ class ResourceControllerMixin(controllers.BaseResourceController):
     @property
     def resource_by_id_resource_controller(self):
         return self.__class__
-
-    @property
-    def context_mode(self):
-        return self.headers.get(context.HEADERS_MODE, context.MODE_LIVE)
 
     def create_restful_response_payload(self, response_model, **kwargs):
         response_dict = self.model_to_dict(response_model)

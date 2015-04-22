@@ -1,6 +1,5 @@
 from restframework import controllers
 
-from list_loading_app import models
 from list_loading_app.controllers import base
 from list_loading_app.controllers.schemas import post_empty
 

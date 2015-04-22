@@ -19,7 +19,7 @@ from list_loading_app.controllers import api_builder
 
 COVERAGE_OPTIONS = [
     '--with-coverage',
-    '--cover-package={0}'.format('list_loading_service'),
+    '--cover-package={0}'.format('list_loading_app'),
     '--cover-branches',
     '--cover-html',
     '--cover-html-dir={0}'.format(os.path.join('test_results', 'coverage')),

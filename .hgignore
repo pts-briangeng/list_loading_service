@@ -1,0 +1,25 @@
+syntax: glob
+
+.coverage
+.env
+*.pyc
+*.swp
+
+package/*
+test_results/*
+
+# pydev meta files
+.project
+.pydevproject
+
+.vagrant
+.idea/*
+
+.idea
+lcpenv/.accounts
+lcpenv/.gateway
+lcpenv/.permissions
+lcpenv/.vagrant/*
+lcpenv_logs/*
+list_loading_service_logs/*
+list_loading_service.log

@@ -5,14 +5,14 @@ from liblcp import context as lcp_context
 from restframework import rest_api
 
 from list_loading_app import app_logging, instrumentation
-from list_loading_app.controllers import lls_resource_api
+from list_loading_app.controllers.lls_resource_api import ListLoadingServicePostResourceController
 
 
 logger = logging.getLogger(__name__)
 
 
 class ApiConfiguration(object):
-    profiled_targets = []
+    profiled_targets = [ListLoadingServicePostResourceController]
 
     def __init__(self, flask_app):
         self.api = rest_api.RestApi(flask_app)
@@ -20,8 +20,7 @@ class ApiConfiguration(object):
         instrumentation.instrument(ApiConfiguration.profiled_targets, logger.getEffectiveLevel())
 
     def setup_endpoints(self):
-        pass
-        # self.api.add_resource(lls_resource_api.ListLoadingServicePostResourceController, '/<index>/<type>/<id>')
+        self.api.add_resource(ListLoadingServicePostResourceController, '/<index>/<type>/<id>')
 
 
 def build_server():

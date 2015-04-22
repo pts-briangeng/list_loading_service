@@ -6,7 +6,6 @@ import shutil
 from fabric.api import env, execute, task
 from fabric.operations import local
 from fabric.tasks import Task
-
 import fabrika.tasks.analysis
 import fabrika.tasks.build
 import fabrika.tasks.docker
@@ -15,8 +14,7 @@ from liblcp import context
 from lcpenv import tasks as lcpenv_tasks
 
 from fabfile.app_configuration import configured_for
-
-from list_loading_app import api_builder
+from list_loading_app.controllers import api_builder
 
 
 COVERAGE_OPTIONS = [

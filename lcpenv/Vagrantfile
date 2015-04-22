@@ -1,0 +1,20 @@
+# -*- mode: ruby -*-
+# vi: set ft=ruby :
+
+# Vagrantfile API/syntax version. Don't touch unless you know what you're doing!
+VAGRANTFILE_API_VERSION = "2"
+
+# Sample Vagrant file to permit quick bootstrap of an LCP environment
+Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
+  # All Vagrant configuration is done here. The most common configuration
+  # options are documented and commented below. For a complete reference,
+  # please see the online documentation at vagrantup.com.
+
+  config.vm.box = "lcp-lxc-20150129"
+  config.vm.box_url = "http://knife.points.com:8080/vagrant/vagrant-lcp-lxc-2015-01-29.box"
+  # Uncomment for local testing when rebuilding the box
+  # config.vm.box_url = "file:///tmp/vagrant-lcp-lxc/vagrant-lcp-lxc.box"
+  config.vm.hostname = "lcpenv"
+  config.vm.network :private_network, ip: "10.0.3.20"
+  config.hostsupdater.aliases = ["live.lcpenv", "sandbox.lcpenv"]
+end

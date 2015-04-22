@@ -1,0 +1,16 @@
+tp-list_loading_service1.points.com:
+  roles:
+    docker_host:
+      node: list_loading_service1.prd.points.com
+      enable_nscd: True
+    lb_config_node:
+      load_balancer_host: list_loading_service.prd.points.com
+      load_balancer_port: 1800
+      node_port: 8080
+      nodes: [list_loading_service1.prd.points.com, list_loading_service2.prd.points.com]
+
+tp-list_loading_service2.points.com:
+  roles:
+    docker_host:
+      node: list_loading_service2.prd.points.com
+      enable_nscd: True

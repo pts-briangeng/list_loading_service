@@ -1,0 +1,49 @@
+
+GATEWAY CONFIGURATION
+======================
+
+So that offers service works with the LCP, you'll need a few things first. The reason for this is because:
+   * Users making a request to a service through the gateway must have the appropriate permissions
+   	 through permissionsets. Permissionsets must be created granting access.
+   * The gateway must know how to route requests to the service through its onboard HAProxy load balancer.
+
+
+Setting up Gateway on FT, Staging, Production
+======================================================
+Ops must add configure HAProxy on the gateway instances to route
+localhost:1300 to the HOST:PORT of the offers service deployment.
+
+
+Integrating with Platform using platforms 'test_deploy' Vagrant bootup
+======================================================================
+
+1) Setup an offers service on your host running on port 1300. Port 1300 is just a default,
+you can choose to run it on any host/port as you'll see in one of the next steps.
+
+If you don't have an offers service ready yet, this bash command will do:
+$ while true; do echo -e 'HTTP/1.0 201 OK\nContent-Type: application/json\nLocation: blah\nContent-Length: 20\n\n{"offers": "works!"}' | nc -l -p 1300 -q 1; done
+
+2) startup the vagrant based lcp:
+<platform-src-directory>$ paver test_deploy
+When this finishes you'll have the LCP running and available at http://web.lcp/
+
+3) Enable gateway routing to the offers service:
+<offers-src-directory>$ ./enable_offers.sh
+# if your offers service is running somewhere other than your host machine on 1300
+<offers-src-directory>$ ./enable_offers SOME_OTHER_HOST:SOME_OTHER_PORT
+
+4) Only applications can create offers. Since the GW now manages access to the offers service, you'll need an application.
+
+a) create an account:
+<platform-src-directory>$ ./lcp/gateway/lcp_curl.py -X POST -d '{"email": "test@points.com"}' http://sandbox.lcp/accounts/
+
+b) using the account credentials from step (a), create an App:
+<platform-src-directory>$ ./lcp/gateway/lcp_curl.py -X POST -d '{"name": "tst", "description": "tst"}' -u "ACCOUNT_MAC_ID:ACCOUNT_MAC_SECRET" http://sandbox.lcp/apps/
+
+c) get your sandbox credentials (yes these steps are a pain):
+<platform-src-directory>$ ./lcp/gateway/lcp_curl.py -X GET -u"ACCOUNT_MAC_ID:ACCOUNT_MAC_SECRET" http://sandbox.lcp/apps/APP-ID/sandbox-credentials/CRED-ID
+
+5) See that the gateway sends POST requests to the offers service:
+<platform-src-directory>./lcp/gateway/lcp_curl.py -X POST -d '{}' -u "APP_MAC_ID:APP_MAC_SECRET" http://sandbox.lcp/offers/
+
+

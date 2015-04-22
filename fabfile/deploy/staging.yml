@@ -1,0 +1,16 @@
+tor-st-docker1.points.com:
+  roles:
+    docker_host:
+      node: list_loading_service-st-1.lxc.points.com
+      enable_nscd: True
+    lb_config_node:
+      load_balancer_host: list_loading_service-st.lxc.points.com
+      load_balancer_port: 1800
+      node_port: 8080
+      nodes: [list_loading_service-st-1.lxc.points.com, list_loading_service-st-2.lxc.points.com]
+
+tor-st-docker2.points.com:
+  roles:
+    docker_host:
+      node: list_loading_service-st-2.lxc.points.com
+      enable_nscd: True

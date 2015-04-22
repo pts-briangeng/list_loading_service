@@ -1,19 +1,19 @@
 tor-ft-docker1.points.com:
   roles:
     docker_host:
-      node: list_loading_service-ft-1.lxc.points.com
+      node: list-loading-service-ft-1.lxc.points.com
       enable_nscd: True
       dependencies: []
     lb_config_node:
-      load_balancer_host: list_loading_service-ft.lxc.points.com
+      load_balancer_host: list-loading-service-ft.lxc.points.com
       load_balancer_port: 1800
       node_port: 8080
-      nodes: [list_loading_service-ft-1.lxc.points.com, list_loading_service-ft-2.lxc.points.com]
+      nodes: [list-loading-service-ft-1.lxc.points.com, list-loading-service-ft-2.lxc.points.com]
       mode: roundrobin
 
 tor-ft-docker2.points.com:
   roles:
     docker_host:
-      node: list_loading_service-ft-2.lxc.points.com
+      node: list-loading-service-ft-2.lxc.points.com
       enable_nscd: True
       dependencies: []

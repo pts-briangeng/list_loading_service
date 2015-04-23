@@ -23,7 +23,7 @@ COVERAGE_OPTIONS = [
     '--cover-branches',
     '--cover-html',
     '--cover-html-dir={0}'.format(os.path.join('test_results', 'coverage')),
-    '--cover-min-percentage=95'
+    '--cover-min-percentage=94'
 ]
 configuration_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), os.pardir, 'configuration')
 env.use_ssh_config = True

@@ -8,7 +8,7 @@ import sys
 
 sys.path.append('/content')
 
-from list_loading_app import api_builder  # noqa
+from app import api_builder  # noqa
 
 os.environ['SERVICES_CONFIG_HOME'] = os.path.abspath('/config')
 

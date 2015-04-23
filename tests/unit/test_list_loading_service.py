@@ -2,7 +2,7 @@ import unittest
 
 from nose import tools
 
-from list_loading_app import list_loading_service
+from app import list_loading_service
 
 
 class OffersServiceTestCase(unittest.TestCase):

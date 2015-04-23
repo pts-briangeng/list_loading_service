@@ -4,7 +4,7 @@ import unittest
 
 from nose.tools import assert_equal, assert_false, assert_true
 
-from list_loading_app import instrumentation
+from app import instrumentation
 
 
 class NoOp(object):
@@ -15,7 +15,7 @@ class NoOp(object):
 
 class InstrumentationTestCase(unittest.TestCase):
 
-    @mock.patch('list_loading_app.instrumentation.profile_call')
+    @mock.patch('app.instrumentation.profile_call')
     def test_no_instrumentation_at_info_level(self, mock_profile):
         instrumentation.instrument([NoOp], logging.INFO)
 
@@ -23,7 +23,7 @@ class InstrumentationTestCase(unittest.TestCase):
 
         assert_false(mock_profile.called)
 
-    @mock.patch('list_loading_app.instrumentation.profile_call')
+    @mock.patch('app.instrumentation.profile_call')
     def test_no_instrumentation_at_warn_level(self, mock_profile):
         instrumentation.instrument([NoOp], logging.WARN)
 
@@ -31,7 +31,7 @@ class InstrumentationTestCase(unittest.TestCase):
 
         assert_false(mock_profile.called)
 
-    @mock.patch('list_loading_app.instrumentation.profile_call')
+    @mock.patch('app.instrumentation.profile_call')
     def test_instrumentation_at_debug_level(self, mock_profile):
         instrumentation.instrument([NoOp], logging.DEBUG)
 
@@ -39,7 +39,7 @@ class InstrumentationTestCase(unittest.TestCase):
 
         assert_true(mock_profile.called)
 
-    @mock.patch('list_loading_app.instrumentation._inspect_call')
+    @mock.patch('app.instrumentation._inspect_call')
     def test_profile_call_logs_profiling_outcome(self, mock_inspection):
         mock_inspection.return_value = 'module', 1, 'function', mock.MagicMock()
 

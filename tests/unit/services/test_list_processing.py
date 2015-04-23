@@ -3,8 +3,8 @@ import mock
 
 import liblcp
 
-from list_loading_app import models
-from list_loading_app.services import list_processing
+from app import models
+from app.services import list_processing
 
 
 class TestListProcessing(unittest.TestCase):

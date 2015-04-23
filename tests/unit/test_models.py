@@ -2,7 +2,7 @@ import unittest
 
 from nose import tools
 
-from list_loading_app import models
+from app import models
 
 
 class TestModels(unittest.TestCase):

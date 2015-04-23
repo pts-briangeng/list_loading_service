@@ -16,3 +16,4 @@ aspectlib==1.2.2
 PyYAML==3.11
 fabrika==1.8.1
 pexpect==3.3
+elasticsearch==1.4.0

@@ -14,12 +14,12 @@ from liblcp import context
 from lcpenv import tasks as lcpenv_tasks
 
 from fabfile.app_configuration import configured_for
-from list_loading_app.controllers import api_builder
+from app.controllers import api_builder
 
 
 COVERAGE_OPTIONS = [
     '--with-coverage',
-    '--cover-package={0}'.format('list_loading_app'),
+    '--cover-package={0}'.format('app'),
     '--cover-branches',
     '--cover-html',
     '--cover-html-dir={0}'.format(os.path.join('test_results', 'coverage')),

@@ -27,6 +27,10 @@ class ResourceControllerMixin(controllers.BaseResourceController):
     def resource_by_id_resource_controller(self):
         return self.__class__
 
+    @property
+    def request_url(self):
+        return flask.request.url
+
     def create_restful_response_payload(self, response_model, **kwargs):
         response_dict = self.model_to_dict(response_model)
         response_dict = self.add_links_to_response_payload(response_dict, **kwargs)

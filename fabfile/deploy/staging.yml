@@ -6,7 +6,7 @@ tor-st-docker1.points.com:
       dependencies: []
     lb_config_node:
       load_balancer_host: list-loading-service-st.lxc.points.com
-      load_balancer_port: 1800
+      load_balancer_port: 2000
       node_port: 8080
       nodes: [list-loading-service-st-1.lxc.points.com, list-loading-service-st-2.lxc.points.com]
 

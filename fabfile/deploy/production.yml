@@ -6,7 +6,7 @@ tp-list-loading-service1.points.com:
       dependencies: []
     lb_config_node:
       load_balancer_host: list-loading-service.prd.points.com
-      load_balancer_port: 1800
+      load_balancer_port: 2000
       node_port: 8080
       nodes: [list-loading-service1.prd.points.com, list-loading-service2.prd.points.com]
 

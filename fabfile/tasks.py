@@ -44,6 +44,8 @@ destroy_lcp = lcpenv_tasks.destroy_lcp
 preserve_logs = lcpenv_tasks.preserve_logs
 generate_vagrantfile = lcpenv_tasks.generate_vagrantfile
 
+local("mkdir -p list_loading_service_logs")
+
 
 class ListLoadingServiceTestInContainerTask(fabrika.tasks.docker.TestInContainerTask):
 
@@ -54,8 +56,6 @@ class ListLoadingServiceTestInContainerTask(fabrika.tasks.docker.TestInContainer
             services_profile='testincontainer',
             test_config='testincontainer.ini',
             logs_dir=None):
-
-        local("mkdir -p {}".format(logs_dir or 'list_loading_service_logs'))
 
         if "-v" in nose_options or "--verbose" in nose_options:
             test_config += ";export LOG_LCP_REQUESTS=True"

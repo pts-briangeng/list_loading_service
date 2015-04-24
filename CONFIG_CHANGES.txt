@@ -2,7 +2,7 @@ servicecontainer.cfg:
 
 # This is the base URL that service use to communicate with each other internally.
 ACTIVE_SERVICES = [
-  'list_loading_app.list_loading_service',
+  'app.list_loading_service',
 ]
 
 # This is the base URL that service use to communicate with each other internally.

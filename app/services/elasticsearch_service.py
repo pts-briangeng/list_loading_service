@@ -1,7 +1,7 @@
 import logging
 import csv
 import os
-
+import configuration
 import elasticsearch
 from elasticsearch import helpers
 from liblcp import cross_service
@@ -30,6 +30,7 @@ def elastic_search_operation(f):
                     }
                 }
                 cross_service.post(service=request.index, path=request.callbackUrl, data=data)
+
     return wrapper
 
 
@@ -50,7 +51,9 @@ def create_list(request):
                 }
             }
             actions.append(action)
-        es = elasticsearch.Elasticsearch()
+        es = elasticsearch.Elasticsearch([
+            {'host': configuration.data.ELASTIC_SEARCH_SERVER, 'port': configuration.data.ELASTIC_SEARCH_PORT}
+        ])
         logger.info("Bulk indexing file")
         result = helpers.bulk(es, actions)
         logger.info("Finished indexing {} documents".format(result[0]))

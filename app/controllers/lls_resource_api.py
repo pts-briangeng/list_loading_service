@@ -26,7 +26,7 @@ class CreateListPostResourceController(base.ResourceControllerMixin, controllers
         file = request_model.get("file", "")
         request = models.Request(url=url, index=index, type=type, file=file, callbackUrl=callback_url)
 
-        multiprocessing.Process(target=list_processing.ListProcessingService()._elastic_search_operation,
+        multiprocessing.Process(target=list_processing.ListProcessingService().create_list,
                                 args=(request,)).start()
 
         return {}

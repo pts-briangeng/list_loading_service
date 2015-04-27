@@ -37,7 +37,7 @@ class TestListProcessing(unittest.TestCase):
         mock_elastic_search.return_value = mock.MagicMock()
         mock_cross_service_post.return_value = True
         request = models.Request(**self.data)
-        self.service._elastic_search_operation(request)
+        self.service.create_list(request)
 
         mock_bulk.assert_called_with(mock_elastic_search.return_value,
                                      [{'_type': 'type', '_id': 1L, '_source': {'id': 'abc'}, '_index': 'index'}])
@@ -51,5 +51,5 @@ class TestListProcessing(unittest.TestCase):
         self.data.pop('callbackUrl')
         mock_cross_service_post.return_value = True
         request = models.Request(**self.data)
-        self.service._elastic_search_operation(request)
+        self.service.create_list(request)
         mock_cross_service_post.assert_has_calls([])

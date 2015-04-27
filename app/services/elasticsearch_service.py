@@ -50,9 +50,7 @@ def create_list(request):
                 }
             }
             actions.append(action)
-        es = elasticsearch.Elasticsearch([
-            {'host': configuration.data.ELASTIC_SEARCH_SERVER, 'port': configuration.data.ELASTIC_SEARCH_PORT}
-        ])
+        es = elasticsearch.Elasticsearch([configuration.data.ELASTIC_SEARCH_SERVER])
         logger.info("Bulk indexing file")
         result = helpers.bulk(es, actions)
         logger.info("Finished indexing {} documents".format(result[0]))

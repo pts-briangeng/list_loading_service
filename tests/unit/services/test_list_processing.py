@@ -1,15 +1,17 @@
-import unittest
-import os
-import csv
-
 import mock
 import liblcp
 from elasticsearch import helpers
 import elasticsearch
-
+import unittest
 from app import models
 from app.services import elasticsearch_service
 import configuration
+import os
+import csv
+
+
+class CsvMock(list):
+    line_num = 1L
 
 
 class TestListProcessing(unittest.TestCase):
@@ -34,12 +36,15 @@ class TestListProcessing(unittest.TestCase):
                                       mock_config, mock_bulk,
                                       mock_cross_service_post):
         mock_open.return_value = mock.MagicMock(spec=file)
+        mock_csv_reader.return_value = CsvMock([['abc']])
+
         mock_elastic_search.return_value = mock.MagicMock()
         mock_cross_service_post.return_value = True
         request = models.Request(**self.data)
         elasticsearch_service.create_list(request)
 
-        mock_bulk.assert_called_with(mock_elastic_search.return_value, [])
+        mock_bulk.assert_called_with(mock_elastic_search.return_value,
+                                     [{'_type': 'type', '_id': 1L, '_source': {'id': 'abc'}, '_index': 'index'}])
         mock_elastic_search.return_value.indices.refresh.assert_called_with(index='index')
         mock_cross_service_post.assert_has_calls([mock.call(path='callback',
                                                             data={'links': {'self': {'href': 'url'}}, 'success': True},

@@ -28,7 +28,7 @@ def elastic_search_operation(f):
                         }
                     }
                 }
-                cross_service.post(service=request.index, path=request.callbackUrl, data=data)
+                cross_service.post_or_abort(service=request.index, path=request.callbackUrl, data=data)
 
     return wrapper
 

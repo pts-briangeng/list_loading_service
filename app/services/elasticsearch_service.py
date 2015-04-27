@@ -12,17 +12,16 @@ logger = logging.getLogger(__name__)
 
 def elastic_search_operation(f):
     def wrapper(request):
-        errors = None
+        errors = False
         try:
             f(request)
         except Exception as e:
             errors = True
-            logging.error(e.message)
-            logging.error("An error occurred when creating a new list")
+            logging.error("An error occurred when creating a new list: {}".format(e.message))
         finally:
             if request.callbackUrl:
                 data = {
-                    'success': False if errors else True,
+                    'success': not errors,
                     'links': {
                         'self': {
                             'href': request.url

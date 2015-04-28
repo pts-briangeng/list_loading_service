@@ -17,7 +17,7 @@ def elastic_search_operation(f):
             f(request)
         except Exception as e:
             errors = True
-            logging.error("An error occurred when creating a new list: ", e, exc_info=1)
+            logging.error("An error occurred when creating a new list: " + e.message, exc_info=1)
         finally:
             if request.callbackUrl:
                 data = {

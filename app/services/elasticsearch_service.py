@@ -28,7 +28,7 @@ def elastic_search_operation(f):
                         }
                     }
                 }
-                cross_service.post(service=request.index, path=request.callbackUrl, data=data)
+                cross_service.post_or_abort(service=request.index, path=request.callbackUrl, data=data)
 
     return wrapper
 
@@ -50,9 +50,7 @@ def create_list(request):
                 }
             }
             actions.append(action)
-        es = elasticsearch.Elasticsearch([
-            {'host': configuration.data.ELASTIC_SEARCH_SERVER, 'port': configuration.data.ELASTIC_SEARCH_PORT}
-        ])
+        es = elasticsearch.Elasticsearch([configuration.data.ELASTIC_SEARCH_SERVER])
         logger.info("Bulk indexing file")
         result = helpers.bulk(es, actions)
         logger.info("Finished indexing {} documents".format(result[0]))

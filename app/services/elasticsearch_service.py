@@ -6,12 +6,58 @@ import configuration
 import elasticsearch
 from elasticsearch import helpers
 from liblcp import cross_service
-
+import openpyxl
 
 logger = logging.getLogger(__name__)
 
 
-def elastic_search_operation(f):
+class FileReader(object):
+    def __init__(self, filename):
+        self.filename = filename
+
+    def __enter__(self):
+        pass
+
+    def __exit__(self, exc_type, exc_val, exc_tb):
+        pass
+
+    def get_rows(self):
+        pass
+
+
+class CsvReader(FileReader):
+    def __init__(self, filename):
+        super(CsvReader, self).__init__(filename)
+        print "init"
+
+    def __enter__(self):
+        print "enter"
+        self.csv_file = open(self.filename, 'r')
+        return self.csv_file
+
+    def __exit__(self, exc_type, exc_val, exc_tb):
+        self.csv_file.close()
+
+    def get_rows(self):
+        for row in csv.reader(self.csv_file):
+            yield row[0]
+
+
+class ExcelReader(FileReader):
+    def __init__(self, filename):
+        super(ExcelReader, self).__init__(filename)
+
+    def __enter__(self):
+        self.workbook = openpyxl.load_workbook(self.filename, read_only=True)
+        self.worksheet = self.workbook.active
+        return self.worksheet
+
+    def get_rows(self):
+        for row in self.worksheet.rows:
+            yield row[0].value
+
+
+def elastic_search_callback(f):
     def wrapper(request):
         errors = False
         try:
@@ -35,25 +81,27 @@ def elastic_search_operation(f):
     return wrapper
 
 
-@elastic_search_operation
+@elastic_search_callback
 def create_list(request):
     if not os.path.isfile(request.file):
         raise IOError("File does not exist")
-    with open(request.file, 'r') as csv_file:
-        csv_reader = csv.reader(csv_file)
-        actions = []
-        for line in csv_reader:
+    filetype = request.file.split('.')[-1]
+    file_reader = CsvReader(request.file) if filetype == 'csv' else ExcelReader(request.file)
+    actions = []
+    with file_reader:
+        for line in file_reader.get_rows():
             action = {
                 "_index": request.index,
                 "_type": request.type,
-                "_id": csv_reader.line_num,
+                "_id": line,
                 "_source": {
-                    "id": line[0]
+                    "accountNumber": line
                 }
             }
             actions.append(action)
-        es = elasticsearch.Elasticsearch([configuration.data.ELASTIC_SEARCH_SERVER])
-        logger.info("Bulk indexing file")
-        result = helpers.bulk(es, actions)
-        logger.info("Finished indexing {} documents".format(result[0]))
-        es.indices.refresh(index=request.index)
+
+    es = elasticsearch.Elasticsearch([configuration.data.ELASTIC_SEARCH_SERVER])
+    logger.info("Bulk indexing file")
+    result = helpers.bulk(es, actions)
+    es.indices.refresh(index=request.index)
+    logger.info("Finished indexing {} documents".format(result[0]))

@@ -1,13 +1,15 @@
 import mock
 import liblcp
-from elasticsearch import helpers
-import elasticsearch
-import unittest
-from app import models
-from app.services import elasticsearch_service
 import configuration
 import os
 import csv
+import elasticsearch
+import unittest
+
+from elasticsearch import helpers
+
+from app import models
+from app.services import elasticsearch_service
 
 
 class CsvMock(list):

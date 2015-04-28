@@ -58,7 +58,10 @@ class StubHttpRequestHandler(BaseHTTPServer.BaseHTTPRequestHandler):
             for header_key, header_value in self.headers.items():
                 _write_line(header_key + ":" + header_value)
             _write_line("")
-            _write_line("" if not self.payload else json.loads(self.payload))
+            try:
+                _write_line("" if not self.payload else json.loads(self.payload))
+            except:
+                _write_line(self.payload)
 
     def do_POST(self):
         response = self.server.pop_response()

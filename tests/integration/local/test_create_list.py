@@ -31,24 +31,24 @@ class CreateListEndpointTest(base.BaseIntegrationLiveStubServerTestCase):
         self.headers = testing_utilities.generate_headers(base_url='http://live.lcpenv')
         self.data = {'file': '/test/file'}
 
-    def test_create_offer(self):
+    def test_create_list(self):
         response = requests.post(BASE_SERVICE_URL + CREATE_LIST_URL, json.dumps(self.data), headers=self.headers)
         response_content = json.loads(response.content)
 
         tools.assert_equal(httplib.ACCEPTED, response.status_code)
         tools.assert_in(CREATE_LIST_URL, response_content['links']['self']['href'])
 
-    def test_create_offer_with_callback_url(self):
+    def test_create_list_with_callback_url(self):
         self.queue_stub_response({"status_code": httplib.OK})
-        self.data['callbackUrl'] = 'http://www.callmemaybe.com/'
+        self.data['callbackUrl'] = 'http://offers-ft.lxc.points.com:1300/'
         response = requests.post(BASE_SERVICE_URL + CREATE_LIST_URL, json.dumps(self.data), headers=self.headers)
         response_content = json.loads(response.content)
 
         tools.assert_equal(httplib.ACCEPTED, response.status_code)
         tools.assert_in(CREATE_LIST_URL, response_content['links']['self']['href'])
 
-    def test_create_offer_missing_file(self):
-        data = {'callbackUrl': 'http://www.callmemaybe.com/'}
+    def test_create_list_missing_file(self):
+        data = {'callbackUrl': 'http://offers-ft.lxc.points.com:1300/'}
         response = requests.post(BASE_SERVICE_URL + CREATE_LIST_URL, json.dumps(data), headers=self.headers)
         response_content = json.loads(response.content)
 

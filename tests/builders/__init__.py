@@ -1,0 +1,3 @@
+import elastic_search_builder
+
+ESResponseBuilder = elastic_search_builder.ElasticSearchResponseJsonBuilder

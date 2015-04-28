@@ -39,12 +39,12 @@ class ElasticSearchService(unittest.TestCase):
         }
 
     @mock.patch.object(liblcp.cross_service, 'post_or_abort', autospec=True)
-    @mock.patch.object(helpers, 'bulk')
-    @mock.patch.object(configuration, 'data')
-    @mock.patch.object(elasticsearch, 'Elasticsearch')
+    @mock.patch.object(helpers, 'bulk', autospec=True)
+    @mock.patch.object(configuration, 'data', autospec=True)
+    @mock.patch.object(elasticsearch, 'Elasticsearch', autospec=True)
     @mock.patch.object(csv, 'reader', autospec=True)
     @mock.patch.object(elasticsearch_service, 'open', create=True)
-    @mock.patch.object(os.path, 'isfile')
+    @mock.patch.object(os.path, 'isfile', autospec=True)
     def test_elastic_search_operation_with_csv(self, mock_is_file, mock_open, mock_csv_reader, mock_elastic_search,
                                                mock_config, mock_bulk, mock_cross_service_post):
         mock_open.return_value = mock.MagicMock(spec=file)
@@ -64,11 +64,11 @@ class ElasticSearchService(unittest.TestCase):
                                                             service='index')])
 
     @mock.patch.object(liblcp.cross_service, 'post_or_abort', autospec=True)
-    @mock.patch.object(helpers, 'bulk')
-    @mock.patch.object(configuration, 'data')
-    @mock.patch.object(elasticsearch, 'Elasticsearch')
+    @mock.patch.object(helpers, 'bulk', autospec=True)
+    @mock.patch.object(configuration, 'data', autospec=True)
+    @mock.patch.object(elasticsearch, 'Elasticsearch', autospec=True)
     @mock.patch.object(openpyxl, 'load_workbook', autospec=True)
-    @mock.patch.object(os.path, 'isfile')
+    @mock.patch.object(os.path, 'isfile', autospec=True)
     def test_elastic_search_operation_excel(self, mock_is_file, mock_load_workbook, mock_elastic_search, mock_config,
                                             mock_bulk, mock_cross_service_post):
         mock_load_workbook.return_value.active.rows = [[MockCell('abc')]]

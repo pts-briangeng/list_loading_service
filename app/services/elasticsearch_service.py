@@ -1,4 +1,5 @@
 import logging
+import traceback
 import csv
 import os
 import configuration
@@ -17,7 +18,8 @@ def elastic_search_operation(f):
             f(request)
         except Exception as e:
             errors = True
-            logging.error("An error occurred when creating a new list: " + e.message, exc_info=1)
+            logger.error('An error occurred when creating a new list: {}'.format(e.message))
+            logger.error(traceback.format_exc(), exc_info=1)
         finally:
             if request.callbackUrl:
                 data = {

@@ -17,3 +17,4 @@ PyYAML==3.11
 fabrika==1.10.0
 pexpect==3.3
 elasticsearch==1.4.0
+openpyxl==2.2.1

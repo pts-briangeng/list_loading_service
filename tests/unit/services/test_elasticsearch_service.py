@@ -1,15 +1,18 @@
-import mock
-import liblcp
-from elasticsearch import helpers
-import elasticsearch
 import unittest
-from app import models
-from app.services import elasticsearch_service
-import configuration
 import os
 import csv
 import copy
+
+import mock
+import liblcp
+import elasticsearch
 import openpyxl
+from elasticsearch import helpers
+from nose import tools
+
+import configuration
+from app import models
+from app.services import elasticsearch_service
 
 
 class CsvMock(list):
@@ -25,7 +28,7 @@ class MockCell(object):
         return self.cell_value
 
 
-class TestListProcessing(unittest.TestCase):
+class ElasticSearchService(unittest.TestCase):
     def setUp(self):
         self.data = {
             'url': 'url',
@@ -92,3 +95,12 @@ class TestListProcessing(unittest.TestCase):
         request = models.Request(**self.data)
         elasticsearch_service.create_list(request)
         mock_cross_service_post.assert_has_calls([])
+
+    @mock.patch.object(elasticsearch, 'Elasticsearch', autospec=True)
+    def test_list_status(self, mock_elastic_search):
+        request = models.Request(**self.data)
+        response = elasticsearch_service.get_list_status(request)
+        tools.assert_equal(mock_elastic_search.return_value.search.return_value, response)
+        mock_elastic_search.return_value.search.assert_called_once_with(doc_type='type',
+                                                                        index='index',
+                                                                        search_type='count')

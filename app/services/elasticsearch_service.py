@@ -4,9 +4,12 @@ import csv
 import os
 import configuration
 import elasticsearch
-from elasticsearch import helpers
-from liblcp import cross_service
 import openpyxl
+
+from elasticsearch import helpers
+
+from liblcp import cross_service
+
 
 logger = logging.getLogger(__name__)
 
@@ -105,3 +108,10 @@ def create_list(request):
     result = helpers.bulk(es, actions)
     es.indices.refresh(index=request.index)
     logger.info("Finished indexing {} documents".format(result[0]))
+
+
+def get_list_status(request):
+    es = elasticsearch.Elasticsearch(configuration.data.ELASTIC_SEARCH_SERVER)
+    result = es.search(index=request.index, doc_type=request.type, search_type="count")
+    logger.info("elastic search response {}".format(result))
+    return result

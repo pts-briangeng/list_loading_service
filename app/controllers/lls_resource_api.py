@@ -1,12 +1,15 @@
 import httplib
 import multiprocessing
+import logging
 
 from restframework import controllers
 
 from app.controllers import base
 from app.controllers.schemas import post_list
-from app.services import list_processing
+from app import services
 from app import models
+
+logger = logging.getLogger(__name__)
 
 
 class CreateListPostResourceController(base.ResourceControllerMixin, controllers.PostResourceController):
@@ -26,7 +29,20 @@ class CreateListPostResourceController(base.ResourceControllerMixin, controllers
         file = request_model.get("file", "")
         request = models.Request(url=url, index=index, type=type, file=file, callbackUrl=callback_url)
 
-        multiprocessing.Process(target=list_processing.ListProcessingService().create_list,
-                                args=(request,)).start()
+        multiprocessing.Process(target=services.ListProcessing().create_list, args=(request,)).start()
 
         return {}
+
+
+class ListStatusGetResourceController(base.ResourceControllerMixin, controllers.GetResourceController):
+
+    @property
+    def resource_by_id_resource_controller(self):
+        return ListStatusGetResourceController
+
+    def get_resource_model(self, resource):
+        url = self.request_url
+        index = resource.get("index", "")
+        type = resource.get("type", "")
+        request = models.Request(url=url, index=index, type=type)
+        return services.ListProcessing().get_list_status(request)

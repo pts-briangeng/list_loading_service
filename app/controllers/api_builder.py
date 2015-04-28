@@ -5,7 +5,7 @@ from liblcp import context as lcp_context
 from restframework import rest_api
 
 from app import app_logging, instrumentation
-from app.controllers.lls_resource_api import CreateListPostResourceController
+from app.controllers.lls_resource_api import CreateListPostResourceController, ListStatusGetResourceController
 
 
 logger = logging.getLogger(__name__)
@@ -21,6 +21,7 @@ class ApiConfiguration(object):
 
     def setup_endpoints(self):
         self.api.add_resource(CreateListPostResourceController, '/index/<index>/type/<type>')
+        self.api.add_resource(ListStatusGetResourceController, '/index/<index>/type/<type>/status')
 
 
 def build_server():

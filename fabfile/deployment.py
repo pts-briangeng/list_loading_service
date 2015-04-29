@@ -20,6 +20,7 @@ ENABLE_NSCD = 'enable_nscd'
 
 FABRIC_ROLE_DOCKER_HOST = 'docker_host'
 FABRIC_ROLE_LOAD_BALANCER = 'lb_config_node'
+FABRIC_ROLE_ELASTIC_SEARCH_LOAD_BALANCER = 'elastic_search_lb_config_node'
 
 NSCD_SOCKET_SOURCE = '/var/run/nscd'
 NSCD_SOCKET_TARGET = '/tmp/nscd-extern'
@@ -39,6 +40,7 @@ def full_deploy(environment, full_image_name, configuration_dir, run_migrate=Fal
     print(env_properties.format(roledefs=env.roledefs, hosts=env.hosts, properties=env.host_role_properties))
 
     execute(deploy_docker_image, full_image_name, configuration_dir, enable_nscd=enable_nscd)
+    execute(setup_elastic_search_service_load_balancer)
     execute(setup_lls_service_load_balancer)
 
 
@@ -72,6 +74,12 @@ def set_load_balancer(role):
 def setup_lls_service_load_balancer():
     print(">>>>>>> setting up load balancer on host {}".format(env.host_string))
     set_load_balancer(FABRIC_ROLE_LOAD_BALANCER)
+
+
+@roles(FABRIC_ROLE_ELASTIC_SEARCH_LOAD_BALANCER)
+def setup_elastic_search_service_load_balancer():
+    print(">>>>>>> setting up search service load balancer on host {}".format(env.host_string))
+    set_load_balancer(FABRIC_ROLE_ELASTIC_SEARCH_LOAD_BALANCER)
 
 
 def _process_nscd_mapping(volume_mappings, configuration, override):

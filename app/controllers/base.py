@@ -11,7 +11,7 @@ logger = logging.getLogger(__name__)
 RequestContext = namedtuple('RequestContext', ['principal', 'mode', 'external_base_host_url'])
 
 
-class ResourceControllerMixin(controllers.BaseResourceController):
+class BaseListResourceController(controllers.BaseResourceController):
 
     """
     Mixin to combine the similar functionality found in all the List Loading Service resource controllers.

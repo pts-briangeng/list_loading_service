@@ -12,7 +12,7 @@ from app import models
 logger = logging.getLogger(__name__)
 
 
-class CreateListPostResourceController(base.ResourceControllerMixin, controllers.PostResourceController):
+class CreateListPostResourceController(base.BaseListResourceController, controllers.PostResourceController):
 
     def __init__(self):
         super(CreateListPostResourceController, self).__init__(schema=post_list.REQUEST)
@@ -28,7 +28,7 @@ class CreateListPostResourceController(base.ResourceControllerMixin, controllers
         return {}
 
 
-class ListStatusGetResourceController(base.ResourceControllerMixin, controllers.GetResourceController):
+class ListStatusGetResourceController(base.BaseListResourceController, controllers.GetResourceController):
 
     @property
     def resource_by_id_resource_controller(self):

@@ -51,7 +51,7 @@ class ListLoadingServiceTestInContainerTask(fabrika.tasks.docker.TestInContainer
 
     def run(self, repo_type, tag, host=None, keeplcp=False,
             configuration=os.path.join(configuration_path, 'testincontainer'),
-            nose_options='-a container_integration',
+            nose_options='-a system_integration',
             port=5000,
             services_profile='testincontainer',
             test_config='testincontainer.ini',
@@ -64,6 +64,7 @@ class ListLoadingServiceTestInContainerTask(fabrika.tasks.docker.TestInContainer
 
         execute(start_lcp)
         execute(configure_routing, host='vagrant@lcpenv')
+
         with create_container_profile(os.path.join(configuration_path, configuration, 'servicecontainer.cfg')):
             if not logs_dir:
                 logs_dir = os.path.join(os.path.dirname(os.path.realpath(__file__)),

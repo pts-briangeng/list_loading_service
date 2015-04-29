@@ -2,10 +2,12 @@ import json
 import os
 import unittest
 
+from liblcp import configuration as liblcp_config
+
 import configuration
 import fabfile
-
 from tests.integration import testing_utilities
+
 
 CONFIGURATION_PATH = fabfile.configuration_path
 INTEGRATION_TEST_PATH = os.path.dirname(os.path.realpath(__file__))
@@ -13,7 +15,6 @@ BASE_PROJECT_PATH = os.path.join(INTEGRATION_TEST_PATH, '..', '..')
 
 
 class BaseIntegrationTestCase(unittest.TestCase):
-
     @classmethod
     def setUpClass(cls):
         cls._configure_test()
@@ -33,7 +34,6 @@ class BaseIntegrationTestCase(unittest.TestCase):
 
 
 class BaseIntegrationLiveStubServerTestCase(unittest.TestCase):
-
     @classmethod
     def setUpClass(cls):
         cls.stub_lcp = testing_utilities.StubServer.make_stub_lcp()
@@ -49,3 +49,26 @@ class BaseIntegrationLiveStubServerTestCase(unittest.TestCase):
         for stub_response in stub_responses:
             self.stub_lcp.queue_response(status_code=stub_response.get("status_code"),
                                          text=json.dumps(stub_response.get("response")))
+
+
+def retry_if_assertion_error(exception):
+    return isinstance(exception, AssertionError)
+
+
+class BaseFullIntegrationTestCase(BaseIntegrationTestCase, BaseIntegrationLiveStubServerTestCase):
+    @classmethod
+    def setUpClass(cls):
+        BaseIntegrationTestCase._configure_test()
+        BaseFullIntegrationTestCase._configure_liblcp()
+        BaseIntegrationLiveStubServerTestCase.setUpClass()
+
+    @classmethod
+    def tearDownClass(cls):
+        BaseIntegrationLiveStubServerTestCase.tearDownClass()
+
+    @staticmethod
+    def _configure_liblcp():
+        liblcp_config_data = {}
+        execfile(os.path.abspath(os.path.join(BASE_PROJECT_PATH, 'configuration', 'servicecontainer.cfg')),
+                 liblcp_config_data)
+        liblcp_config.set_configuration(liblcp_config_data)

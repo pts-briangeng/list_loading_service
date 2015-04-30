@@ -1,3 +1,3 @@
-import list_processing
+import elasticsearch_service
 
-ListProcessing = list_processing.ListProcessingService
+ElasticSearch = elasticsearch_service.ElasticSearchService

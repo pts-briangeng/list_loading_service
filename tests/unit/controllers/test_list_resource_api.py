@@ -59,7 +59,7 @@ class TestListStatusGetResourceController(unittest.TestCase):
         configuration.configure_from(os.path.join(configuration.CONFIGURATION_PATH, 'list_loading_service.cfg'))
         self.controller = lls_resource_api.ListStatusGetResourceController()
 
-    @mock.patch.object(services.ListProcessing, 'get_list_status', autospec=True)
+    @mock.patch.object(services.ElasticSearch, 'get_list_status', autospec=True)
     @mock.patch.object(flask, 'url_for', autospec=True)
     def test_get(self, mock_url_for, mock_service):
         app = flask.Flask(__name__)

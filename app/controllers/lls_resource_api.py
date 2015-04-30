@@ -24,7 +24,7 @@ class CreateListPostResourceController(base.BaseListResourceController, controll
 
     def process_request_model(self, request_model, **kwargs):
         request = models.Request(url=self.request_url, **dict(request_model, **kwargs))
-        multiprocessing.Process(target=services.ListProcessing().create_list, args=(request,)).start()
+        multiprocessing.Process(target=services.ElasticSearch().create_list, args=(request,)).start()
         return {}
 
 
@@ -36,4 +36,4 @@ class ListStatusGetResourceController(base.BaseListResourceController, controlle
 
     def get_resource_model(self, resource):
         request = models.Request(url=self.request_url, **resource)
-        return services.ListProcessing().get_list_status(request)
+        return services.ElasticSearch().get_list_status(request)

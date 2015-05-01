@@ -97,6 +97,13 @@ class ElasticSearchService(unittest.TestCase):
         mock_cross_service_post.assert_has_calls([])
 
     @mock.patch.object(elasticsearch, 'Elasticsearch', autospec=True)
+    def test_delete_list(self, mock_elastic_search):
+        mock_elastic_search.return_value = mock.MagicMock()
+        request = models.Request(**self.data)
+        elasticsearch_service.delete_list(request)
+        mock_elastic_search.return_value.indices.delete_mapping.assert_called_once_with(doc_type='type', index='index')
+
+    @mock.patch.object(elasticsearch, 'Elasticsearch', autospec=True)
     def test_list_status(self, mock_elastic_search):
         request = models.Request(**self.data)
         response = elasticsearch_service.get_list_status(request)

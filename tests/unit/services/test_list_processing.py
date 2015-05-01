@@ -25,3 +25,8 @@ class TestListProcessing(unittest.TestCase):
     def test_create_list(self, mock_elasticsearch_service):
         self.service.create_list(self.request)
         mock_elasticsearch_service.assert_called_once_with(self.request)
+
+    @mock.patch.object(services.elasticsearch_service, 'delete_list', autospec=True)
+    def test_delete_list(self, mock_elasticsearch_service):
+        self.service.delete_list(self.request)
+        mock_elasticsearch_service.assert_called_once_with(self.request)

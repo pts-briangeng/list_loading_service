@@ -110,6 +110,13 @@ def create_list(request):
     logger.info("Finished indexing {} documents".format(result[0]))
 
 
+def delete_list(request):
+    es = elasticsearch.Elasticsearch(configuration.data.ELASTIC_SEARCH_SERVER)
+    result = es.indices.delete_mapping(index=request.index, doc_type=request.type)
+    logger.info("Elastic search delete response {}".format(result))
+    return result
+
+
 def get_list_status(request):
     es = elasticsearch.Elasticsearch(configuration.data.ELASTIC_SEARCH_SERVER)
     result = es.search(index=request.index, doc_type=request.type, search_type="count")

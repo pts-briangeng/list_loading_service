@@ -64,7 +64,8 @@ class ListLoadingServiceTestInContainerTask(fabrika.tasks.docker.TestInContainer
 
         execute(start_lcp)
         execute(configure_routing, host='vagrant@lcpenv')
-
+        # copy over test file to container
+        shutil.copy('tests/samples/test.csv', os.path.join(configuration_path, configuration))
         with create_container_profile(os.path.join(configuration_path, configuration, 'servicecontainer.cfg')):
             if not logs_dir:
                 logs_dir = os.path.join(os.path.dirname(os.path.realpath(__file__)),

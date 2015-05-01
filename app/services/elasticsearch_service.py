@@ -61,10 +61,10 @@ class ExcelReader(FileReader):
 
 
 def elastic_search_callback(f):
-    def wrapper(request):
+    def wrapper(self, request):
         errors = False
         try:
-            f(request)
+            f(self, request)
         except Exception as e:
             errors = True
             logger.error('An error occurred when creating a new list: {}'.format(e.message))
@@ -84,34 +84,41 @@ def elastic_search_callback(f):
     return wrapper
 
 
-@elastic_search_callback
-def create_list(request):
-    if not os.path.isfile(request.file):
-        raise IOError("File does not exist")
-    filetype = request.file.split('.')[-1]
-    file_reader = CsvReader(request.file) if filetype == 'csv' else ExcelReader(request.file)
-    actions = []
-    with file_reader:
-        for line in file_reader.get_rows():
-            action = {
-                "_index": request.index,
-                "_type": request.type,
-                "_id": line,
-                "_source": {
-                    "accountNumber": line
+class ElasticSearchService(object):
+
+    @elastic_search_callback
+    def create_list(self, request):
+        if not os.path.isfile(request.file):
+            raise IOError("File does not exist")
+        filetype = request.file.split('.')[-1]
+        file_reader = CsvReader(request.file) if filetype == 'csv' else ExcelReader(request.file)
+        actions = []
+        with file_reader:
+            for line in file_reader.get_rows():
+                action = {
+                    "_index": request.index,
+                    "_type": request.type,
+                    "_id": line,
+                    "_source": {
+                        "accountNumber": line
+                    }
                 }
-            }
-            actions.append(action)
+                actions.append(action)
 
-    es = elasticsearch.Elasticsearch([configuration.data.ELASTIC_SEARCH_SERVER])
-    logger.info("Bulk indexing file")
-    result = helpers.bulk(es, actions)
-    es.indices.refresh(index=request.index)
-    logger.info("Finished indexing {} documents".format(result[0]))
+        es = elasticsearch.Elasticsearch([configuration.data.ELASTIC_SEARCH_SERVER])
+        logger.info("Bulk indexing file")
+        result = helpers.bulk(es, actions)
+        es.indices.refresh(index=request.index)
+        logger.info("Finished indexing {} documents".format(result[0]))
 
+    def delete_list(self, request):
+        es = elasticsearch.Elasticsearch(configuration.data.ELASTIC_SEARCH_SERVER)
+        result = es.indices.delete_mapping(index=request.index, doc_type=request.type)
+        logger.info("Elastic search delete response {}".format(result))
+        return result
 
-def get_list_status(request):
-    es = elasticsearch.Elasticsearch(configuration.data.ELASTIC_SEARCH_SERVER)
-    result = es.search(index=request.index, doc_type=request.type, search_type="count")
-    logger.info("elastic search response {}".format(result))
-    return result
+    def get_list_status(self, request):
+        es = elasticsearch.Elasticsearch(configuration.data.ELASTIC_SEARCH_SERVER)
+        result = es.search(index=request.index, doc_type=request.type, search_type="count")
+        logger.info("elastic search response {}".format(result))
+        return result

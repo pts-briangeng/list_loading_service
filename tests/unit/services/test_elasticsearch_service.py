@@ -12,7 +12,7 @@ from nose import tools
 
 import configuration
 from app import models
-from app.services import elasticsearch_service
+from app import services
 
 
 class CsvMock(list):
@@ -28,7 +28,7 @@ class MockCell(object):
         return self.cell_value
 
 
-class ElasticSearchService(unittest.TestCase):
+class TestElasticSearchService(unittest.TestCase):
     def setUp(self):
         self.data = {
             'url': 'url',
@@ -37,13 +37,15 @@ class ElasticSearchService(unittest.TestCase):
             'type': 'type',
             'callbackUrl': 'callback',
         }
+        self.service = services.ElasticSearch()
+        configuration.configure_from(os.path.join(configuration.CONFIGURATION_PATH, 'list_loading_service.cfg'))
 
     @mock.patch.object(liblcp.cross_service, 'post_or_abort', autospec=True)
     @mock.patch.object(helpers, 'bulk', autospec=True)
     @mock.patch.object(configuration, 'data', autospec=True)
     @mock.patch.object(elasticsearch, 'Elasticsearch', autospec=True)
     @mock.patch.object(csv, 'reader', autospec=True)
-    @mock.patch.object(elasticsearch_service, 'open', create=True)
+    @mock.patch.object(services.elasticsearch_service, 'open', create=True)
     @mock.patch.object(os.path, 'isfile', autospec=True)
     def test_elastic_search_operation_with_csv(self, mock_is_file, mock_open, mock_csv_reader, mock_elastic_search,
                                                mock_config, mock_bulk, mock_cross_service_post):
@@ -53,7 +55,7 @@ class ElasticSearchService(unittest.TestCase):
         mock_elastic_search.return_value = mock.MagicMock()
         mock_cross_service_post.return_value = True
         request = models.Request(**self.data)
-        elasticsearch_service.create_list(request)
+        self.service.create_list(request)
 
         mock_bulk.assert_called_with(mock_elastic_search.return_value,
                                      [{'_type': 'type', '_id': 'abc', '_source': {'accountNumber': 'abc'},
@@ -78,7 +80,7 @@ class ElasticSearchService(unittest.TestCase):
         data = copy.deepcopy(self.data)
         data['file'] = 'file.xlsx'
         request = models.Request(**data)
-        elasticsearch_service.create_list(request)
+        self.service.create_list(request)
 
         mock_bulk.assert_called_with(mock_elastic_search.return_value,
                                      [{'_type': 'type', '_id': 'abc', '_source': {'accountNumber': 'abc'},
@@ -93,20 +95,20 @@ class ElasticSearchService(unittest.TestCase):
         self.data.pop('callbackUrl')
         mock_cross_service_post.return_value = True
         request = models.Request(**self.data)
-        elasticsearch_service.create_list(request)
+        self.service.create_list(request)
         mock_cross_service_post.assert_has_calls([])
 
     @mock.patch.object(elasticsearch, 'Elasticsearch', autospec=True)
     def test_delete_list(self, mock_elastic_search):
         mock_elastic_search.return_value = mock.MagicMock()
         request = models.Request(**self.data)
-        elasticsearch_service.delete_list(request)
+        self.service.delete_list(request)
         mock_elastic_search.return_value.indices.delete_mapping.assert_called_once_with(doc_type='type', index='index')
 
     @mock.patch.object(elasticsearch, 'Elasticsearch', autospec=True)
     def test_list_status(self, mock_elastic_search):
         request = models.Request(**self.data)
-        response = elasticsearch_service.get_list_status(request)
+        response = self.service.get_list_status(request)
         tools.assert_equal(mock_elastic_search.return_value.search.return_value, response)
         mock_elastic_search.return_value.search.assert_called_once_with(doc_type='type',
                                                                         index='index',

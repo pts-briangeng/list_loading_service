@@ -82,7 +82,7 @@ class TestDeleteListResourceController(unittest.TestCase):
         configuration.configure_from(os.path.join(configuration.CONFIGURATION_PATH, 'list_loading_service.cfg'))
         self.controller = lls_resource_api.DeleteListResourceController()
 
-    @mock.patch.object(services.ListProcessing, 'delete_list', autospec=True)
+    @mock.patch.object(services.ElasticSearch, 'delete_list', autospec=True)
     @mock.patch.object(flask, 'url_for', autospec=True)
     def test_delete(self, mock_url_for, mock_service):
         app = flask.Flask(__name__)
@@ -96,7 +96,7 @@ class TestDeleteListResourceController(unittest.TestCase):
             tools.assert_equal(mock_service.call_count, 1)
             mock_url_for.assert_called_once_with('getlistbyidresourcecontroller', _external=True)
 
-    @mock.patch.object(services.ListProcessing, 'delete_list', autospec=True)
+    @mock.patch.object(services.ElasticSearch, 'delete_list', autospec=True)
     @mock.patch.object(flask, 'url_for', autospec=True)
     def test_delete_with_errors(self, mock_url_for, mock_service):
         app = flask.Flask(__name__)
@@ -116,7 +116,7 @@ class TestListStatusGetResourceController(unittest.TestCase):
         configuration.configure_from(os.path.join(configuration.CONFIGURATION_PATH, 'list_loading_service.cfg'))
         self.controller = lls_resource_api.ListStatusGetResourceController()
 
-    @mock.patch.object(services.ListProcessing, 'get_list_status', autospec=True)
+    @mock.patch.object(services.ElasticSearch, 'get_list_status', autospec=True)
     @mock.patch.object(flask, 'url_for', autospec=True)
     def test_get(self, mock_url_for, mock_service):
         app = flask.Flask(__name__)

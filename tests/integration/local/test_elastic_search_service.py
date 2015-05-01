@@ -5,7 +5,7 @@ from liblcp import cross_service
 from nose.plugins import attrib
 
 from app import models
-from app.services import elasticsearch_service
+from app import services
 from tests import builders
 from tests.integration import base
 
@@ -19,7 +19,7 @@ class CreateListServiceTest(base.BaseIntegrationLiveStubServerTestCase):
         base.BaseIntegrationTestCase.setUpClass()
 
     def setUp(self):
-        self.service = elasticsearch_service
+        self.service = services.ElasticSearch()
 
     @mock.patch.object(cross_service, 'post_or_abort', autospec=True)
     def test_create_list(self, mock_cross_service):

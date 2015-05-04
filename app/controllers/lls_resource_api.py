@@ -2,13 +2,12 @@ import httplib
 import multiprocessing
 import logging
 
-from restframework import controllers, errors
+from restframework import controllers
 from werkzeug import exceptions as flask_errors
 
+from app import exceptions, models, services
 from app.controllers import base
 from app.controllers.schemas import post_list, post_empty
-from app import services
-from app import models
 
 logger = logging.getLogger(__name__)
 
@@ -47,11 +46,7 @@ class DeleteListResourceController(base.BaseListResourceController, controllers.
 
     def __init__(self):
         super(DeleteListResourceController, self).__init__(schema=post_empty.REQUEST,
-                                                           exception_translations={
-                                                               Exception: (httplib.NOT_FOUND,
-                                                                           errors.NOT_FOUND,
-                                                                           'Could not find type to delete.')
-                                                           })
+                                                           exception_translations=exceptions.EXCEPTION_TRANSLATIONS)
         self.http_successful_response_status = httplib.ACCEPTED
 
     @property
@@ -61,8 +56,6 @@ class DeleteListResourceController(base.BaseListResourceController, controllers.
     def process_request_model(self, request_model, **kwargs):
         request = models.Request(url=self.request_url, **dict(request_model, **kwargs))
         response = services.ElasticSearch().delete_list(request)
-        if 'status' in response and response['status'] == httplib.NOT_FOUND:
-            raise LookupError
         return response
 
 

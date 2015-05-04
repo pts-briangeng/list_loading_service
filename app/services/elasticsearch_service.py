@@ -5,6 +5,7 @@ import os
 import configuration
 import elasticsearch
 import openpyxl
+import httplib
 
 from elasticsearch import helpers
 
@@ -115,6 +116,12 @@ class ElasticSearchService(object):
         es = elasticsearch.Elasticsearch(configuration.data.ELASTIC_SEARCH_SERVER)
         result = es.indices.delete_mapping(index=request.index, doc_type=request.type)
         logger.info("Elastic search delete response {}".format(result))
+        if 'status' in result and result['status'] == httplib.NOT_FOUND:
+            logger.warning("Elastic search delete request not found")
+            raise LookupError
+        if 'acknowledged' in result and not result['acknowledged']:
+            logger.warning("Elastic search delete response not acknowledged successfully")
+            raise Exception
         return result
 
     def get_list_status(self, request):

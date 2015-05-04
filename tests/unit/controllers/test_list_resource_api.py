@@ -86,7 +86,8 @@ class TestDeleteListResourceController(unittest.TestCase):
     @mock.patch.object(flask, 'url_for', autospec=True)
     def test_delete(self, mock_url_for, mock_service):
         app = flask.Flask(__name__)
-        mock_service.return_value = builders.ESDeleteResponseBuilder().http_response()['response']
+        mock_service.return_value = (builders.ESDeleteResponseBuilder()
+                                     .with_acknowledged_response().http_response()['response'])
         with app.test_request_context('/index/app/type/6d04bd2d-da75-420f-a52a-d2ffa0c48c42',
                                       method='DELETE',
                                       headers=Headers(test_sandbox_headers),
@@ -100,13 +101,26 @@ class TestDeleteListResourceController(unittest.TestCase):
     @mock.patch.object(flask, 'url_for', autospec=True)
     def test_delete_with_errors(self, mock_url_for, mock_service):
         app = flask.Flask(__name__)
-        mock_service.return_value = builders.ESDeleteResponseBuilder().http_response(with_errors=True)['response']
+        mock_service.side_effect = LookupError
         with app.test_request_context('/index/app/type/6d04bd2d-da75-420f-a52a-d2ffa0c48c42',
                                       method='DELETE',
                                       headers=Headers(test_sandbox_headers),
                                       data=json.dumps({})):
             response = self.controller.delete()
             tools.assert_equal(httplib.NOT_FOUND, response[1])
+            tools.assert_equal(mock_service.call_count, 1)
+
+    @mock.patch.object(services.ElasticSearch, 'delete_list', autospec=True)
+    @mock.patch.object(flask, 'url_for', autospec=True)
+    def test_delete_not_acknowledged(self, mock_url_for, mock_service):
+        app = flask.Flask(__name__)
+        mock_service.side_effect = Exception
+        with app.test_request_context('/index/app/type/6d04bd2d-da75-420f-a52a-d2ffa0c48c42',
+                                      method='DELETE',
+                                      headers=Headers(test_sandbox_headers),
+                                      data=json.dumps({})):
+            response = self.controller.delete()
+            tools.assert_equal(httplib.INTERNAL_SERVER_ERROR, response[1])
             tools.assert_equal(mock_service.call_count, 1)
 
 

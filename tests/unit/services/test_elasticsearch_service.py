@@ -11,8 +11,8 @@ from elasticsearch import helpers
 from nose import tools
 
 import configuration
-from app import models
-from app import services
+from app import models, services
+from tests import builders
 
 
 class CsvMock(list):
@@ -104,6 +104,24 @@ class TestElasticSearchService(unittest.TestCase):
         request = models.Request(**self.data)
         self.service.delete_list(request)
         mock_elastic_search.return_value.indices.delete_mapping.assert_called_once_with(doc_type='type', index='index')
+
+    @mock.patch.object(elasticsearch, 'Elasticsearch', autospec=True)
+    def test_delete_list_not_found(self, mock_elastic_search):
+        mock_elastic_search.return_value = mock.MagicMock()
+        mock_elastic_search.return_value.indices.delete_mapping.return_value = (
+            builders.ESDeleteResponseBuilder().with_error_response().http_response()['response'])
+        request = models.Request(**self.data)
+        with tools.assert_raises(LookupError):
+            self.service.delete_list(request)
+
+    @mock.patch.object(elasticsearch, 'Elasticsearch', autospec=True)
+    def test_delete_list_not_acknowledged(self, mock_elastic_search):
+        mock_elastic_search.return_value = mock.MagicMock()
+        mock_elastic_search.return_value.indices.delete_mapping.return_value = (
+            builders.ESDeleteResponseBuilder().with_unacknowledged_response().http_response()['response'])
+        request = models.Request(**self.data)
+        with tools.assert_raises(Exception):
+            self.service.delete_list(request)
 
     @mock.patch.object(elasticsearch, 'Elasticsearch', autospec=True)
     def test_list_status(self, mock_elastic_search):

@@ -33,7 +33,7 @@ class DeleteListEndpointTest(base.BaseIntegrationLiveStubServerTestCase):
         self.data = {}
 
     def test_delete_list(self):
-        self.queue_stub_response(builders.ESDeleteResponseBuilder().http_response())
+        self.queue_stub_response(builders.ESDeleteResponseBuilder().with_acknowledged_response().http_response())
         response = requests.delete(BASE_SERVICE_URL + DELETE_LIST_URL, headers=self.headers, data=json.dumps(self.data))
         response_content = json.loads(response.content)
 
@@ -42,11 +42,21 @@ class DeleteListEndpointTest(base.BaseIntegrationLiveStubServerTestCase):
         tools.assert_true(response_content['acknowledged'])
 
     def test_delete_list_with_errors(self):
-        self.queue_stub_response(builders.ESDeleteResponseBuilder().http_response(with_errors=True))
+        self.queue_stub_response(builders.ESDeleteResponseBuilder().with_error_response().http_response())
         response = requests.delete(BASE_SERVICE_URL + DELETE_LIST_URL, headers=self.headers, data=json.dumps(self.data))
         response_content = json.loads(response.content)
 
         tools.assert_equal(httplib.NOT_FOUND, response.status_code)
         tools.assert_equal(len(response_content['errors']), 1)
         tools.assert_equal(response_content['errors'][0]['code'], 'NOT_FOUND')
-        tools.assert_equal(response_content['errors'][0]['description'], 'Could not find type to delete.')
+        tools.assert_equal(response_content['errors'][0]['description'], 'Resource does not exist.')
+
+    def test_delete_list_not_acknowledged(self):
+        self.queue_stub_response(builders.ESDeleteResponseBuilder().with_unacknowledged_response().http_response())
+        response = requests.delete(BASE_SERVICE_URL + DELETE_LIST_URL, headers=self.headers, data=json.dumps(self.data))
+        response_content = json.loads(response.content)
+
+        tools.assert_equal(httplib.INTERNAL_SERVER_ERROR, response.status_code)
+        tools.assert_equal(len(response_content['errors']), 1)
+        tools.assert_equal(response_content['errors'][0]['code'], 'INTERNAL_SERVER_ERROR')
+        tools.assert_equal(response_content['errors'][0]['description'], 'Internal server error.')

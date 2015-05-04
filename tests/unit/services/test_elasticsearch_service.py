@@ -105,6 +105,7 @@ class TestElasticSearchService(unittest.TestCase):
         self.service.delete_list(request)
         mock_elastic_search.return_value.indices.delete_mapping.assert_called_once_with(doc_type='type', index='index')
 
+    @tools.raises(LookupError)
     @mock.patch.object(elasticsearch, 'Elasticsearch', autospec=True)
     def test_delete_list_not_found(self, mock_elastic_search):
         not_found_exception = exceptions.TransportError(404,
@@ -114,26 +115,25 @@ class TestElasticSearchService(unittest.TestCase):
         mock_elastic_search.return_value = mock.MagicMock()
         mock_elastic_search.return_value.indices.delete_mapping.side_effect = not_found_exception
         request = models.Request(**self.data)
-        with tools.assert_raises(LookupError):
-            self.service.delete_list(request)
+        self.service.delete_list(request)
 
+    @tools.raises(exceptions.TransportError)
     @mock.patch.object(elasticsearch, 'Elasticsearch', autospec=True)
     def test_delete_list_general_error(self, mock_elastic_search):
         general_exception = exceptions.TransportError(500, 'Server error', {'status': 500, 'error': 'Server error'})
         mock_elastic_search.return_value = mock.MagicMock()
         mock_elastic_search.return_value.indices.delete_mapping.side_effect = general_exception
         request = models.Request(**self.data)
-        with tools.assert_raises(exceptions.TransportError):
-            self.service.delete_list(request)
+        self.service.delete_list(request)
 
+    @tools.raises(Exception)
     @mock.patch.object(elasticsearch, 'Elasticsearch', autospec=True)
     def test_delete_list_not_acknowledged(self, mock_elastic_search):
         mock_elastic_search.return_value = mock.MagicMock()
         mock_elastic_search.return_value.indices.delete_mapping.return_value = (
             builders.ESDeleteResponseBuilder().with_unacknowledged_response().http_response()['response'])
         request = models.Request(**self.data)
-        with tools.assert_raises(Exception):
-            self.service.delete_list(request)
+        self.service.delete_list(request)
 
     @mock.patch.object(elasticsearch, 'Elasticsearch', autospec=True)
     def test_list_status(self, mock_elastic_search):

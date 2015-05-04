@@ -13,6 +13,7 @@ from liblcp import cross_service
 
 
 logger = logging.getLogger(__name__)
+logging.getLogger('elasticsearch.trace').setLevel(logging.WARN)
 
 
 class FileReader(object):
@@ -32,10 +33,8 @@ class FileReader(object):
 class CsvReader(FileReader):
     def __init__(self, filename):
         super(CsvReader, self).__init__(filename)
-        print "init"
 
     def __enter__(self):
-        print "enter"
         self.csv_file = open(self.filename, 'r')
         return self.csv_file
 

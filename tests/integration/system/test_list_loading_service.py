@@ -5,6 +5,7 @@ from nose.plugins import attrib
 from nose import tools
 import requests
 
+from liblcp import urls
 from tests.integration import base
 from tests.integration import testing_utilities
 
@@ -27,14 +28,14 @@ class ListLoadingServiceIntegrationTest(base.BaseFullIntegrationTestCase):
         response_content = json.loads(response.content)
 
         tools.assert_equal(httplib.ACCEPTED, response.status_code)
-        tools.assert_in(BASE_LIST_URL, response_content['links']['self']['href'])
+        tools.assert_in(BASE_LIST_URL, urls.self_link(response_content))
 
         # Search for that list
         response = requests.get(BASE_SERVICE_URL + LIST_STATUS_URL, headers=self.headers)
         response_content = json.loads(response.content)
 
         tools.assert_equal(httplib.OK, response.status_code)
-        tools.assert_in(LIST_STATUS_URL, response_content['links']['self']['href'])
+        tools.assert_in(LIST_STATUS_URL, urls.self_link(response_content))
         tools.assert_equal(5, response_content['hits']['total'])
 
         # Delete the list
@@ -42,13 +43,16 @@ class ListLoadingServiceIntegrationTest(base.BaseFullIntegrationTestCase):
         response_content = json.loads(response.content)
 
         tools.assert_equal(httplib.ACCEPTED, response.status_code)
-        tools.assert_in(BASE_LIST_URL, response_content['links']['self']['href'])
+        tools.assert_in(BASE_LIST_URL, urls.self_link(response_content))
         tools.assert_true(response_content['acknowledged'])
 
-        # Ensure the list was deleted
+        # Ensure the list was deleted by searching for it and trying to delete it again
         response = requests.get(BASE_SERVICE_URL + LIST_STATUS_URL, headers=self.headers)
         response_content = json.loads(response.content)
 
         tools.assert_equal(httplib.OK, response.status_code)
-        tools.assert_in(LIST_STATUS_URL, response_content['links']['self']['href'])
+        tools.assert_in(LIST_STATUS_URL, urls.self_link(response_content))
         tools.assert_equal(0, response_content['hits']['total'])
+
+        response = requests.delete(BASE_SERVICE_URL + BASE_LIST_URL, data=json.dumps({}), headers=self.headers)
+        tools.assert_equal(httplib.NOT_FOUND, response.status_code)

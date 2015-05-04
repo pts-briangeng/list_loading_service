@@ -3,7 +3,7 @@ import json
 import requests
 import uuid
 
-from liblcp import context
+from liblcp import context, urls
 from nose import tools
 from nose.plugins import attrib
 
@@ -36,7 +36,7 @@ class CreateListEndpointTest(base.BaseIntegrationLiveStubServerTestCase):
         response_content = json.loads(response.content)
 
         tools.assert_equal(httplib.ACCEPTED, response.status_code)
-        tools.assert_in(CREATE_LIST_URL, response_content['links']['self']['href'])
+        tools.assert_in(CREATE_LIST_URL, urls.self_link(response_content))
 
     def test_create_list_with_callback_url(self):
         self.queue_stub_response({"status_code": httplib.OK})
@@ -45,7 +45,7 @@ class CreateListEndpointTest(base.BaseIntegrationLiveStubServerTestCase):
         response_content = json.loads(response.content)
 
         tools.assert_equal(httplib.ACCEPTED, response.status_code)
-        tools.assert_in(CREATE_LIST_URL, response_content['links']['self']['href'])
+        tools.assert_in(CREATE_LIST_URL, urls.self_link(response_content))
 
     def test_create_list_missing_file(self):
         data = {'callbackUrl': 'http://offers-ft.lxc.points.com:1300/'}

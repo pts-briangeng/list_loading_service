@@ -3,6 +3,7 @@ import os
 import unittest
 
 from liblcp import configuration as liblcp_config
+from elasticsearch import exceptions
 
 import configuration
 import fabfile
@@ -49,6 +50,10 @@ class BaseIntegrationLiveStubServerTestCase(unittest.TestCase):
         for stub_response in stub_responses:
             self.stub_lcp.queue_response(status_code=stub_response.get("status_code"),
                                          text=json.dumps(stub_response.get("response")))
+
+    def queue_transport_error(self):
+        not_found_exception = exceptions.TransportError(404, 'Not Found', {'status': 400, 'error': 'Not found'})
+        self.stub_lcp.queue_error(not_found_exception)
 
 
 def retry_if_assertion_error(exception):

@@ -29,6 +29,9 @@ class StubHttpServer(BaseHTTPServer.HTTPServer):
     def queue_response(self, status_code=httplib.OK, text=''):
         self._post_responses.append(CannedResponse(status_code=status_code, text=text))
 
+    def queue_error(self, error):
+        self._post_responses.append(error)
+
     def pop_response(self):
         try:
             return self._post_responses.pop()
@@ -100,7 +103,11 @@ class StubHttpRequestHandler(BaseHTTPServer.BaseHTTPRequestHandler):
         self.send_response(response.status_code)
         self.send_header('Content-Type', 'application/json')
         self.end_headers()
-        self.wfile.write(response.text)
+        try:
+            self.wfile.write(response.text)
+        except AttributeError:
+            if not isinstance(response, Exception):
+                raise
 
         if os.environ.get('LOG_LCP_REQUESTS', False):
             _write_line("Response:")
@@ -139,6 +146,9 @@ class StubServer(object):
 
     def queue_response(self, *args, **kwargs):
         return self.server.queue_response(*args, **kwargs)
+
+    def queue_error(self, error):
+        return self.server.queue_error(error)
 
     def clear(self, *args, **kwargs):
         return self.server.clear(*args, **kwargs)

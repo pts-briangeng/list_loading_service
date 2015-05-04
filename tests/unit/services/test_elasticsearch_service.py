@@ -7,7 +7,7 @@ import mock
 import liblcp
 import elasticsearch
 import openpyxl
-from elasticsearch import helpers
+from elasticsearch import helpers, exceptions
 from nose import tools
 
 import configuration
@@ -107,11 +107,23 @@ class TestElasticSearchService(unittest.TestCase):
 
     @mock.patch.object(elasticsearch, 'Elasticsearch', autospec=True)
     def test_delete_list_not_found(self, mock_elastic_search):
+        not_found_exception = exceptions.TransportError(404,
+                                                        'IndexMissingException[[123] missing]',
+                                                        {'status': 400, 'error': 'IndexMissingException[[123] missing]'}
+                                                        )
         mock_elastic_search.return_value = mock.MagicMock()
-        mock_elastic_search.return_value.indices.delete_mapping.return_value = (
-            builders.ESDeleteResponseBuilder().with_error_response().http_response()['response'])
+        mock_elastic_search.return_value.indices.delete_mapping.side_effect = not_found_exception
         request = models.Request(**self.data)
         with tools.assert_raises(LookupError):
+            self.service.delete_list(request)
+
+    @mock.patch.object(elasticsearch, 'Elasticsearch', autospec=True)
+    def test_delete_list_general_error(self, mock_elastic_search):
+        general_exception = exceptions.TransportError(500, 'Server error', {'status': 500, 'error': 'Server error'})
+        mock_elastic_search.return_value = mock.MagicMock()
+        mock_elastic_search.return_value.indices.delete_mapping.side_effect = general_exception
+        request = models.Request(**self.data)
+        with tools.assert_raises(exceptions.TransportError):
             self.service.delete_list(request)
 
     @mock.patch.object(elasticsearch, 'Elasticsearch', autospec=True)

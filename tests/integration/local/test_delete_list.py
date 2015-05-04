@@ -3,7 +3,7 @@ import json
 import requests
 import uuid
 
-from liblcp import context
+from liblcp import context, urls
 from nose import tools
 from nose.plugins import attrib
 
@@ -38,11 +38,11 @@ class DeleteListEndpointTest(base.BaseIntegrationLiveStubServerTestCase):
         response_content = json.loads(response.content)
 
         tools.assert_equal(httplib.ACCEPTED, response.status_code)
-        tools.assert_in(DELETE_LIST_URL, response_content['links']['self']['href'])
+        tools.assert_in(DELETE_LIST_URL, urls.self_link(response_content))
         tools.assert_true(response_content['acknowledged'])
 
     def test_delete_list_with_errors(self):
-        self.queue_stub_response(builders.ESDeleteResponseBuilder().with_error_response().http_response())
+        self.queue_transport_error()
         response = requests.delete(BASE_SERVICE_URL + DELETE_LIST_URL, headers=self.headers, data=json.dumps(self.data))
         response_content = json.loads(response.content)
 

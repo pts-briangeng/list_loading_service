@@ -3,7 +3,7 @@ import json
 import requests
 import uuid
 
-from liblcp import context
+from liblcp import context, urls
 from nose import tools
 from nose.plugins import attrib
 
@@ -37,5 +37,5 @@ class ListCountEndpointTest(base.BaseIntegrationLiveStubServerTestCase):
         response_content = json.loads(response.content)
 
         tools.assert_equal(httplib.OK, response.status_code)
-        tools.assert_in(LIST_STATUS_URL, response_content['links']['self']['href'])
+        tools.assert_in(LIST_STATUS_URL, urls.self_link(response_content))
         tools.assert_equal(1, response_content['hits']['total'])

@@ -24,7 +24,7 @@ class ApiConfiguration(object):
         self.api.add_resource(CreateListPutResourceController, '/lists/<service>/<id>')
         self.api.add_resource(GetListByIdResourceController, '/index/<index>/type/<type>')
         self.api.add_resource(DeleteListResourceController, '/index/<index>/type/<type>')
-        self.api.add_resource(ListStatusGetResourceController, '/list/<index>/<type>/statistics')
+        self.api.add_resource(ListStatusGetResourceController, '/list/<service>/<id>/statistics')
 
 
 def build_server():

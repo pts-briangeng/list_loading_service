@@ -34,7 +34,7 @@ context.set_headers_getter(lambda name: {context.HEADERS_EXTERNAL_BASE_URL: 'htt
                                          context.HEADERS_PRINCIPAL: str(uuid.uuid4())}[name])
 
 # The gateway port will need to be updated later
-configure_routing = lcpenv_tasks.GatewayRoutingConfigurationTask(gateway_port=1800,
+configure_routing = lcpenv_tasks.GatewayRoutingConfigurationTask(gateway_port=2000,
                                                                  local_port=5000,
                                                                  service_name='list_loading_service',
                                                                  routing_endpoints=[])

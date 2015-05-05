@@ -10,8 +10,8 @@ from tests.integration import base, testing_utilities
 
 
 BASE_SERVICE_URL = 'http://0.0.0.0:5000/'
-BASE_LIST_URL = 'index/offers/type/edaa3541-7376-4eb3-8047-aaf78af900da'
-LIST_STATUS_URL = 'index/offers/type/edaa3541-7376-4eb3-8047-aaf78af900da/status'
+BASE_LIST_URL = 'lists/offers/edaa3541-7376-4eb3-8047-aaf78af900da'
+LIST_STATUS_URL = 'lists/offers/edaa3541-7376-4eb3-8047-aaf78af900da/statistics'
 
 
 @attrib.attr('system_integration')

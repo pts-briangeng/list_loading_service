@@ -6,7 +6,7 @@ from liblcp import context as lcp_context
 from restframework import rest_api
 
 from app import app_logging, instrumentation
-from app.controllers.lls_resource_api import (CreateListPostResourceController,
+from app.controllers.lls_resource_api import (CreateListPutResourceController,
                                               GetListByIdResourceController,
                                               DeleteListResourceController,
                                               ListStatusGetResourceController)
@@ -17,10 +17,10 @@ logger = logging.getLogger(__name__)
 Api = collections.namedtuple('Api', 'controller resource_url')
 
 APIS = [
-    Api(CreateListPostResourceController, '/index/<index>/type/<type>'),
-    Api(GetListByIdResourceController, '/index/<index>/type/<type>'),
-    Api(DeleteListResourceController, '/index/<index>/type/<type>'),
-    Api(ListStatusGetResourceController, '/index/<index>/type/<type>/status')
+    Api(CreateListPutResourceController, '/lists/<service>/<id>'),
+    Api(GetListByIdResourceController, '/lists/<service>/<id>/'),
+    Api(DeleteListResourceController, '/lists/<service>/<id>/'),
+    Api(ListStatusGetResourceController, '/lists/<service>/<id>/statistics')
 ]
 
 

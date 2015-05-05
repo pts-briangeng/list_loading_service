@@ -11,7 +11,7 @@ from tests import builders
 
 
 BASE_SERVICE_URL = 'http://0.0.0.0:5000/'
-DELETE_LIST_URL = 'index/offers/type/edaa3541-7376-4eb3-8047-aaf78af900da'
+DELETE_LIST_URL = 'lists/offers/edaa3541-7376-4eb3-8047-aaf78af900da/'
 
 
 @attrib.attr('local_integration')

@@ -27,8 +27,8 @@ class CreateListServiceTest(base.BaseIntegrationLiveStubServerTestCase):
         data = {
             'url': 'url',
             'file': './tests/samples/test.csv',
-            'index': 'offers',
-            'type': 'edaa3541-7376-4eb3-8047-aaf78af900da',
+            'service': 'offers',
+            'id': 'edaa3541-7376-4eb3-8047-aaf78af900da',
             'callbackUrl': 'http://localhost:5001/offers/callback',
         }
         request = models.Request(**data)
@@ -59,8 +59,8 @@ class CreateListServiceTest(base.BaseIntegrationLiveStubServerTestCase):
         data = {
             'url': 'url',
             'file': './tests/samples/test.csv',
-            'index': 'offers',
-            'type': 'edaa3541-7376-4eb3-8047-aaf78af900da',
+            'service': 'offers',
+            'id': 'edaa3541-7376-4eb3-8047-aaf78af900da',
             'callbackUrl': 'http://localhost:5001/offers/callback',
         }
         request = models.Request(**data)
@@ -91,8 +91,8 @@ class CreateListServiceTest(base.BaseIntegrationLiveStubServerTestCase):
         data = {
             'url': 'url',
             'file': 'not_here.csv',
-            'index': 'offers',
-            'type': 'edaa3541-7376-4eb3-8047-aaf78af900da',
+            'service': 'offers',
+            'id': 'edaa3541-7376-4eb3-8047-aaf78af900da',
             'callbackUrl': 'http://localhost:5001/offers/callback',
         }
         request = models.Request(**data)

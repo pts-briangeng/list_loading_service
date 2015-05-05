@@ -63,8 +63,8 @@ class TestElasticSearchService(unittest.TestCase):
         self.data = {
             'url': 'url',
             'file': 'file.csv',
-            'index': 'index',
-            'type': 'type',
+            'service': 'service',
+            'id': 'id',
             'callbackUrl': 'callback',
         }
         self.service = services.ElasticSearch()
@@ -89,9 +89,9 @@ class TestElasticSearchService(unittest.TestCase):
         self.service.create_list(request)
 
         mock_bulk.assert_called_with(mock_elastic_search.return_value,
-                                     [{'_type': 'type', '_id': 'abc', '_source': {'accountNumber': 'abc'},
-                                       '_index': 'index'}])
-        mock_elastic_search.return_value.indices.refresh.assert_called_with(index='index')
+                                     [{'_type': 'id', '_id': 'abc', '_source': {'accountNumber': 'abc'},
+                                       '_index': 'service'}])
+        mock_elastic_search.return_value.indices.refresh.assert_called_with(index='service')
         mock_requests_wrapper_post.assert_has_calls([
             mock.call(url='callback',
                       headers={
@@ -129,9 +129,9 @@ class TestElasticSearchService(unittest.TestCase):
         self.service.create_list(request)
 
         mock_bulk.assert_called_with(mock_elastic_search.return_value,
-                                     [{'_type': 'type', '_id': 'abc', '_source': {'accountNumber': 'abc'},
-                                       '_index': 'index'}])
-        mock_elastic_search.return_value.indices.refresh.assert_called_with(index='index')
+                                     [{'_type': 'id', '_id': 'abc', '_source': {'accountNumber': 'abc'},
+                                       '_index': 'service'}])
+        mock_elastic_search.return_value.indices.refresh.assert_called_with(index='service')
         mock_requests_wrapper_post.assert_has_calls([
             mock.call(url='callback',
                       headers={
@@ -164,7 +164,8 @@ class TestElasticSearchService(unittest.TestCase):
         mock_elastic_search.return_value = mock.MagicMock()
         request = models.Request(**self.data)
         self.service.delete_list(request)
-        mock_elastic_search.return_value.indices.delete_mapping.assert_called_once_with(doc_type='type', index='index')
+        mock_elastic_search.return_value.indices.delete_mapping.assert_called_once_with(doc_type='id',
+                                                                                        index='service')
 
     @tools.raises(LookupError)
     @mock.patch.object(elasticsearch, 'Elasticsearch', autospec=True)
@@ -201,6 +202,13 @@ class TestElasticSearchService(unittest.TestCase):
         request = models.Request(**self.data)
         response = self.service.get_list_status(request)
         tools.assert_equal(mock_elastic_search.return_value.search.return_value, response)
-        mock_elastic_search.return_value.search.assert_called_once_with(doc_type='type',
-                                                                        index='index',
+        mock_elastic_search.return_value.search.assert_called_once_with(doc_type='id',
+                                                                        index='service',
                                                                         search_type='count')
+
+    @tools.raises(LookupError)
+    @mock.patch.object(elasticsearch, 'Elasticsearch', autospec=True)
+    def test_list_status_throws_404_when_count_0(self, mock_elastic_search):
+        mock_elastic_search.return_value.search.return_value = {"hits": {"total": 0}}
+        request = models.Request(**self.data)
+        self.service.get_list_status(request)

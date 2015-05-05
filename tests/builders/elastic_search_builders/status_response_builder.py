@@ -13,7 +13,7 @@ LIST_STATUS_RESPONSE = {
     "hits": {
         "hits": [],
         "max_score": 0.0,
-        "total": 1
+        "total": "@int(total_count)"
     },
     "links": {
         "self": {
@@ -33,12 +33,8 @@ HTTP_RESPONSE = {
 
 
 class ListStatusResponseJsonBuilder(base.BaseBuilder):
-    def __init__(self):
-        self.list_status_response = copy.deepcopy(LIST_STATUS_RESPONSE)
-
-    def with_response(self):
-        self.list_status_response = copy.deepcopy(LIST_STATUS_RESPONSE)
-        return self
+    def __init__(self, **data):
+        self.list_status_response = base.mock_json(copy.deepcopy(LIST_STATUS_RESPONSE), **data)
 
     def build(self):
         return self.list_status_response

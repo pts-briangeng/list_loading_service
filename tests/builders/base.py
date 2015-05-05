@@ -6,7 +6,8 @@ import uuid
 
 
 DATA = {
-    "id": str(uuid.uuid4())
+    "id": str(uuid.uuid4()),
+    "total_count": 1
 }
 
 _re_range = re.compile(r"\w+\|(\d+)-(\d+)")
@@ -77,7 +78,10 @@ def mock_object(template, increments={}, name=None, **data):
                     else:
                         match_groups = _re_numeric_function_extract.match(key)
                         value = _data[match_groups.group('parameter')]
-                        generated = FUNC[match_groups.group('function')](value) if value else None
+                        if value == 0:
+                            generated = FUNC[match_groups.group('function')](value)
+                        else:
+                            generated = FUNC[match_groups.group('function')](value) if value else None
             return generated
         else:
             return ''.join(random.choice(string.letters) for _ in xrange(length))

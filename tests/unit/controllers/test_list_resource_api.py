@@ -142,3 +142,15 @@ class TestListStatusGetResourceController(unittest.TestCase):
             tools.assert_equal(httplib.OK, response[1])
             tools.assert_equal(mock_service.call_count, 1)
             mock_url_for.assert_called_once_with('liststatusgetresourcecontroller', _external=True)
+
+    @mock.patch.object(services.ElasticSearch, 'get_list_status', autospec=True)
+    @mock.patch.object(flask, 'url_for', autospec=True)
+    def test_get_not_found(self, mock_url_for, mock_service):
+        app = flask.Flask(__name__)
+        mock_service.side_effect = LookupError
+        with app.test_request_context('/index/app/type/6d04bd2d-da75-420f-a52a-d2ffa0c48c42/status',
+                                      method='GET',
+                                      headers=Headers(test_sandbox_headers)):
+            response = self.controller.get()
+            tools.assert_equal(httplib.NOT_FOUND, response[1])
+            tools.assert_equal(mock_service.call_count, 1)

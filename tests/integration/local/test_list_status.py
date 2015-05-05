@@ -17,7 +17,7 @@ context.set_headers_getter(lambda name: {context.HEADERS_EXTERNAL_BASE_URL: 'htt
                                          context.HEADERS_PRINCIPAL: str(uuid.uuid4())}[name])
 
 BASE_SERVICE_URL = 'http://0.0.0.0:5000/'
-LIST_STATUS_URL = 'index/offers/type/edaa3541-7376-4eb3-8047-aaf78af900da/status'
+LIST_STATUS_URL = 'list/offers/edaa3541-7376-4eb3-8047-aaf78af900da/statistics'
 
 
 @attrib.attr('local_integration')
@@ -39,3 +39,8 @@ class ListCountEndpointTest(base.BaseIntegrationLiveStubServerTestCase):
         tools.assert_equal(httplib.OK, response.status_code)
         tools.assert_in(LIST_STATUS_URL, urls.self_link(response_content))
         tools.assert_equal(1, response_content['hits']['total'])
+
+    def test_list_status_not_found(self):
+        self.queue_stub_response(builders.ESStatusResponseBuilder(total_count=0).http_response())
+        response = requests.get(BASE_SERVICE_URL + LIST_STATUS_URL, headers=self.headers)
+        tools.assert_equal(httplib.NOT_FOUND, response.status_code)

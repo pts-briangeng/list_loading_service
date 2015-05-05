@@ -61,6 +61,9 @@ class DeleteListResourceController(base.BaseListResourceController, controllers.
 
 class ListStatusGetResourceController(base.BaseListResourceController, controllers.GetResourceController):
 
+    def __init__(self):
+        super(ListStatusGetResourceController, self).__init__(exception_translations=exceptions.EXCEPTION_TRANSLATIONS)
+
     @property
     def resource_by_id_resource_controller(self):
         return ListStatusGetResourceController
@@ -68,3 +71,13 @@ class ListStatusGetResourceController(base.BaseListResourceController, controlle
     def get_resource_model(self, resource):
         request = models.Request(url=self.request_url, **resource)
         return services.ElasticSearch().get_list_status(request)
+
+    def get(self, **kwargs):
+        try:
+            response_model = self.get_resource_model(kwargs)
+        except Exception as e:
+            logger.exception("An error occurred.")
+            return self.translate_exceptions(e)
+        response_dict = self.create_restful_response_payload(response_model, **kwargs)
+        response_headers = self.create_response_headers(response_dict)
+        return response_dict, httplib.OK, response_headers

@@ -143,3 +143,10 @@ class TestElasticSearchService(unittest.TestCase):
         mock_elastic_search.return_value.search.assert_called_once_with(doc_type='type',
                                                                         index='index',
                                                                         search_type='count')
+
+    @tools.raises(LookupError)
+    @mock.patch.object(elasticsearch, 'Elasticsearch', autospec=True)
+    def test_list_status_throws_404_when_count_0(self, mock_elastic_search):
+        mock_elastic_search.return_value.search.return_value = {"hits": {"total": 0}}
+        request = models.Request(**self.data)
+        self.service.get_list_status(request)

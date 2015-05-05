@@ -95,6 +95,13 @@ class StubHttpRequestHandler(BaseHTTPServer.BaseHTTPRequestHandler):
         self.method = 'GET'
         self._send_response(response, 'GET')
 
+    def do_HEAD(self):
+        response = self.server.pop_response()
+        if not response:
+            return
+        self.method = 'HEAD'
+        self._send_response(response, 'HEAD')
+
     def _send_response(self, response, method):
         self.method = method
         length = int(self.headers.get('Content-Length', 0))

@@ -19,12 +19,14 @@ class TestModels(unittest.TestCase):
             'url': 'url',
             'file': 'file',
             'service': 'service',
-            'id': 'id',
+            'list_id': 'id',
+            'member_id': 'member_id',
             'callbackUrl': 'callback',
         }
         request = models.Request(**data)
         tools.assert_equal(request.url, 'url')
         tools.assert_equal(request.file, 'file')
         tools.assert_equal(request.service, 'service')
-        tools.assert_equal(request.id, 'id')
+        tools.assert_equal(request.listId, 'id')
+        tools.assert_equal(request.memberId, 'member_id')
         tools.assert_equal(request.callbackUrl, 'callback')

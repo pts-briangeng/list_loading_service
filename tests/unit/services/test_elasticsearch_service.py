@@ -64,7 +64,7 @@ class TestElasticSearchService(unittest.TestCase):
             'url': 'url',
             'file': 'file.csv',
             'service': 'service',
-            'id': 'id',
+            'list_id': 'id',
             'callbackUrl': 'callback',
         }
         self.service = services.ElasticSearch()
@@ -212,3 +212,24 @@ class TestElasticSearchService(unittest.TestCase):
         mock_elastic_search.return_value.search.return_value = {"hits": {"total": 0}}
         request = models.Request(**self.data)
         self.service.get_list_status(request)
+
+    @mock.patch.object(elasticsearch, 'Elasticsearch', autospec=True)
+    def test_list_member(self, mock_elastic_search):
+        mock_elastic_search.return_value.exists.return_value = True
+        data = copy.deepcopy(self.data)
+        data['member_id'] = 'member_id'
+        request = models.Request(**data)
+        response = self.service.get_list_member(request)
+        tools.assert_equal({}, response)
+        mock_elastic_search.return_value.exists.assert_called_once_with(doc_type='id', index='service', id='member_id')
+
+    @tools.raises(LookupError)
+    @mock.patch.object(elasticsearch, 'Elasticsearch', autospec=True)
+    def test_list_member_not_found(self, mock_elastic_search):
+        mock_elastic_search.return_value.exists.return_value = False
+        data = copy.deepcopy(self.data)
+        data['member_id'] = 'member_id'
+        request = models.Request(**data)
+        response = self.service.get_list_member(request)
+        tools.assert_equal({}, response)
+        mock_elastic_search.return_value.exists.assert_called_once_with(doc_type='id', index='service', id='member_id')

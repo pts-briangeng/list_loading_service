@@ -154,3 +154,35 @@ class TestListStatusGetResourceController(unittest.TestCase):
             response = self.controller.get()
             tools.assert_equal(httplib.NOT_FOUND, response[1])
             tools.assert_equal(mock_service.call_count, 1)
+
+
+class TestListMemberGetResourceController(unittest.TestCase):
+
+    def setUp(self):
+        configuration.configure_from(os.path.join(configuration.CONFIGURATION_PATH, 'list_loading_service.cfg'))
+        self.controller = lls_resource_api.GetListMemberByIdResourceController()
+
+    @mock.patch.object(services.ElasticSearch, 'get_list_member', autospec=True)
+    @mock.patch.object(flask, 'url_for', autospec=True)
+    def test_get(self, mock_url_for, mock_service):
+        app = flask.Flask(__name__)
+        mock_service.return_value = {}
+        with app.test_request_context('/app/6d04bd2d-da75-420f-a52a-d2ffa0c48c42/member/123',
+                                      method='GET',
+                                      headers=Headers(test_sandbox_headers)):
+            response = self.controller.get()
+            tools.assert_equal(httplib.OK, response[1])
+            tools.assert_equal(mock_service.call_count, 1)
+            mock_url_for.assert_called_once_with('getlistmemberbyidresourcecontroller', _external=True)
+
+    @mock.patch.object(services.ElasticSearch, 'get_list_member', autospec=True)
+    @mock.patch.object(flask, 'url_for', autospec=True)
+    def test_get_not_found(self, mock_url_for, mock_service):
+        app = flask.Flask(__name__)
+        mock_service.side_effect = LookupError
+        with app.test_request_context('/app/6d04bd2d-da75-420f-a52a-d2ffa0c48c42/member/123',
+                                      method='GET',
+                                      headers=Headers(test_sandbox_headers)):
+            response = self.controller.get()
+            tools.assert_equal(httplib.NOT_FOUND, response[1])
+            tools.assert_equal(mock_service.call_count, 1)

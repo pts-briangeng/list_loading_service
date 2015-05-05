@@ -1,6 +1,7 @@
 import json
 import time
 import httplib
+import copy
 
 from nose.plugins import attrib
 from nose import tools
@@ -13,7 +14,8 @@ from tests.integration import base, testing_utilities
 PATH_PARAMS = {
     'base_url': 'http://0.0.0.0:5000',
     'service': 'offers',
-    'id': 'edaa3541-7376-4eb3-8047-aaf78af900da'
+    'list_id': 'edaa3541-7376-4eb3-8047-aaf78af900da',
+    'member_id': '34ef0a1f-d5a0-45d7-b065-8ea363875b2f'
 }
 
 
@@ -41,6 +43,21 @@ class ListLoadingServiceIntegrationTest(base.BaseFullIntegrationTestCase):
         tools.assert_equal(httplib.OK, response.status_code)
         tools.assert_in(base.ListPaths.stats(relative_url=True, **PATH_PARAMS), urls.self_link(response_content))
         tools.assert_equal(5, response_content['hits']['total'])
+
+        # Search for a member in the list
+        response = requests.get(base.ListPaths.get_list_member(**PATH_PARAMS), headers=self.headers)
+
+        tools.assert_equal(httplib.OK, response.status_code)
+        response_content = json.loads(response.content)
+        tools.assert_in(base.ListPaths.get_list_member(relative_url=True, **PATH_PARAMS),
+                        urls.self_link(response_content))
+
+        # Search for a random member in the list raises 404
+        params = copy.deepcopy(PATH_PARAMS)
+        params['member_id'] = "XXXXXXX"
+        response = requests.get(base.ListPaths.get_list_member(**params), headers=self.headers)
+
+        tools.assert_equal(httplib.NOT_FOUND, response.status_code)
 
         # Delete the list
         response = requests.delete(base.ListPaths.delete(**PATH_PARAMS), data=json.dumps({}), headers=self.headers)

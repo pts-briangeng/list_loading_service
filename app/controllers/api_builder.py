@@ -9,7 +9,8 @@ from app import app_logging, instrumentation
 from app.controllers.lls_resource_api import (CreateListPutResourceController,
                                               GetListByIdResourceController,
                                               DeleteListResourceController,
-                                              ListStatusGetResourceController)
+                                              ListStatusGetResourceController,
+                                              GetListMemberByIdResourceController)
 
 
 logger = logging.getLogger(__name__)
@@ -17,10 +18,11 @@ logger = logging.getLogger(__name__)
 Api = collections.namedtuple('Api', 'controller resource_url')
 
 APIS = [
-    Api(CreateListPutResourceController, '/lists/<service>/<id>'),
-    Api(GetListByIdResourceController, '/lists/<service>/<id>/'),
-    Api(DeleteListResourceController, '/lists/<service>/<id>/'),
-    Api(ListStatusGetResourceController, '/lists/<service>/<id>/statistics')
+    Api(CreateListPutResourceController, '/lists/<service>/<list_id>'),
+    Api(GetListByIdResourceController, '/lists/<service>/<list_id>/'),
+    Api(DeleteListResourceController, '/lists/<service>/<list_id>/'),
+    Api(ListStatusGetResourceController, '/lists/<service>/<list_id>/statistics'),
+    Api(GetListMemberByIdResourceController, '/lists/<service>/<list_id>/member/<member_id>'),
 ]
 
 

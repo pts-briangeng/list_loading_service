@@ -13,7 +13,7 @@ from tests import builders
 PATH_PARAMS = {
     'base_url': 'http://0.0.0.0:5000',
     'service': 'offers',
-    'id': 'edaa3541-7376-4eb3-8047-aaf78af900da'
+    'list_id': 'edaa3541-7376-4eb3-8047-aaf78af900da'
 }
 
 

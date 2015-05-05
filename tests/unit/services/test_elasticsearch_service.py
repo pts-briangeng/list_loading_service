@@ -2,14 +2,17 @@ import unittest
 import os
 import csv
 import copy
+import httplib
+import uuid
 
 import mock
-import liblcp
+from liblcp import context
 import elasticsearch
 import openpyxl
 from elasticsearch import helpers, exceptions
 from nose import tools
 
+from app.services import elasticsearch_service
 import configuration
 from app import models, services
 from tests import builders
@@ -20,6 +23,7 @@ class CsvMock(list):
 
 
 class MockCell(object):
+
     def __init__(self, cell_value):
         self.cell_value = cell_value
 
@@ -28,7 +32,33 @@ class MockCell(object):
         return self.cell_value
 
 
+class MockHttpResponse(object):
+
+    def __init__(self, status_code=httplib.OK, response=None):
+        self.status_code = status_code
+        self.response = response
+
+    def json(self):
+        return self.response
+
+    def status_code(self):
+        return self.status_code
+
+    def raise_for_status(self):
+        if self.status_code not in [httplib.OK, httplib.CREATED]:
+            raise Exception
+
+
+CORRELATION_ID = str(uuid.uuid4())
+PRINCIPAL = str(uuid.uuid4())
+context.set_headers_getter(lambda name: {context.HEADERS_EXTERNAL_BASE_URL: 'http://localhost',
+                                         context.HEADERS_CORRELATION_ID: CORRELATION_ID,
+                                         context.HEADERS_MODE: context.MODE_LIVE,
+                                         context.HEADERS_PRINCIPAL: PRINCIPAL}[name])
+
+
 class TestElasticSearchService(unittest.TestCase):
+
     def setUp(self):
         self.data = {
             'url': 'url',
@@ -40,7 +70,7 @@ class TestElasticSearchService(unittest.TestCase):
         self.service = services.ElasticSearch()
         configuration.configure_from(os.path.join(configuration.CONFIGURATION_PATH, 'list_loading_service.cfg'))
 
-    @mock.patch.object(liblcp.cross_service, 'post_or_abort', autospec=True)
+    @mock.patch.object(elasticsearch_service.requests_wrapper, 'post', autospec=True)
     @mock.patch.object(helpers, 'bulk', autospec=True)
     @mock.patch.object(configuration, 'data', autospec=True)
     @mock.patch.object(elasticsearch, 'Elasticsearch', autospec=True)
@@ -48,35 +78,51 @@ class TestElasticSearchService(unittest.TestCase):
     @mock.patch.object(services.elasticsearch_service, 'open', create=True)
     @mock.patch.object(os.path, 'isfile', autospec=True)
     def test_elastic_search_operation_with_csv(self, mock_is_file, mock_open, mock_csv_reader, mock_elastic_search,
-                                               mock_config, mock_bulk, mock_cross_service_post):
+                                               mock_config, mock_bulk, mock_requests_wrapper_post):
         mock_open.return_value = mock.MagicMock(spec=file)
         mock_csv_reader.return_value = CsvMock([['abc']])
 
         mock_elastic_search.return_value = mock.MagicMock()
-        mock_cross_service_post.return_value = True
+        mock_requests_wrapper_post.return_value = MockHttpResponse(httplib.OK, {})
         request = models.Request(**self.data)
+
         self.service.create_list(request)
 
         mock_bulk.assert_called_with(mock_elastic_search.return_value,
                                      [{'_type': 'type', '_id': 'abc', '_source': {'accountNumber': 'abc'},
                                        '_index': 'index'}])
         mock_elastic_search.return_value.indices.refresh.assert_called_with(index='index')
-        mock_cross_service_post.assert_has_calls([mock.call(path='callback',
-                                                            data={'links': {'self': {'href': 'url'}}, 'success': True},
-                                                            service='index')])
+        mock_requests_wrapper_post.assert_has_calls([
+            mock.call(url='callback',
+                      headers={
+                          'PTS-LCP-Base-URL': 'http://localhost',
+                          'PTS-LCP-Mode': context.MODE_LIVE,
+                          'PTS-LCP-CID': CORRELATION_ID,
+                          'PTS-LCP-Principal': PRINCIPAL
+                      },
+                      data={
+                          'links': {
+                              'self': {
+                                  'href': 'url'
+                              }
+                          },
+                          'success': True
+                      }
+                      )
+        ])
 
-    @mock.patch.object(liblcp.cross_service, 'post_or_abort', autospec=True)
+    @mock.patch.object(elasticsearch_service.requests_wrapper, 'post', autospec=True)
     @mock.patch.object(helpers, 'bulk', autospec=True)
     @mock.patch.object(configuration, 'data', autospec=True)
     @mock.patch.object(elasticsearch, 'Elasticsearch', autospec=True)
     @mock.patch.object(openpyxl, 'load_workbook', autospec=True)
     @mock.patch.object(os.path, 'isfile', autospec=True)
     def test_elastic_search_operation_excel(self, mock_is_file, mock_load_workbook, mock_elastic_search, mock_config,
-                                            mock_bulk, mock_cross_service_post):
+                                            mock_bulk, mock_requests_wrapper_post):
         mock_load_workbook.return_value.active.rows = [[MockCell('abc')]]
 
         mock_elastic_search.return_value = mock.MagicMock()
-        mock_cross_service_post.return_value = True
+        mock_requests_wrapper_post.return_value = MockHttpResponse(httplib.OK, {})
         data = copy.deepcopy(self.data)
         data['file'] = 'file.xlsx'
         request = models.Request(**data)
@@ -86,17 +132,32 @@ class TestElasticSearchService(unittest.TestCase):
                                      [{'_type': 'type', '_id': 'abc', '_source': {'accountNumber': 'abc'},
                                        '_index': 'index'}])
         mock_elastic_search.return_value.indices.refresh.assert_called_with(index='index')
-        mock_cross_service_post.assert_has_calls([mock.call(path='callback',
-                                                            data={'links': {'self': {'href': 'url'}}, 'success': True},
-                                                            service='index')])
+        mock_requests_wrapper_post.assert_has_calls([
+            mock.call(url='callback',
+                      headers={
+                          'PTS-LCP-Base-URL': 'http://localhost',
+                          'PTS-LCP-Mode': context.MODE_LIVE,
+                          'PTS-LCP-CID': CORRELATION_ID,
+                          'PTS-LCP-Principal': PRINCIPAL
+                      },
+                      data={
+                          'links': {
+                              'self': {
+                                  'href': 'url'
+                              }
+                          },
+                          'success': True
+                      }
+                      )
+        ])
 
-    @mock.patch.object(liblcp.cross_service, 'post', autospec=True)
-    def test_elastic_search_operation_without_callback(self, mock_cross_service_post):
+    @mock.patch.object(elasticsearch_service.requests_wrapper, 'post', autospec=True)
+    def test_elastic_search_operation_without_callback(self, mock_requests_wrapper_post):
         self.data.pop('callbackUrl')
-        mock_cross_service_post.return_value = True
+        mock_requests_wrapper_post.return_value = MockHttpResponse(httplib.OK, {})
         request = models.Request(**self.data)
         self.service.create_list(request)
-        mock_cross_service_post.assert_has_calls([])
+        mock_requests_wrapper_post.assert_has_calls([])
 
     @mock.patch.object(elasticsearch, 'Elasticsearch', autospec=True)
     def test_delete_list(self, mock_elastic_search):

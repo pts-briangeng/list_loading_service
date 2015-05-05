@@ -1,8 +1,9 @@
 import httplib
 import mock
 
-from liblcp import cross_service
+from liblcp import context
 from nose.plugins import attrib
+from app.services import elasticsearch_service
 
 from app import models
 from app import services
@@ -21,51 +22,96 @@ class CreateListServiceTest(base.BaseIntegrationLiveStubServerTestCase):
     def setUp(self):
         self.service = services.ElasticSearch()
 
-    @mock.patch.object(cross_service, 'post_or_abort', autospec=True)
-    def test_create_list(self, mock_cross_service):
+    @mock.patch.object(elasticsearch_service.requests_wrapper, 'post', autospec=True)
+    def test_create_list(self, mock_requests_wrapper_post):
         data = {
             'url': 'url',
             'file': './tests/samples/test.csv',
             'index': 'offers',
             'type': 'edaa3541-7376-4eb3-8047-aaf78af900da',
-            'callbackUrl': 'http://offers-ft.lxc.points.com:1300/',
+            'callbackUrl': 'http://localhost:5001/offers/callback',
         }
         request = models.Request(**data)
         self.queue_stub_response({"status_code": httplib.OK})
         self.queue_stub_response(builders.ESCreateResponseBuilder().with_items().singleton())
-        self.service.create_list(request)
-        mock_cross_service.assert_called_once_with(path='http://offers-ft.lxc.points.com:1300/',
-                                                   data={'links': {'self': {'href': 'url'}}, 'success': True},
-                                                   service='offers')
 
-    @mock.patch.object(cross_service, 'post_or_abort', autospec=True)
-    def test_create_list_fails_on_elastic_search_error(self, mock_cross_service):
+        self.service.create_list(request)
+
+        mock_requests_wrapper_post.assert_called_once_with(
+            url='http://localhost:5001/offers/callback',
+            headers={
+                'PTS-LCP-Base-URL': context.get_header_value(context.HEADERS_EXTERNAL_BASE_URL),
+                'PTS-LCP-Mode': context.get_header_value(context.HEADERS_MODE),
+                'PTS-LCP-CID': context.get_header_value(context.HEADERS_CORRELATION_ID),
+                'PTS-LCP-Principal': context.get_header_value(context.HEADERS_PRINCIPAL)
+            },
+            data={
+                'links': {
+                    'self': {
+                        'href': 'url'
+                    }
+                },
+                'success': True
+            })
+
+    @mock.patch.object(elasticsearch_service.requests_wrapper, 'post', autospec=True)
+    def test_create_list_fails_on_elastic_search_error(self, mock_requests_wrapper_post):
         data = {
             'url': 'url',
             'file': './tests/samples/test.csv',
             'index': 'offers',
             'type': 'edaa3541-7376-4eb3-8047-aaf78af900da',
-            'callbackUrl': 'http://offers-ft.lxc.points.com:1300/',
+            'callbackUrl': 'http://localhost:5001/offers/callback',
         }
         request = models.Request(**data)
         self.queue_stub_response({"status_code": httplib.OK})
         self.queue_stub_response(builders.ESCreateResponseBuilder().build().singleton())
-        self.service.create_list(request)
-        mock_cross_service.assert_called_once_with(path='http://offers-ft.lxc.points.com:1300/',
-                                                   data={'links': {'self': {'href': 'url'}}, 'success': False},
-                                                   service='offers')
 
-    @mock.patch.object(cross_service, 'post_or_abort', autospec=True)
-    def test_create_list_fails_on_non_existant_file(self, mock_cross_service):
+        self.service.create_list(request)
+
+        mock_requests_wrapper_post.assert_called_once_with(
+            url='http://localhost:5001/offers/callback',
+            headers={
+                'PTS-LCP-Base-URL': context.get_header_value(context.HEADERS_EXTERNAL_BASE_URL),
+                'PTS-LCP-Mode': context.get_header_value(context.HEADERS_MODE),
+                'PTS-LCP-CID': context.get_header_value(context.HEADERS_CORRELATION_ID),
+                'PTS-LCP-Principal': context.get_header_value(context.HEADERS_PRINCIPAL)
+            },
+            data={
+                'links': {
+                    'self': {
+                        'href': 'url'
+                    }
+                },
+                'success': False
+            })
+
+    @mock.patch.object(elasticsearch_service.requests_wrapper, 'post', autospec=True)
+    def test_create_list_fails_on_non_existant_file(self, mock_requests_wrapper_post):
         data = {
             'url': 'url',
             'file': 'not_here.csv',
             'index': 'offers',
             'type': 'edaa3541-7376-4eb3-8047-aaf78af900da',
-            'callbackUrl': 'http://offers-ft.lxc.points.com:1300/',
+            'callbackUrl': 'http://localhost:5001/offers/callback',
         }
         request = models.Request(**data)
+
         self.service.create_list(request)
-        mock_cross_service.assert_called_once_with(path='http://offers-ft.lxc.points.com:1300/',
-                                                   data={'links': {'self': {'href': 'url'}}, 'success': False},
-                                                   service='offers')
+
+        mock_requests_wrapper_post.assert_called_once_with(
+            url='http://localhost:5001/offers/callback',
+            headers={
+                'PTS-LCP-Base-URL': context.get_header_value(context.HEADERS_EXTERNAL_BASE_URL),
+                'PTS-LCP-Mode': context.get_header_value(context.HEADERS_MODE),
+                'PTS-LCP-CID': context.get_header_value(context.HEADERS_CORRELATION_ID),
+                'PTS-LCP-Principal': context.get_header_value(context.HEADERS_PRINCIPAL)
+            },
+            data={
+                'links': {
+                    'self': {
+                        'href': 'url'
+                    }
+                },
+                'success': False
+            })

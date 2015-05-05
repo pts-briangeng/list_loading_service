@@ -1,8 +1,9 @@
 import json
 import os
 import unittest
+import uuid
 
-from liblcp import configuration as liblcp_config
+from liblcp import configuration as liblcp_config, context
 from elasticsearch import exceptions
 
 import configuration
@@ -16,6 +17,7 @@ BASE_PROJECT_PATH = os.path.join(INTEGRATION_TEST_PATH, '..', '..')
 
 
 class BaseIntegrationTestCase(unittest.TestCase):
+
     @classmethod
     def setUpClass(cls):
         cls._configure_test()
@@ -35,9 +37,15 @@ class BaseIntegrationTestCase(unittest.TestCase):
 
 
 class BaseIntegrationLiveStubServerTestCase(unittest.TestCase):
+
     @classmethod
     def setUpClass(cls):
         cls.stub_lcp = testing_utilities.StubServer.make_stub_lcp()
+        cls.headers = {context.HEADERS_EXTERNAL_BASE_URL: 'http://live.lcpenv',
+                       context.HEADERS_CORRELATION_ID: str(uuid.uuid4()),
+                       context.HEADERS_MODE: 'sandbox',
+                       context.HEADERS_PRINCIPAL: str(uuid.uuid4())}
+        context.set_headers_getter(lambda name: cls.headers[name])
 
     def setUp(self):
         self.stub_lcp.clear()
@@ -61,6 +69,7 @@ def retry_if_assertion_error(exception):
 
 
 class BaseFullIntegrationTestCase(BaseIntegrationTestCase, BaseIntegrationLiveStubServerTestCase):
+
     @classmethod
     def setUpClass(cls):
         BaseIntegrationTestCase._configure_test()

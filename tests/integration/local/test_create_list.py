@@ -1,19 +1,13 @@
 import httplib
 import json
-import requests
-import uuid
 
-from liblcp import context, urls
+import requests
+from liblcp import urls
 from nose import tools
 from nose.plugins import attrib
 
 from tests.integration import base, testing_utilities
 
-
-context.set_headers_getter(lambda name: {context.HEADERS_EXTERNAL_BASE_URL: 'http://live.lcpenv',
-                                         context.HEADERS_CORRELATION_ID: str(uuid.uuid4()),
-                                         context.HEADERS_MODE: 'sandbox',
-                                         context.HEADERS_PRINCIPAL: str(uuid.uuid4())}[name])
 
 BASE_SERVICE_URL = 'http://0.0.0.0:5000/'
 CREATE_LIST_URL = 'index/offers/type/edaa3541-7376-4eb3-8047-aaf78af900da'
@@ -40,7 +34,8 @@ class CreateListEndpointTest(base.BaseIntegrationLiveStubServerTestCase):
 
     def test_create_list_with_callback_url(self):
         self.queue_stub_response({"status_code": httplib.OK})
-        self.data['callbackUrl'] = 'http://offers-ft.lxc.points.com:1300/'
+
+        self.data['callbackUrl'] = 'http://localhost:5001/offers/callback'
         response = requests.post(BASE_SERVICE_URL + CREATE_LIST_URL, json.dumps(self.data), headers=self.headers)
         response_content = json.loads(response.content)
 
@@ -48,7 +43,7 @@ class CreateListEndpointTest(base.BaseIntegrationLiveStubServerTestCase):
         tools.assert_in(CREATE_LIST_URL, urls.self_link(response_content))
 
     def test_create_list_missing_file(self):
-        data = {'callbackUrl': 'http://offers-ft.lxc.points.com:1300/'}
+        data = {'callbackUrl': 'http://localhost:5001/offers/callback'}
         response = requests.post(BASE_SERVICE_URL + CREATE_LIST_URL, json.dumps(data), headers=self.headers)
         response_content = json.loads(response.content)
 

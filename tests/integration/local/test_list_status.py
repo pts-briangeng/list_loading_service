@@ -1,20 +1,14 @@
 import httplib
 import json
-import requests
-import uuid
 
-from liblcp import context, urls
+import requests
+from liblcp import urls
 from nose import tools
 from nose.plugins import attrib
 
 from tests.integration import base, testing_utilities
 from tests import builders
 
-
-context.set_headers_getter(lambda name: {context.HEADERS_EXTERNAL_BASE_URL: 'http://live.lcpenv',
-                                         context.HEADERS_CORRELATION_ID: str(uuid.uuid4()),
-                                         context.HEADERS_MODE: 'sandbox',
-                                         context.HEADERS_PRINCIPAL: str(uuid.uuid4())}[name])
 
 BASE_SERVICE_URL = 'http://0.0.0.0:5000/'
 LIST_STATUS_URL = 'index/offers/type/edaa3541-7376-4eb3-8047-aaf78af900da/status'

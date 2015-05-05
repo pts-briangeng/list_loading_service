@@ -4,10 +4,10 @@ import httplib
 from nose.plugins import attrib
 from nose import tools
 import requests
-
 from liblcp import urls
-from tests.integration import base
-from tests.integration import testing_utilities
+
+from tests.integration import base, testing_utilities
+
 
 BASE_SERVICE_URL = 'http://0.0.0.0:5000/'
 BASE_LIST_URL = 'index/offers/type/edaa3541-7376-4eb3-8047-aaf78af900da'

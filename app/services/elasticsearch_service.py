@@ -8,8 +8,9 @@ import openpyxl
 import httplib
 
 from elasticsearch import helpers, exceptions
+from requestswrapper import requests_wrapper
 
-from liblcp import cross_service
+from liblcp import context
 
 
 logger = logging.getLogger(__name__)
@@ -17,6 +18,7 @@ logging.getLogger('elasticsearch.trace').setLevel(logging.WARN)
 
 
 class FileReader(object):
+
     def __init__(self, filename):
         self.filename = filename
 
@@ -31,6 +33,7 @@ class FileReader(object):
 
 
 class CsvReader(FileReader):
+
     def __init__(self, filename):
         super(CsvReader, self).__init__(filename)
 
@@ -47,6 +50,7 @@ class CsvReader(FileReader):
 
 
 class ExcelReader(FileReader):
+
     def __init__(self, filename):
         super(ExcelReader, self).__init__(filename)
 
@@ -79,7 +83,7 @@ def elastic_search_callback(f):
                         }
                     }
                 }
-                cross_service.post_or_abort(service=request.index, path=request.callbackUrl, data=data)
+                requests_wrapper.post(url=request.callbackUrl, data=data, headers=context.get_headers())
 
     return wrapper
 

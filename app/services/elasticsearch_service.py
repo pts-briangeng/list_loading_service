@@ -129,7 +129,7 @@ class ElasticSearchService(object):
                 logger.warning("Elastic search delete request exception: {}".format(e.info))
                 raise e
 
-        if 'acknowledged' in result and not result['acknowledged']:
+        if not result.get('acknowledged', False):
             logger.warning("Elastic search delete response not acknowledged successfully")
             raise Exception
 

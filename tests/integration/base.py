@@ -92,13 +92,13 @@ class ListPaths(object):
 
     @classmethod
     def create(cls, **kwargs):
-        if kwargs.get('relative_url', True):
+        if kwargs.get('relative_url', False):
             return '/lists/{service}/{id}'.format(**kwargs)
         return '{base_url}/lists/{service}/{id}'.format(**kwargs)
 
     @classmethod
     def stats(cls, **kwargs):
-        if kwargs.get('relative_url', True):
+        if kwargs.get('relative_url', False):
             return '/lists/{service}/{id}/statistics'.format(**kwargs)
         return '{base_url}/lists/{service}/{id}/statistics'.format(**kwargs)
 
@@ -108,6 +108,6 @@ class ListPaths(object):
 
     @classmethod
     def delete(cls, **kwargs):
-        if kwargs.get('relative_url', True):
+        if kwargs.get('relative_url', False):
             return '/lists/{service}/{id}/'.format(**kwargs)
         return '{base_url}/lists/{service}/{id}/'.format(**kwargs)

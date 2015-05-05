@@ -1,7 +1,7 @@
 import copy
 import httplib
 
-import base
+from tests.builders import base
 
 
 DELETE_LIST_OK_RESPONSE = {

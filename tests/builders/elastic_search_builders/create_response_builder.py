@@ -1,7 +1,7 @@
 import copy
 import httplib
 
-import base
+from tests.builders import base
 
 RESPONSE = {}
 
@@ -13,10 +13,10 @@ HTTP_RESPONSE = {
 }
 
 
-class ElasticSearchResponseJsonBuilder(base.BaseBuilder):
+class CreateListResponseJsonBuilder(base.BaseBuilder):
 
     def _init_(self):
-        super(ElasticSearchResponseJsonBuilder, self).__init__()
+        super(CreateListResponseJsonBuilder, self).__init__()
 
     def with_items(self, **data):
         response = base.mock_json(copy.deepcopy(RESPONSE), **data)

@@ -32,7 +32,7 @@ class CreateListServiceTest(base.BaseIntegrationLiveStubServerTestCase):
         }
         request = models.Request(**data)
         self.queue_stub_response({"status_code": httplib.OK})
-        self.queue_stub_response(builders.ESResponseBuilder().with_items().singleton())
+        self.queue_stub_response(builders.ESCreateResponseBuilder().with_items().singleton())
         self.service.create_list(request)
         mock_cross_service.assert_called_once_with(path='http://offers-ft.lxc.points.com:1300/',
                                                    data={'links': {'self': {'href': 'url'}}, 'success': True},
@@ -49,7 +49,7 @@ class CreateListServiceTest(base.BaseIntegrationLiveStubServerTestCase):
         }
         request = models.Request(**data)
         self.queue_stub_response({"status_code": httplib.OK})
-        self.queue_stub_response(builders.ESResponseBuilder().build().singleton())
+        self.queue_stub_response(builders.ESCreateResponseBuilder().build().singleton())
         self.service.create_list(request)
         mock_cross_service.assert_called_once_with(path='http://offers-ft.lxc.points.com:1300/',
                                                    data={'links': {'self': {'href': 'url'}}, 'success': False},

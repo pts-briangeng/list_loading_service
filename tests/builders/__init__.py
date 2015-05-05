@@ -1,7 +1,6 @@
-import elastic_search_builder
-import elastic_search_delete_response_builder
-import elastic_search_status_response_builder
+from tests.builders.elastic_search_builders import (create_response_builder, status_response_builder,
+                                                    delete_response_builder)
 
-ESResponseBuilder = elastic_search_builder.ElasticSearchResponseJsonBuilder
-ESDeleteResponseBuilder = elastic_search_delete_response_builder.DeleteListResponseJsonBuilder
-ESStatusResponseBuilder = elastic_search_status_response_builder.ListStatusResponseJsonBuilder
+ESCreateResponseBuilder = create_response_builder.CreateListResponseJsonBuilder
+ESDeleteResponseBuilder = delete_response_builder.DeleteListResponseJsonBuilder
+ESStatusResponseBuilder = status_response_builder.ListStatusResponseJsonBuilder

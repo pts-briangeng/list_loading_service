@@ -43,7 +43,7 @@ class ListLoadingServiceIntegrationTest(base.BaseFullIntegrationTestCase):
         tools.assert_equal(5, response_content['hits']['total'])
 
         # Delete the list
-        response = requests.delete(base.ListPaths.delete(PATH_PARAMS), data=json.dumps({}), headers=self.headers)
+        response = requests.delete(base.ListPaths.delete(**PATH_PARAMS), data=json.dumps({}), headers=self.headers)
         response_content = json.loads(response.content)
 
         tools.assert_equal(httplib.ACCEPTED, response.status_code)
@@ -59,5 +59,5 @@ class ListLoadingServiceIntegrationTest(base.BaseFullIntegrationTestCase):
         tools.assert_in(base.ListPaths.stats(relative_url=True, **PATH_PARAMS), urls.self_link(response_content))
         tools.assert_equal(0, response_content['hits']['total'])
 
-        response = requests.delete(base.ListPaths.delete(PATH_PARAMS), data=json.dumps({}), headers=self.headers)
+        response = requests.delete(base.ListPaths.delete(**PATH_PARAMS), data=json.dumps({}), headers=self.headers)
         tools.assert_equal(httplib.NOT_FOUND, response.status_code)

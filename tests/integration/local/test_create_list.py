@@ -16,7 +16,7 @@ context.set_headers_getter(lambda name: {context.HEADERS_EXTERNAL_BASE_URL: 'htt
                                          context.HEADERS_PRINCIPAL: str(uuid.uuid4())}[name])
 
 BASE_SERVICE_URL = 'http://0.0.0.0:5000/'
-CREATE_LIST_URL = 'index/offers/type/edaa3541-7376-4eb3-8047-aaf78af900da'
+CREATE_LIST_URL = 'lists/offers/edaa3541-7376-4eb3-8047-aaf78af900da'
 
 
 @attrib.attr('local_integration')
@@ -32,7 +32,7 @@ class CreateListEndpointTest(base.BaseIntegrationLiveStubServerTestCase):
         self.data = {'file': '/test/file'}
 
     def test_create_list(self):
-        response = requests.post(BASE_SERVICE_URL + CREATE_LIST_URL, json.dumps(self.data), headers=self.headers)
+        response = requests.put(BASE_SERVICE_URL + CREATE_LIST_URL, json.dumps(self.data), headers=self.headers)
         response_content = json.loads(response.content)
 
         tools.assert_equal(httplib.ACCEPTED, response.status_code)
@@ -41,7 +41,7 @@ class CreateListEndpointTest(base.BaseIntegrationLiveStubServerTestCase):
     def test_create_list_with_callback_url(self):
         self.queue_stub_response({"status_code": httplib.OK})
         self.data['callbackUrl'] = 'http://offers-ft.lxc.points.com:1300/'
-        response = requests.post(BASE_SERVICE_URL + CREATE_LIST_URL, json.dumps(self.data), headers=self.headers)
+        response = requests.put(BASE_SERVICE_URL + CREATE_LIST_URL, json.dumps(self.data), headers=self.headers)
         response_content = json.loads(response.content)
 
         tools.assert_equal(httplib.ACCEPTED, response.status_code)
@@ -49,7 +49,7 @@ class CreateListEndpointTest(base.BaseIntegrationLiveStubServerTestCase):
 
     def test_create_list_missing_file(self):
         data = {'callbackUrl': 'http://offers-ft.lxc.points.com:1300/'}
-        response = requests.post(BASE_SERVICE_URL + CREATE_LIST_URL, json.dumps(data), headers=self.headers)
+        response = requests.put(BASE_SERVICE_URL + CREATE_LIST_URL, json.dumps(data), headers=self.headers)
         response_content = json.loads(response.content)
 
         tools.assert_equal(httplib.BAD_REQUEST, response.status_code)

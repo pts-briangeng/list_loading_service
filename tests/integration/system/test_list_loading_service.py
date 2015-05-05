@@ -53,11 +53,7 @@ class ListLoadingServiceIntegrationTest(base.BaseFullIntegrationTestCase):
         time.sleep(2)
         # Ensure the list was deleted by searching for it and trying to delete it again
         response = requests.get(base.ListPaths.stats(**PATH_PARAMS), headers=self.headers)
-        response_content = json.loads(response.content)
-
-        tools.assert_equal(httplib.OK, response.status_code)
-        tools.assert_in(base.ListPaths.stats(relative_url=True, **PATH_PARAMS), urls.self_link(response_content))
-        tools.assert_equal(0, response_content['hits']['total'])
+        tools.assert_equal(httplib.NOT_FOUND, response.status_code)
 
         response = requests.delete(base.ListPaths.delete(**PATH_PARAMS), data=json.dumps({}), headers=self.headers)
         tools.assert_equal(httplib.NOT_FOUND, response.status_code)

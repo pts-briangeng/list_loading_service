@@ -1,4 +1,5 @@
 import json
+import time
 import httplib
 
 from nose.plugins import attrib
@@ -32,6 +33,7 @@ class ListLoadingServiceIntegrationTest(base.BaseFullIntegrationTestCase):
         tools.assert_equal(httplib.ACCEPTED, response.status_code)
         tools.assert_in(base.ListPaths.create(relative_url=True, **PATH_PARAMS), urls.self_link(response_content))
 
+        time.sleep(2)
         # Search for that list
         response = requests.get(base.ListPaths.stats(**PATH_PARAMS), headers=self.headers)
         response_content = json.loads(response.content)
@@ -48,6 +50,7 @@ class ListLoadingServiceIntegrationTest(base.BaseFullIntegrationTestCase):
         tools.assert_in(base.ListPaths.create(relative_url=True, **PATH_PARAMS), urls.self_link(response_content))
         tools.assert_true(response_content['acknowledged'])
 
+        time.sleep(2)
         # Ensure the list was deleted by searching for it and trying to delete it again
         response = requests.get(base.ListPaths.stats(**PATH_PARAMS), headers=self.headers)
         response_content = json.loads(response.content)

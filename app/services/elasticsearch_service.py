@@ -136,6 +136,6 @@ class ElasticSearchService(object):
         result = es.search(index=request.service, doc_type=request.id, search_type="count")
         logger.info("elastic search response {}".format(result))
         if result['hits']['total'] == 0:
-            logger.warning("Elastic search index/type - {}/{} request not found".format(request.index, request.type))
+            logger.warning("Elastic search index/type - {}/{} request not found".format(request.service, request.id))
             raise LookupError
         return result

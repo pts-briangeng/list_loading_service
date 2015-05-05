@@ -23,8 +23,8 @@ class ApiConfiguration(object):
     def setup_endpoints(self):
         self.api.add_resource(CreateListPutResourceController, '/lists/<service>/<id>')
         self.api.add_resource(GetListByIdResourceController, '/index/<index>/type/<type>')
-        self.api.add_resource(DeleteListResourceController, '/index/<index>/type/<type>')
-        self.api.add_resource(ListStatusGetResourceController, '/list/<service>/<id>/statistics')
+        self.api.add_resource(DeleteListResourceController, '/index/<service>/type/<id>')
+        self.api.add_resource(ListStatusGetResourceController, '/lists/<service>/<id>/statistics')
 
 
 def build_server():

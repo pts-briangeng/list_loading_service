@@ -7,20 +7,20 @@ from werkzeug import exceptions as flask_errors
 
 from app import exceptions, models, services
 from app.controllers import base
-from app.controllers.schemas import post_list, post_empty
+from app.controllers.schemas import put_list, post_empty
 
 logger = logging.getLogger(__name__)
 
 
-class CreateListPostResourceController(base.BaseListResourceController, controllers.PostResourceController):
+class CreateListPutResourceController(base.BaseListResourceController, controllers.PutResourceController):
 
     def __init__(self):
-        super(CreateListPostResourceController, self).__init__(schema=post_list.REQUEST)
+        super(CreateListPutResourceController, self).__init__(schema=put_list.REQUEST)
         self.http_successful_response_status = httplib.ACCEPTED
 
     @property
     def resource_by_id_resource_controller(self):
-        return CreateListPostResourceController
+        return CreateListPutResourceController
 
     def process_request_model(self, request_model, **kwargs):
         request = models.Request(url=self.request_url, **dict(request_model, **kwargs))

@@ -79,7 +79,7 @@ def elastic_search_callback(f):
                         }
                     }
                 }
-                cross_service.post_or_abort(service=request.index, path=request.callbackUrl, data=data)
+                cross_service.post_or_abort(service=request.service, path=request.callbackUrl, data=data)
 
     return wrapper
 
@@ -96,8 +96,8 @@ class ElasticSearchService(object):
         with file_reader:
             for line in file_reader.get_rows():
                 action = {
-                    "_index": request.index,
-                    "_type": request.type,
+                    "_index": request.service,
+                    "_type": request.id,
                     "_id": line,
                     "_source": {
                         "accountNumber": line
@@ -108,14 +108,14 @@ class ElasticSearchService(object):
         es = elasticsearch.Elasticsearch([configuration.data.ELASTIC_SEARCH_SERVER])
         logger.info("Bulk indexing file")
         result = helpers.bulk(es, actions)
-        es.indices.refresh(index=request.index)
+        es.indices.refresh(index=request.service)
         logger.info("Finished indexing {} documents".format(result[0]))
 
     def delete_list(self, request):
         es = elasticsearch.Elasticsearch(configuration.data.ELASTIC_SEARCH_SERVER)
 
         try:
-            result = es.indices.delete_mapping(index=request.index, doc_type=request.type)
+            result = es.indices.delete_mapping(index=request.service, doc_type=request.id)
             logger.info("Elastic search delete response {}".format(result))
         except exceptions.TransportError as e:
             if e.status_code == httplib.NOT_FOUND:
@@ -133,6 +133,6 @@ class ElasticSearchService(object):
 
     def get_list_status(self, request):
         es = elasticsearch.Elasticsearch(configuration.data.ELASTIC_SEARCH_SERVER)
-        result = es.search(index=request.index, doc_type=request.type, search_type="count")
+        result = es.search(index=request.service, doc_type=request.id, search_type="count")
         logger.info("elastic search response {}".format(result))
         return result

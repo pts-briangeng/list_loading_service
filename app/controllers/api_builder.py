@@ -5,7 +5,7 @@ from liblcp import context as lcp_context
 from restframework import rest_api
 
 from app import app_logging, instrumentation
-from app.controllers.lls_resource_api import (CreateListPostResourceController, GetListByIdResourceController,
+from app.controllers.lls_resource_api import (CreateListPutResourceController, GetListByIdResourceController,
                                               DeleteListResourceController, ListStatusGetResourceController)
 
 
@@ -13,7 +13,7 @@ logger = logging.getLogger(__name__)
 
 
 class ApiConfiguration(object):
-    profiled_targets = [CreateListPostResourceController]
+    profiled_targets = [CreateListPutResourceController]
 
     def __init__(self, flask_app):
         self.api = rest_api.RestApi(flask_app)
@@ -21,7 +21,7 @@ class ApiConfiguration(object):
         instrumentation.instrument(ApiConfiguration.profiled_targets, logger.getEffectiveLevel())
 
     def setup_endpoints(self):
-        self.api.add_resource(CreateListPostResourceController, '/index/<index>/type/<type>')
+        self.api.add_resource(CreateListPutResourceController, '/lists/<service>/<id>')
         self.api.add_resource(GetListByIdResourceController, '/index/<index>/type/<type>')
         self.api.add_resource(DeleteListResourceController, '/index/<index>/type/<type>')
         self.api.add_resource(ListStatusGetResourceController, '/index/<index>/type/<type>/status')

@@ -26,7 +26,7 @@ class ListLoadingServiceIntegrationTest(base.BaseFullIntegrationTestCase):
     def test_create_list(self):
 
         # Create a list
-        response = requests.post(base.ListPaths.create(**PATH_PARAMS), json.dumps(self.data), headers=self.headers)
+        response = requests.put(base.ListPaths.create(**PATH_PARAMS), json.dumps(self.data), headers=self.headers)
         response_content = json.loads(response.content)
 
         tools.assert_equal(httplib.ACCEPTED, response.status_code)

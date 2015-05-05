@@ -86,3 +86,28 @@ class BaseFullIntegrationTestCase(BaseIntegrationTestCase, BaseIntegrationLiveSt
         execfile(os.path.abspath(os.path.join(BASE_PROJECT_PATH, 'configuration', 'servicecontainer.cfg')),
                  liblcp_config_data)
         liblcp_config.set_configuration(liblcp_config_data)
+
+
+class ListPaths(object):
+
+    @classmethod
+    def create(cls, **kwargs):
+        if kwargs.get('relative_url', True):
+            return '/lists/{service}/{id}'.format(**kwargs)
+        return '{base_url}/lists/{service}/{id}'.format(**kwargs)
+
+    @classmethod
+    def stats(cls, **kwargs):
+        if kwargs.get('relative_url', True):
+            return '/lists/{service}/{id}/statistics'.format(**kwargs)
+        return '{base_url}/lists/{service}/{id}/statistics'.format(**kwargs)
+
+    @classmethod
+    def callback_url(cls, **kwargs):
+        return '{base_url}/offers/{offer_id}/variations/{id}/list/complete'.format(**kwargs)
+
+    @classmethod
+    def delete(cls, **kwargs):
+        if kwargs.get('relative_url', True):
+            return '/lists/{service}/{id}/'.format(**kwargs)
+        return '{base_url}/lists/{service}/{id}/'.format(**kwargs)

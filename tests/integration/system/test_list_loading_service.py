@@ -20,57 +20,65 @@ PATH_PARAMS = {
 
 
 @attrib.attr('system_integration')
-class ListLoadingServiceIntegrationTest(base.BaseFullIntegrationTestCase):
+class ListsServiceIntegrationTest(base.BaseFullIntegrationTestCase):
 
     def setUp(self):
         self.headers = testing_utilities.generate_headers(base_url='http://live.lcpenv')
         self.data = {'file': '/config/test.csv'}  # this file is copied over in the fab task
 
-    def test_create_list(self):
+    def test_list_functionality(self):
 
-        # Create a list
-        response = requests.put(base.ListPaths.create(**PATH_PARAMS), json.dumps(self.data), headers=self.headers)
-        response_content = json.loads(response.content)
+        def _assert_list_create():
+            response = requests.put(base.ListPaths.create(**PATH_PARAMS), json.dumps(self.data), headers=self.headers)
+            response_content = json.loads(response.content)
+            tools.assert_equal(httplib.ACCEPTED, response.status_code)
+            tools.assert_in(base.ListPaths.create(relative_url=True, **PATH_PARAMS), urls.self_link(response_content))
+            time.sleep(2)
 
-        tools.assert_equal(httplib.ACCEPTED, response.status_code)
-        tools.assert_in(base.ListPaths.create(relative_url=True, **PATH_PARAMS), urls.self_link(response_content))
+        def _assert_search_for_created_list():
+            response = requests.get(base.ListPaths.stats(**PATH_PARAMS), headers=self.headers)
+            response_content = json.loads(response.content)
 
-        time.sleep(2)
-        # Search for that list
-        response = requests.get(base.ListPaths.stats(**PATH_PARAMS), headers=self.headers)
-        response_content = json.loads(response.content)
+            tools.assert_equal(httplib.OK, response.status_code)
+            tools.assert_in(base.ListPaths.stats(relative_url=True, **PATH_PARAMS), urls.self_link(response_content))
+            tools.assert_equal(5, response_content['hits']['total'])
 
-        tools.assert_equal(httplib.OK, response.status_code)
-        tools.assert_in(base.ListPaths.stats(relative_url=True, **PATH_PARAMS), urls.self_link(response_content))
-        tools.assert_equal(5, response_content['hits']['total'])
+        def _assert_search_for_member_in_list():
+            response = requests.get(base.ListPaths.get_list_member(**PATH_PARAMS), headers=self.headers)
 
-        # Search for a member in the list
-        response = requests.get(base.ListPaths.get_list_member(**PATH_PARAMS), headers=self.headers)
+            tools.assert_equal(httplib.OK, response.status_code)
+            response_content = json.loads(response.content)
+            tools.assert_in(base.ListPaths.get_list_member(relative_url=True, **PATH_PARAMS),
+                            urls.self_link(response_content))
 
-        tools.assert_equal(httplib.OK, response.status_code)
-        response_content = json.loads(response.content)
-        tools.assert_in(base.ListPaths.get_list_member(relative_url=True, **PATH_PARAMS),
-                        urls.self_link(response_content))
+        def _assert_member_not_found_in_list_return_not_found():
+            params = copy.deepcopy(PATH_PARAMS)
+            params['member_id'] = "XXXXXXX"
+            response = requests.get(base.ListPaths.get_list_member(**params), headers=self.headers)
 
-        # Search for a random member in the list raises 404
-        params = copy.deepcopy(PATH_PARAMS)
-        params['member_id'] = "XXXXXXX"
-        response = requests.get(base.ListPaths.get_list_member(**params), headers=self.headers)
+            tools.assert_equal(httplib.NOT_FOUND, response.status_code)
 
-        tools.assert_equal(httplib.NOT_FOUND, response.status_code)
+        def _assert_list_delete():
+            response = requests.delete(base.ListPaths.delete(**PATH_PARAMS), data=json.dumps({}), headers=self.headers)
+            response_content = json.loads(response.content)
 
-        # Delete the list
-        response = requests.delete(base.ListPaths.delete(**PATH_PARAMS), data=json.dumps({}), headers=self.headers)
-        response_content = json.loads(response.content)
+            tools.assert_equal(httplib.ACCEPTED, response.status_code)
+            tools.assert_in(base.ListPaths.create(relative_url=True, **PATH_PARAMS), urls.self_link(response_content))
+            tools.assert_true(response_content['acknowledged'])
+            time.sleep(2)
 
-        tools.assert_equal(httplib.ACCEPTED, response.status_code)
-        tools.assert_in(base.ListPaths.create(relative_url=True, **PATH_PARAMS), urls.self_link(response_content))
-        tools.assert_true(response_content['acknowledged'])
+        def _assert_deleted_list_cannot_be_accessed():
+            response = requests.get(base.ListPaths.stats(**PATH_PARAMS), headers=self.headers)
+            tools.assert_equal(httplib.NOT_FOUND, response.status_code)
 
-        time.sleep(2)
-        # Ensure the list was deleted by searching for it and trying to delete it again
-        response = requests.get(base.ListPaths.stats(**PATH_PARAMS), headers=self.headers)
-        tools.assert_equal(httplib.NOT_FOUND, response.status_code)
+        def _assert_deleted_list_cannot_be_deleted():
+            response = requests.delete(base.ListPaths.delete(**PATH_PARAMS), data=json.dumps({}), headers=self.headers)
+            tools.assert_equal(httplib.NOT_FOUND, response.status_code)
 
-        response = requests.delete(base.ListPaths.delete(**PATH_PARAMS), data=json.dumps({}), headers=self.headers)
-        tools.assert_equal(httplib.NOT_FOUND, response.status_code)
+        _assert_list_create()
+        _assert_search_for_created_list()
+        _assert_search_for_member_in_list()
+        _assert_member_not_found_in_list_return_not_found()
+        _assert_list_delete()
+        _assert_deleted_list_cannot_be_accessed()
+        _assert_deleted_list_cannot_be_deleted()

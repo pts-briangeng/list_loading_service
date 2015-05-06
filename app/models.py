@@ -4,5 +4,6 @@ class Request(object):
         self.url = kwargs.get('url', '')
         self.file = kwargs.get('file', '')
         self.service = kwargs.get('service', '')
-        self.id = kwargs.get('id', '')
+        self.listId = kwargs.get('list_id', '')
+        self.memberId = kwargs.get('member_id', '')
         self.callbackUrl = kwargs.get('callbackUrl', '')

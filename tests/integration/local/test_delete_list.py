@@ -10,8 +10,11 @@ from tests.integration import base, testing_utilities
 from tests import builders
 
 
-BASE_SERVICE_URL = 'http://0.0.0.0:5000/'
-DELETE_LIST_URL = 'lists/offers/edaa3541-7376-4eb3-8047-aaf78af900da/'
+PATH_PARAMS = {
+    'base_url': 'http://0.0.0.0:5000',
+    'service': 'offers',
+    'list_id': 'edaa3541-7376-4eb3-8047-aaf78af900da'
+}
 
 
 @attrib.attr('local_integration')
@@ -28,16 +31,20 @@ class DeleteListEndpointTest(base.BaseIntegrationLiveStubServerTestCase):
 
     def test_delete_list(self):
         self.queue_stub_response(builders.ESDeleteResponseBuilder().with_acknowledged_response().http_response())
-        response = requests.delete(BASE_SERVICE_URL + DELETE_LIST_URL, headers=self.headers, data=json.dumps(self.data))
+        response = requests.delete(base.ListPaths.delete(**PATH_PARAMS),
+                                   headers=self.headers,
+                                   data=json.dumps(self.data))
         response_content = json.loads(response.content)
 
         tools.assert_equal(httplib.ACCEPTED, response.status_code)
-        tools.assert_in(DELETE_LIST_URL, urls.self_link(response_content))
+        tools.assert_in(base.ListPaths.delete(relative_url=True, **PATH_PARAMS), urls.self_link(response_content))
         tools.assert_true(response_content['acknowledged'])
 
     def test_delete_list_with_errors(self):
         self.queue_transport_error()
-        response = requests.delete(BASE_SERVICE_URL + DELETE_LIST_URL, headers=self.headers, data=json.dumps(self.data))
+        response = requests.delete(base.ListPaths.delete(**PATH_PARAMS),
+                                   headers=self.headers,
+                                   data=json.dumps(self.data))
         response_content = json.loads(response.content)
 
         tools.assert_equal(httplib.NOT_FOUND, response.status_code)
@@ -47,7 +54,9 @@ class DeleteListEndpointTest(base.BaseIntegrationLiveStubServerTestCase):
 
     def test_delete_list_not_acknowledged(self):
         self.queue_stub_response(builders.ESDeleteResponseBuilder().with_unacknowledged_response().http_response())
-        response = requests.delete(BASE_SERVICE_URL + DELETE_LIST_URL, headers=self.headers, data=json.dumps(self.data))
+        response = requests.delete(base.ListPaths.delete(**PATH_PARAMS),
+                                   headers=self.headers,
+                                   data=json.dumps(self.data))
         response_content = json.loads(response.content)
 
         tools.assert_equal(httplib.INTERNAL_SERVER_ERROR, response.status_code)

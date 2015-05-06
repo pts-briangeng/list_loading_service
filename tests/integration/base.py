@@ -93,21 +93,27 @@ class ListPaths(object):
     @classmethod
     def create(cls, **kwargs):
         if kwargs.get('relative_url', False):
-            return '/lists/{service}/{id}'.format(**kwargs)
-        return '{base_url}/lists/{service}/{id}'.format(**kwargs)
+            return '/lists/{service}/{list_id}'.format(**kwargs)
+        return '{base_url}/lists/{service}/{list_id}'.format(**kwargs)
 
     @classmethod
     def stats(cls, **kwargs):
         if kwargs.get('relative_url', False):
-            return '/lists/{service}/{id}/statistics'.format(**kwargs)
-        return '{base_url}/lists/{service}/{id}/statistics'.format(**kwargs)
+            return '/lists/{service}/{list_id}/statistics'.format(**kwargs)
+        return '{base_url}/lists/{service}/{list_id}/statistics'.format(**kwargs)
 
     @classmethod
     def callback_url(cls, **kwargs):
-        return '{base_url}/offers/{offer_id}/variations/{id}/list/complete'.format(**kwargs)
+        return '{base_url}/offers/{offer_id}/variations/{list_id}/list/complete'.format(**kwargs)
 
     @classmethod
     def delete(cls, **kwargs):
         if kwargs.get('relative_url', False):
-            return '/lists/{service}/{id}/'.format(**kwargs)
-        return '{base_url}/lists/{service}/{id}/'.format(**kwargs)
+            return '/lists/{service}/{list_id}/'.format(**kwargs)
+        return '{base_url}/lists/{service}/{list_id}/'.format(**kwargs)
+
+    @classmethod
+    def get_list_member(cls, **kwargs):
+        if kwargs.get('relative_url', False):
+            return '/lists/{service}/{list_id}/member/{member_id}'.format(**kwargs)
+        return '{base_url}/lists/{service}/{list_id}/member/{member_id}'.format(**kwargs)

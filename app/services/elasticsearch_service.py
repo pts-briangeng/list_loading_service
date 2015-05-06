@@ -118,6 +118,7 @@ class ElasticSearchService(object):
         es = elasticsearch.Elasticsearch(configuration.data.ELASTIC_SEARCH_SERVER)
 
         try:
+            logger.info("Elasticsearch is deleting index: {}, doc_type: {}".format(request.service, request.listId))
             result = es.indices.delete_mapping(index=request.service, doc_type=request.listId)
             logger.info("Elastic search delete response {}".format(result))
         except exceptions.TransportError as e:

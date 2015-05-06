@@ -1,3 +1,4 @@
+import json
 import logging
 import traceback
 import csv
@@ -82,7 +83,9 @@ def elastic_search_callback(f):
                         }
                     }
                 }
-                requests_wrapper.post(url=request.callbackUrl, data=data, headers=context.get_headers())
+                request_headers = context.get_headers()
+                request_headers['Content-Type'] = 'application/json'
+                requests_wrapper.post(url=request.callbackUrl, data=json.dumps(data), headers=request_headers)
 
     return wrapper
 

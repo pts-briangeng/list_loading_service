@@ -1,4 +1,5 @@
 import httplib
+import json
 import mock
 
 from liblcp import context
@@ -43,16 +44,17 @@ class CreateListServiceTest(base.BaseIntegrationLiveStubServerTestCase):
                 'PTS-LCP-Base-URL': context.get_header_value(context.HEADERS_EXTERNAL_BASE_URL),
                 'PTS-LCP-Mode': context.get_header_value(context.HEADERS_MODE),
                 'PTS-LCP-CID': context.get_header_value(context.HEADERS_CORRELATION_ID),
-                'PTS-LCP-Principal': context.get_header_value(context.HEADERS_PRINCIPAL)
+                'PTS-LCP-Principal': context.get_header_value(context.HEADERS_PRINCIPAL),
+                'Content-Type': 'application/json'
             },
-            data={
+            data=json.dumps({
+                'success': True,
                 'links': {
                     'self': {
                         'href': 'url'
                     }
-                },
-                'success': True
-            })
+                }
+            }))
 
     @mock.patch.object(elasticsearch_service.requests_wrapper, 'post', autospec=True)
     def test_create_list_fails_on_elastic_search_error(self, mock_requests_wrapper_post):
@@ -75,16 +77,17 @@ class CreateListServiceTest(base.BaseIntegrationLiveStubServerTestCase):
                 'PTS-LCP-Base-URL': context.get_header_value(context.HEADERS_EXTERNAL_BASE_URL),
                 'PTS-LCP-Mode': context.get_header_value(context.HEADERS_MODE),
                 'PTS-LCP-CID': context.get_header_value(context.HEADERS_CORRELATION_ID),
-                'PTS-LCP-Principal': context.get_header_value(context.HEADERS_PRINCIPAL)
+                'PTS-LCP-Principal': context.get_header_value(context.HEADERS_PRINCIPAL),
+                'Content-Type': 'application/json'
             },
-            data={
+            data=json.dumps({
+                'success': False,
                 'links': {
                     'self': {
                         'href': 'url'
                     }
-                },
-                'success': False
-            })
+                }
+            }))
 
     @mock.patch.object(elasticsearch_service.requests_wrapper, 'post', autospec=True)
     def test_create_list_fails_on_non_existant_file(self, mock_requests_wrapper_post):
@@ -105,13 +108,14 @@ class CreateListServiceTest(base.BaseIntegrationLiveStubServerTestCase):
                 'PTS-LCP-Base-URL': context.get_header_value(context.HEADERS_EXTERNAL_BASE_URL),
                 'PTS-LCP-Mode': context.get_header_value(context.HEADERS_MODE),
                 'PTS-LCP-CID': context.get_header_value(context.HEADERS_CORRELATION_ID),
-                'PTS-LCP-Principal': context.get_header_value(context.HEADERS_PRINCIPAL)
+                'PTS-LCP-Principal': context.get_header_value(context.HEADERS_PRINCIPAL),
+                'Content-Type': 'application/json'
             },
-            data={
+            data=json.dumps({
+                'success': False,
                 'links': {
                     'self': {
                         'href': 'url'
                     }
-                },
-                'success': False
-            })
+                }
+            }))

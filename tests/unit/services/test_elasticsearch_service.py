@@ -1,3 +1,4 @@
+import json
 import unittest
 import os
 import csv
@@ -98,16 +99,17 @@ class TestElasticSearchService(unittest.TestCase):
                           'PTS-LCP-Base-URL': 'http://localhost',
                           'PTS-LCP-Mode': context.MODE_LIVE,
                           'PTS-LCP-CID': CORRELATION_ID,
-                          'PTS-LCP-Principal': PRINCIPAL
+                          'PTS-LCP-Principal': PRINCIPAL,
+                          'Content-Type': 'application/json'
                       },
-                      data={
+                      data=json.dumps({
+                          'success': True,
                           'links': {
                               'self': {
                                   'href': 'url'
                               }
-                          },
-                          'success': True
-                      }
+                          }
+                      })
                       )
         ])
 
@@ -138,16 +140,17 @@ class TestElasticSearchService(unittest.TestCase):
                           'PTS-LCP-Base-URL': 'http://localhost',
                           'PTS-LCP-Mode': context.MODE_LIVE,
                           'PTS-LCP-CID': CORRELATION_ID,
-                          'PTS-LCP-Principal': PRINCIPAL
+                          'PTS-LCP-Principal': PRINCIPAL,
+                          'Content-Type': 'application/json'
                       },
-                      data={
+                      data=json.dumps({
+                          'success': True,
                           'links': {
                               'self': {
                                   'href': 'url'
                               }
-                          },
-                          'success': True
-                      }
+                          }
+                      })
                       )
         ])
 

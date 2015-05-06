@@ -22,7 +22,7 @@ APIS = [
     Api(GetListByIdResourceController, '/lists/<service>/<list_id>/'),
     Api(DeleteListResourceController, '/lists/<service>/<list_id>/'),
     Api(ListStatusGetResourceController, '/lists/<service>/<list_id>/statistics'),
-    Api(GetListMemberByIdResourceController, '/lists/<service>/<list_id>/member/<member_id>'),
+    Api(GetListMemberByIdResourceController, '/lists/<service>/<list_id>/<member_id>'),
 ]
 
 

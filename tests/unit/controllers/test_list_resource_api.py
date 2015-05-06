@@ -167,7 +167,7 @@ class TestListMemberGetResourceController(unittest.TestCase):
     def test_get(self, mock_url_for, mock_service):
         app = flask.Flask(__name__)
         mock_service.return_value = {}
-        with app.test_request_context('/app/6d04bd2d-da75-420f-a52a-d2ffa0c48c42/member/123',
+        with app.test_request_context('/app/6d04bd2d-da75-420f-a52a-d2ffa0c48c42/123',
                                       method='GET',
                                       headers=Headers(test_sandbox_headers)):
             response = self.controller.get()
@@ -180,7 +180,7 @@ class TestListMemberGetResourceController(unittest.TestCase):
     def test_get_not_found(self, mock_url_for, mock_service):
         app = flask.Flask(__name__)
         mock_service.side_effect = LookupError
-        with app.test_request_context('/app/6d04bd2d-da75-420f-a52a-d2ffa0c48c42/member/123',
+        with app.test_request_context('/app/6d04bd2d-da75-420f-a52a-d2ffa0c48c42/123',
                                       method='GET',
                                       headers=Headers(test_sandbox_headers)):
             response = self.controller.get()

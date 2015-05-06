@@ -14,7 +14,6 @@ from liblcp import context
 
 
 logger = logging.getLogger(__name__)
-logging.getLogger('elasticsearch.trace').setLevel(logging.WARN)
 
 
 class FileReader(object):

@@ -1,6 +1,7 @@
 import httplib
 import multiprocessing
 import logging
+import traceback
 
 from restframework import controllers
 from werkzeug import exceptions as flask_errors
@@ -68,15 +69,13 @@ class ListStatusGetResourceController(base.BaseListResourceController, controlle
     def resource_by_id_resource_controller(self):
         return ListStatusGetResourceController
 
-    def get_resource_model(self, resource):
-        request = models.Request(url=self.request_url, **resource)
-        return services.ElasticSearch().get_list_status(request)
-
     def get(self, **kwargs):
         try:
-            response_model = self.get_resource_model(kwargs)
+            request = models.Request(url=self.request_url, **kwargs)
+            response_model = services.ElasticSearch().get_list_status(request)
         except Exception as e:
-            logger.exception("An error occurred.")
+            logger.exception("An error occurred in get stats for the list {} - {}".format(kwargs.get('list_id'),
+                                                                                          traceback.format_exc()))
             return self.translate_exceptions(e)
         response_dict = self.create_restful_response_payload(response_model, **kwargs)
         response_headers = self.create_response_headers(response_dict)
@@ -94,15 +93,14 @@ class GetListMemberByIdResourceController(base.BaseListResourceController, contr
     def resource_by_id_resource_controller(self):
         return GetListMemberByIdResourceController
 
-    def get_resource_model(self, resource):
-        request = models.Request(url=self.request_url, **resource)
-        return services.ElasticSearch().get_list_member(request)
-
     def get(self, **kwargs):
         try:
-            response_model = self.get_resource_model(kwargs)
+            request = models.Request(url=self.request_url, **kwargs)
+            response_model = services.ElasticSearch().get_list_member(request)
         except Exception as e:
-            logger.exception("An error occurred.")
+            logger.exception("An error occurred in get member {} for the list {} - {}".format(kwargs.get('member_id'),
+                                                                                              kwargs.get('list_id'),
+                                                                                              traceback.format_exc()))
             return self.translate_exceptions(e)
         response_dict = self.create_restful_response_payload(response_model, **kwargs)
         response_headers = self.create_response_headers(response_dict)

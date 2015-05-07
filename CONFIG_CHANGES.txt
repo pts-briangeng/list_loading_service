@@ -1,3 +1,6 @@
+2015-05-07
+- Please update all the respective logging.cfg changes
+
 servicecontainer.cfg:
 
 # This is the base URL that service use to communicate with each other internally.

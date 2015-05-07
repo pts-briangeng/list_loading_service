@@ -27,6 +27,6 @@ class TestModels(unittest.TestCase):
         tools.assert_equal(request.url, 'url')
         tools.assert_equal(request.file, 'file')
         tools.assert_equal(request.service, 'service')
-        tools.assert_equal(request.listId, 'id')
-        tools.assert_equal(request.memberId, 'member_id')
+        tools.assert_equal(request.list_id, 'id')
+        tools.assert_equal(request.member_id, 'member_id')
         tools.assert_equal(request.callbackUrl, 'callback')

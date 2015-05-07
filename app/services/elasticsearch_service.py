@@ -103,7 +103,7 @@ class ElasticSearchService(object):
             for line in file_reader.get_rows():
                 action = {
                     "_index": request.service,
-                    "_type": request.listId,
+                    "_type": request.list_id,
                     "_id": line,
                     "_source": {
                         "accountNumber": line
@@ -121,8 +121,8 @@ class ElasticSearchService(object):
         es = elasticsearch.Elasticsearch(configuration.data.ELASTIC_SEARCH_SERVER)
 
         try:
-            logger.info("Elasticsearch is deleting index: {}, doc_type: {}".format(request.service, request.listId))
-            result = es.indices.delete_mapping(index=request.service, doc_type=request.listId)
+            logger.info("Elasticsearch is deleting index: {}, doc_type: {}".format(request.service, request.list_id))
+            result = es.indices.delete_mapping(index=request.service, doc_type=request.list_id)
             logger.info("Elastic search delete response {}".format(result))
         except exceptions.TransportError as e:
             if e.status_code == httplib.NOT_FOUND:
@@ -140,15 +140,16 @@ class ElasticSearchService(object):
 
     def get_list_status(self, request):
         es = elasticsearch.Elasticsearch(configuration.data.ELASTIC_SEARCH_SERVER)
-        result = es.search(index=request.service, doc_type=request.listId, search_type="count")
+        result = es.search(index=request.service, doc_type=request.list_id, search_type="count")
         logger.info("elastic search response {}".format(result))
         if result['hits']['total'] == 0:
-            logger.warning("Elastic search index/type- {}/{} request not found".format(request.service, request.listId))
+            logger.warning("Elastic search index/type- {}/{} request not found".format(request.service,
+                                                                                       request.list_id))
             raise LookupError
         return result
 
     def get_list_member(self, request):
         es = elasticsearch.Elasticsearch(configuration.data.ELASTIC_SEARCH_SERVER)
-        if not es.exists(index=request.service, doc_type=request.listId, id=request.memberId):
+        if not es.exists(index=request.service, doc_type=request.list_id, id=request.member_id):
             raise LookupError
         return {}

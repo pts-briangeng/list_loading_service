@@ -83,9 +83,8 @@ def elastic_search_callback(f):
                         }
                     }
                 }
-                request_headers = context.get_headers()
-                request_headers['Content-Type'] = 'application/json'
-                requests_wrapper.post(url=request.callbackUrl, data=json.dumps(data), headers=request_headers)
+                requests_wrapper.post(url=request.callbackUrl, data=json.dumps(data),
+                                      headers=dict(context.get_headers(), **{'Content-Type': 'application/json'}))
 
     return wrapper
 

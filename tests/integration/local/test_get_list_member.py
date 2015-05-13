@@ -28,7 +28,7 @@ class GetListMemberEndpointTest(base.BaseIntegrationLiveStubServerTestCase):
         self.headers = testing_utilities.generate_headers(base_url='http://live.lcpenv')
 
     def test_get_member(self):
-        self.queue_stub_response({"status_code": httplib.OK})
+        self.queue_stub_response({"status_code": httplib.OK, "response": {"hits": {"total": 5}}})
         response = requests.get(base.ListPaths.get_list_member(**PATH_PARAMS), headers=self.headers)
         response_content = json.loads(response.content)
 

@@ -81,7 +81,7 @@ class ListsServiceIntegrationTest(base.BaseFullIntegrationTestCase):
 
         def _assert_deleted_list_cannot_be_deleted():
             response = requests.delete(base.ListPaths.delete(
-                **self.__class__.path_params), data=json.dumps({}), headers=self.headers)
+                **self.__class__.path_params), data=json.dumps({'filePath': '/config/test.csv'}), headers=self.headers)
             tools.assert_equal(httplib.NOT_FOUND, response.status_code)
 
         _assert_list_create()

@@ -16,6 +16,17 @@ from liblcp import context
 
 logger = logging.getLogger(__name__)
 
+MAPPINGS = {
+    "offers": {
+        "properties": {
+            "accountNumber": {
+                "type": "string",
+                "index": "not_analyzed"
+            }
+        }
+    }
+}
+
 
 class FileReader(object):
 
@@ -91,6 +102,24 @@ def elastic_search_callback(f):
 
 class ElasticSearchService(object):
 
+    def _create_es_index_if_required(self, es, index):
+        try:
+            es.indices.get(index=index, feature="_settings")
+        except exceptions.TransportError as e:
+            if e.status_code == httplib.NOT_FOUND:
+                logger.info("Creating new index {}".format(index))
+                es.indices.create(index=index)
+            else:
+                logger.warning("Elastic search get index request exception: {}".format(e.info))
+                raise e
+
+    def _create_es_mapping(self, es, index, doc_type):
+        try:
+            es.indices.put_mapping(doc_type=doc_type, body=MAPPINGS.get(index), index=index)
+        except exceptions.TransportError as e:
+            logger.warning("Elastic search create mapping request exception: {}".format(e.info))
+            raise e
+
     @elastic_search_callback
     def create_list(self, request):
         if not os.path.isfile(request.filePath):
@@ -111,6 +140,9 @@ class ElasticSearchService(object):
                 actions.append(action)
 
         es = elasticsearch.Elasticsearch([configuration.data.ELASTIC_SEARCH_SERVER])
+        self._create_es_index_if_required(es, request.service)
+        self._create_es_mapping(es, request.service, request.list_id)
+
         logger.info("Bulk indexing file")
         result = helpers.bulk(es, actions)
         es.indices.refresh(index=request.service)

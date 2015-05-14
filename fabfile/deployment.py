@@ -1,6 +1,8 @@
 import yaml
 import os
 import fabrika
+import configuration as sys_config
+
 from fabric.decorators import roles
 from fabric.api import task
 from fabric.api import env
@@ -24,9 +26,6 @@ FABRIC_ROLE_ELASTIC_SEARCH_LOAD_BALANCER = 'elastic_search_lb_config_node'
 
 NSCD_SOCKET_SOURCE = '/var/run/nscd'
 NSCD_SOCKET_TARGET = '/tmp/nscd-extern'
-
-LIST_FILE_SOURCE = '/content/list_upload'
-LIST_FILE_TARGET = '/content/list_upload'
 
 deploy_task = fabrika.tasks.docker.DeployTask('list_loading_service')
 load_balancer_task = SetupLoadBalancerBehindGateway()
@@ -104,7 +103,7 @@ def deploy_docker_image(fully_qualified_image_name, app_container_config_path, e
     node_deploy_configuration = env.host_role_properties[(env.host, FABRIC_ROLE_DOCKER_HOST)]
 
     volume_mappings = _process_nscd_mapping({}, node_deploy_configuration, enable_nscd)
-    volume_mappings[LIST_FILE_SOURCE] = LIST_FILE_TARGET
+    volume_mappings[sys_config.volumn_mappings_file_upload_source] = sys_config.volumn_mappings_file_upload_source
 
     print "*************************************************************************************"
     print volume_mappings

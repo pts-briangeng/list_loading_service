@@ -3,15 +3,15 @@ import logging
 import traceback
 import csv
 import os
-import httplib
-
+import configuration
 import elasticsearch
 import openpyxl
+import httplib
+
 from elasticsearch import helpers, exceptions
 from requestswrapper import requests_wrapper
-from liblcp import context
 
-import configuration
+from liblcp import context
 
 
 logger = logging.getLogger(__name__)
@@ -102,9 +102,9 @@ class ElasticSearchService(object):
             for line in file_reader.get_rows():
                 action = {
                     "_index": request.service,
-                    "_type": request.service,
+                    "_type": request.list_id,
+                    "_id": line,
                     "_source": {
-                        "listId": request.list_id,
                         "accountNumber": line
                     }
                 }
@@ -121,8 +121,7 @@ class ElasticSearchService(object):
 
         try:
             logger.info("Elasticsearch is deleting index: {}, doc_type: {}".format(request.service, request.list_id))
-            result = es.delete_by_query(index=request.service, doc_type=request.service,
-                                        body={"query": {"match": {"listId": request.list_id}}})
+            result = es.indices.delete_mapping(index=request.service, doc_type=request.list_id)
             logger.info("Elastic search delete response {}".format(result))
         except exceptions.TransportError as e:
             if e.status_code == httplib.NOT_FOUND:
@@ -132,21 +131,15 @@ class ElasticSearchService(object):
                 logger.warning("Elastic search delete request exception: {}".format(e.info))
                 raise e
 
+        if not result.get('acknowledged', False):
+            logger.warning("Elastic search delete response not acknowledged successfully")
+            raise Exception
+
         return result
 
     def get_list_status(self, request):
         es = elasticsearch.Elasticsearch(configuration.data.ELASTIC_SEARCH_SERVER)
-        try:
-            result = es.search(index=request.service, doc_type=request.service,
-                               body={"query": {"match": {"listId": request.list_id}}},
-                               search_type="count")
-        except exceptions.TransportError as e:
-            if e.status_code == httplib.NOT_FOUND:
-                logger.warning("Elastic search delete request not found")
-                raise LookupError
-            else:
-                logger.warning("Elastic search delete request exception: {}".format(e.info))
-                raise e
+        result = es.search(index=request.service, doc_type=request.list_id, search_type="count")
         logger.info("elastic search response {}".format(result))
         if result['hits']['total'] == 0:
             logger.warning("Elastic search index/type- {}/{} request not found".format(request.service,
@@ -156,28 +149,6 @@ class ElasticSearchService(object):
 
     def get_list_member(self, request):
         es = elasticsearch.Elasticsearch(configuration.data.ELASTIC_SEARCH_SERVER)
-        try:
-            result = es.search(index=request.service, doc_type=request.service,
-                               body={
-                                   "query": {
-                                       "bool": {
-                                           "must": [
-                                               {"match": {"listId": request.list_id}},
-                                               {"match": {"accountNumber": request.member_id}}
-                                           ]
-                                       }
-                                   }
-                               })
-        except exceptions.TransportError as e:
-            if e.status_code == httplib.NOT_FOUND:
-                logger.warning("Elastic search delete request not found")
-                raise LookupError
-            else:
-                logger.warning("Elastic search delete request exception: {}".format(e.info))
-                raise e
-        logger.info("elastic search response {}".format(result))
-        if result['hits']['total'] == 0:
-            logger.warning("Elastic search index/type- {}/{} request not found".format(request.service,
-                                                                                       request.list_id))
+        if not es.exists(index=request.service, doc_type=request.list_id, id=request.member_id):
             raise LookupError
         return {}

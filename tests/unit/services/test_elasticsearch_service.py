@@ -16,6 +16,7 @@ from nose import tools
 from app.services import elasticsearch_service
 import configuration
 from app import models, services
+from tests import builders
 
 
 class CsvMock(list):
@@ -67,8 +68,6 @@ class TestElasticSearchService(unittest.TestCase):
             'list_id': 'id',
             'callbackUrl': 'callback',
         }
-        self.member_data = copy.deepcopy(self.data)
-        self.member_data['member_id'] = 'member_id'
         self.service = services.ElasticSearch()
         configuration.configure_from(os.path.join(configuration.CONFIGURATION_PATH, 'list_loading_service.cfg'))
 
@@ -91,7 +90,7 @@ class TestElasticSearchService(unittest.TestCase):
         self.service.create_list(request)
 
         mock_bulk.assert_called_with(mock_elastic_search.return_value,
-                                     [{'_type': 'service', '_source': {'listId': 'id', 'accountNumber': 'abc'},
+                                     [{'_type': 'id', '_id': 'abc', '_source': {'accountNumber': 'abc'},
                                        '_index': 'service'}])
         mock_elastic_search.return_value.indices.refresh.assert_called_with(index='service')
         mock_requests_wrapper_post.assert_has_calls([
@@ -132,7 +131,7 @@ class TestElasticSearchService(unittest.TestCase):
         self.service.create_list(request)
 
         mock_bulk.assert_called_with(mock_elastic_search.return_value,
-                                     [{'_type': 'service', '_source': {'listId': 'id', 'accountNumber': 'abc'},
+                                     [{'_type': 'id', '_id': 'abc', '_source': {'accountNumber': 'abc'},
                                        '_index': 'service'}])
         mock_elastic_search.return_value.indices.refresh.assert_called_with(index='service')
         mock_requests_wrapper_post.assert_has_calls([
@@ -168,10 +167,8 @@ class TestElasticSearchService(unittest.TestCase):
         mock_elastic_search.return_value = mock.MagicMock()
         request = models.Request(**self.data)
         self.service.delete_list(request)
-        mock_elastic_search.return_value.delete_by_query.assert_called_once_with(
-            body={'query': {'match': {'listId': 'id'}}},
-            doc_type='service',
-            index='service')
+        mock_elastic_search.return_value.indices.delete_mapping.assert_called_once_with(doc_type='id',
+                                                                                        index='service')
 
     @tools.raises(LookupError)
     @mock.patch.object(elasticsearch, 'Elasticsearch', autospec=True)
@@ -181,7 +178,7 @@ class TestElasticSearchService(unittest.TestCase):
                                                         {'status': 400, 'error': 'IndexMissingException[[123] missing]'}
                                                         )
         mock_elastic_search.return_value = mock.MagicMock()
-        mock_elastic_search.return_value.delete_by_query.side_effect = not_found_exception
+        mock_elastic_search.return_value.indices.delete_mapping.side_effect = not_found_exception
         request = models.Request(**self.data)
         self.service.delete_list(request)
 
@@ -190,7 +187,16 @@ class TestElasticSearchService(unittest.TestCase):
     def test_delete_list_general_error(self, mock_elastic_search):
         general_exception = exceptions.TransportError(500, 'Server error', {'status': 500, 'error': 'Server error'})
         mock_elastic_search.return_value = mock.MagicMock()
-        mock_elastic_search.return_value.delete_by_query.side_effect = general_exception
+        mock_elastic_search.return_value.indices.delete_mapping.side_effect = general_exception
+        request = models.Request(**self.data)
+        self.service.delete_list(request)
+
+    @tools.raises(Exception)
+    @mock.patch.object(elasticsearch, 'Elasticsearch', autospec=True)
+    def test_delete_list_not_acknowledged(self, mock_elastic_search):
+        mock_elastic_search.return_value = mock.MagicMock()
+        mock_elastic_search.return_value.indices.delete_mapping.return_value = (
+            builders.ESDeleteResponseBuilder().with_unacknowledged_response().http_response()['response'])
         request = models.Request(**self.data)
         self.service.delete_list(request)
 
@@ -199,11 +205,9 @@ class TestElasticSearchService(unittest.TestCase):
         request = models.Request(**self.data)
         response = self.service.get_list_status(request)
         tools.assert_equal(mock_elastic_search.return_value.search.return_value, response)
-        mock_elastic_search.return_value.search.assert_called_once_with(
-            index='service',
-            doc_type='service',
-            body={'query': {'match': {'listId': 'id'}}},
-            search_type='count')
+        mock_elastic_search.return_value.search.assert_called_once_with(doc_type='id',
+                                                                        index='service',
+                                                                        search_type='count')
 
     @tools.raises(LookupError)
     @mock.patch.object(elasticsearch, 'Elasticsearch', autospec=True)
@@ -212,64 +216,23 @@ class TestElasticSearchService(unittest.TestCase):
         request = models.Request(**self.data)
         self.service.get_list_status(request)
 
-    @tools.raises(LookupError)
-    @mock.patch.object(elasticsearch, 'Elasticsearch', autospec=True)
-    def test_list_status_throws_404_when_transport_error(self, mock_elastic_search):
-        not_found_exception = exceptions.TransportError(
-            404,
-            'IndexMissingException[[123] missing]',
-            {'status': 404, 'error': 'IndexMissingException[[123] missing]'})
-        mock_elastic_search.return_value.search.side_effect = not_found_exception
-        request = models.Request(**self.data)
-        self.service.get_list_status(request)
-
-    @tools.raises(exceptions.TransportError)
-    @mock.patch.object(elasticsearch, 'Elasticsearch', autospec=True)
-    def test_list_status_throws_exceptions_when_error(self, mock_elastic_search):
-        mock_elastic_search.return_value.search.side_effect = exceptions.TransportError(400,
-                                                                                        'Error',
-                                                                                        {'status': 400,
-                                                                                         'error': 'Error'})
-        request = models.Request(**self.data)
-        response = self.service.get_list_status(request)
-        print response
-
     @mock.patch.object(elasticsearch, 'Elasticsearch', autospec=True)
     def test_list_member(self, mock_elastic_search):
-        mock_elastic_search.return_value.search.return_value = {"hits": {"total": 5}}
-        request = models.Request(**self.member_data)
+        mock_elastic_search.return_value.exists.return_value = True
+        data = copy.deepcopy(self.data)
+        data['member_id'] = 'member_id'
+        request = models.Request(**data)
         response = self.service.get_list_member(request)
         tools.assert_equal({}, response)
-        mock_elastic_search.return_value.search.assert_called_once_with(
-            body={'query': {'bool': {'must': [{'match': {'listId': 'id'}},
-                                              {'match': {'accountNumber': 'member_id'}}]}}},
-            doc_type='service', index='service')
+        mock_elastic_search.return_value.exists.assert_called_once_with(doc_type='id', index='service', id='member_id')
 
     @tools.raises(LookupError)
     @mock.patch.object(elasticsearch, 'Elasticsearch', autospec=True)
     def test_list_member_not_found(self, mock_elastic_search):
-        mock_elastic_search.return_value.search.return_value = {"hits": {"total": 0}}
-        request = models.Request(**self.member_data)
-        self.service.get_list_member(request)
-
-    @tools.raises(LookupError)
-    @mock.patch.object(elasticsearch, 'Elasticsearch', autospec=True)
-    def test_list_member_when_404(self, mock_elastic_search):
-        not_found_exception = exceptions.TransportError(
-            404,
-            'IndexMissingException[[123] missing]',
-            {'status': 404, 'error': 'IndexMissingException[[123] missing]'})
-        mock_elastic_search.return_value.search.side_effect = not_found_exception
-        request = models.Request(**self.member_data)
-        self.service.get_list_member(request)
-
-    @tools.raises(Exception)
-    @mock.patch.object(elasticsearch, 'Elasticsearch', autospec=True)
-    def test_list_member_when_execption(self, mock_elastic_search):
-        request_error = exceptions.TransportError(
-            400,
-            'Error',
-            {'status': 400, 'error': 'Error'})
-        mock_elastic_search.return_value.search.side_effect = request_error
-        request = models.Request(**self.member_data)
-        self.service.get_list_member(request)
+        mock_elastic_search.return_value.exists.return_value = False
+        data = copy.deepcopy(self.data)
+        data['member_id'] = 'member_id'
+        request = models.Request(**data)
+        response = self.service.get_list_member(request)
+        tools.assert_equal({}, response)
+        mock_elastic_search.return_value.exists.assert_called_once_with(doc_type='id', index='service', id='member_id')

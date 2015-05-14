@@ -72,6 +72,7 @@ class ListsServiceIntegrationTest(base.BaseFullIntegrationTestCase):
             tools.assert_equal(httplib.ACCEPTED, response.status_code)
             tools.assert_in(base.ListPaths.create(
                 relative_url=True, **self.__class__.path_params), urls.self_link(response_content))
+            tools.assert_true(response_content['acknowledged'])
             time.sleep(2)
 
         def _assert_deleted_list_cannot_be_accessed():
@@ -89,3 +90,4 @@ class ListsServiceIntegrationTest(base.BaseFullIntegrationTestCase):
         _assert_member_not_found_in_list_return_not_found()
         _assert_list_delete()
         _assert_deleted_list_cannot_be_accessed()
+        _assert_deleted_list_cannot_be_deleted()

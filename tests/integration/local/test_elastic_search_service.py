@@ -27,7 +27,7 @@ class CreateListServiceTest(base.BaseIntegrationLiveStubServerTestCase):
     def test_create_list(self, mock_requests_wrapper_post):
         data = {
             'url': 'url',
-            'file': './tests/samples/test.csv',
+            'filePath': './tests/samples/test.csv',
             'service': 'offers',
             'id': 'edaa3541-7376-4eb3-8047-aaf78af900da',
             'callbackUrl': 'http://localhost:5001/offers/callback',

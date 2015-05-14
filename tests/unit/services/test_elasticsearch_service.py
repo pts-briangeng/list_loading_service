@@ -63,7 +63,7 @@ class TestElasticSearchService(unittest.TestCase):
     def setUp(self):
         self.data = {
             'url': 'url',
-            'file': 'file.csv',
+            'filePath': 'file.csv',
             'service': 'service',
             'list_id': 'id',
             'callbackUrl': 'callback',
@@ -126,7 +126,7 @@ class TestElasticSearchService(unittest.TestCase):
         mock_elastic_search.return_value = mock.MagicMock()
         mock_requests_wrapper_post.return_value = MockHttpResponse(httplib.OK, {})
         data = copy.deepcopy(self.data)
-        data['file'] = 'file.xlsx'
+        data['filePath'] = 'file.xlsx'
         request = models.Request(**data)
         self.service.create_list(request)
 

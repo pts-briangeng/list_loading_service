@@ -6,11 +6,6 @@ REQUEST = {
     "required": ["filePath"],
     "properties": {
         "filePath": {"type": "string", "minLength": 1, "maxLength": 255},
-        "callbackUrl": {
-            "type": "string",
-            "minLength": 1,
-            "maxLength": 255
-        }
     },
     "additionalProperties": False,
 }

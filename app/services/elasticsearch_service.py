@@ -93,10 +93,10 @@ class ElasticSearchService(object):
 
     @elastic_search_callback
     def create_list(self, request):
-        if not os.path.isfile(request.file):
+        if not os.path.isfile(request.filePath):
             raise IOError("File does not exist")
-        filetype = request.file.split('.')[-1]
-        file_reader = CsvReader(request.file) if filetype == 'csv' else ExcelReader(request.file)
+        filetype = request.filePath.split('.')[-1]
+        file_reader = CsvReader(request.filePath) if filetype == 'csv' else ExcelReader(request.filePath)
         actions = []
         with file_reader:
             for line in file_reader.get_rows():
@@ -134,6 +134,11 @@ class ElasticSearchService(object):
         if not result.get('acknowledged', False):
             logger.warning("Elastic search delete response not acknowledged successfully")
             raise Exception
+
+        try:
+            os.remove(request.filePath)
+        except OSError as e:
+            logger.warning("Error deleting file: {}".format(e))
 
         return result
 

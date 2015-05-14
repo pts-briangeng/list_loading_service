@@ -10,14 +10,14 @@ class TestModels(unittest.TestCase):
     def test_request(self):
         request = models.Request()
         tools.assert_equal(request.url, '')
-        tools.assert_equal(request.file, '')
+        tools.assert_equal(request.filePath, '')
         tools.assert_equal(request.service, '')
         tools.assert_equal(request.callbackUrl, '')
 
     def test_request_with_data(self):
         data = {
             'url': 'url',
-            'file': 'file',
+            'filePath': 'filePath',
             'service': 'service',
             'list_id': 'id',
             'member_id': 'member_id',
@@ -25,7 +25,7 @@ class TestModels(unittest.TestCase):
         }
         request = models.Request(**data)
         tools.assert_equal(request.url, 'url')
-        tools.assert_equal(request.file, 'file')
+        tools.assert_equal(request.filePath, 'filePath')
         tools.assert_equal(request.service, 'service')
         tools.assert_equal(request.list_id, 'id')
         tools.assert_equal(request.member_id, 'member_id')

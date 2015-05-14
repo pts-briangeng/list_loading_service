@@ -27,7 +27,7 @@ class DeleteListEndpointTest(base.BaseIntegrationLiveStubServerTestCase):
 
     def setUp(self):
         self.headers = testing_utilities.generate_headers(base_url='http://live.lcpenv')
-        self.data = {}
+        self.data = {'filePath': 'file'}
 
     def test_delete_list(self):
         self.queue_stub_response(builders.ESDeleteResponseBuilder().with_acknowledged_response().http_response())

@@ -66,7 +66,7 @@ class ListsServiceIntegrationTest(base.BaseFullIntegrationTestCase):
 
         def _assert_list_delete():
             response = requests.delete(base.ListPaths.delete(
-                **self.__class__.path_params), data=json.dumps({}), headers=self.headers)
+                **self.__class__.path_params), data=json.dumps({'filePath': '/config/test.csv'}), headers=self.headers)
             response_content = json.loads(response.content)
 
             tools.assert_equal(httplib.ACCEPTED, response.status_code)

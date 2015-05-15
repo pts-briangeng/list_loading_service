@@ -16,6 +16,17 @@ from liblcp import context
 
 logger = logging.getLogger(__name__)
 
+MAPPINGS = {
+    "offers": {
+        "properties": {
+            "accountNumber": {
+                "type": "string",
+                "index": "not_analyzed"
+            }
+        }
+    }
+}
+
 
 class FileReader(object):
 
@@ -91,12 +102,30 @@ def elastic_search_callback(f):
 
 class ElasticSearchService(object):
 
+    def _create_es_index_if_required(self, es, index):
+        try:
+            es.indices.get(index=index, feature="_settings")
+        except exceptions.TransportError as e:
+            if e.status_code == httplib.NOT_FOUND:
+                logger.info("Creating new index {}".format(index))
+                es.indices.create(index=index)
+            else:
+                logger.warning("Elastic search get index request exception: {}".format(e.info))
+                raise e
+
+    def _create_es_mapping(self, es, index, doc_type):
+        try:
+            es.indices.put_mapping(doc_type=doc_type, body=MAPPINGS.get(index), index=index)
+        except exceptions.TransportError as e:
+            logger.warning("Elastic search create mapping request exception: {}".format(e.info))
+            raise e
+
     @elastic_search_callback
     def create_list(self, request):
-        if not os.path.isfile(request.file):
+        if not os.path.isfile(request.filePath):
             raise IOError("File does not exist")
-        filetype = request.file.split('.')[-1]
-        file_reader = CsvReader(request.file) if filetype == 'csv' else ExcelReader(request.file)
+        filetype = request.filePath.split('.')[-1]
+        file_reader = CsvReader(request.filePath) if filetype == 'csv' else ExcelReader(request.filePath)
         actions = []
         with file_reader:
             for line in file_reader.get_rows():
@@ -111,6 +140,9 @@ class ElasticSearchService(object):
                 actions.append(action)
 
         es = elasticsearch.Elasticsearch([configuration.data.ELASTIC_SEARCH_SERVER])
+        self._create_es_index_if_required(es, request.service)
+        self._create_es_mapping(es, request.service, request.list_id)
+
         logger.info("Bulk indexing file")
         result = helpers.bulk(es, actions)
         es.indices.refresh(index=request.service)
@@ -134,6 +166,11 @@ class ElasticSearchService(object):
         if not result.get('acknowledged', False):
             logger.warning("Elastic search delete response not acknowledged successfully")
             raise Exception
+
+        try:
+            os.remove(request.filePath)
+        except OSError as e:
+            logger.warning("Error deleting file: {}".format(e))
 
         return result
 

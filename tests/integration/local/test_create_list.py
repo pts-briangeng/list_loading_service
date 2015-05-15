@@ -26,7 +26,7 @@ class CreateListEndpointTest(base.BaseIntegrationLiveStubServerTestCase):
 
     def setUp(self):
         self.headers = testing_utilities.generate_headers(base_url='http://live.lcpenv')
-        self.data = {'file': '/test/file'}
+        self.data = {'filePath': '/test/file'}
 
     def test_create_list(self):
         response = requests.put(base.ListPaths.create(**PATH_PARAMS), json.dumps(self.data), headers=self.headers)
@@ -53,4 +53,4 @@ class CreateListEndpointTest(base.BaseIntegrationLiveStubServerTestCase):
         tools.assert_equal(httplib.BAD_REQUEST, response.status_code)
         tools.assert_equal(1, len(response_content['errors']))
         tools.assert_equal('MISSING_FIELD', response_content['errors'][0]['code'])
-        tools.assert_equal("'file' is required.", response_content['errors'][0]['description'])
+        tools.assert_equal("'filePath' is required.", response_content['errors'][0]['description'])

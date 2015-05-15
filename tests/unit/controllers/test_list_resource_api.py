@@ -49,7 +49,7 @@ class TestCreateListPutResourceController(unittest.TestCase):
         with app.test_request_context('/index/app/type/6d04bd2d-da75-420f-a52a-d2ffa0c48c42',
                                       method='PUT',
                                       headers=Headers(test_sandbox_headers),
-                                      data=json.dumps({'file': '/test/file'})):
+                                      data=json.dumps({'filePath': '/test/file'})):
             response = self.controller.put()
             tools.assert_equal(httplib.ACCEPTED, response[1])
 
@@ -91,7 +91,7 @@ class TestDeleteListResourceController(unittest.TestCase):
         with app.test_request_context('/index/app/type/6d04bd2d-da75-420f-a52a-d2ffa0c48c42',
                                       method='DELETE',
                                       headers=Headers(test_sandbox_headers),
-                                      data=json.dumps({})):
+                                      data=json.dumps({'filePath': 'file'})):
             response = self.controller.delete()
             tools.assert_equal(httplib.ACCEPTED, response[1])
             tools.assert_equal(mock_service.call_count, 1)
@@ -105,7 +105,7 @@ class TestDeleteListResourceController(unittest.TestCase):
         with app.test_request_context('/index/app/type/6d04bd2d-da75-420f-a52a-d2ffa0c48c42',
                                       method='DELETE',
                                       headers=Headers(test_sandbox_headers),
-                                      data=json.dumps({})):
+                                      data=json.dumps({'filePath': 'file'})):
             response = self.controller.delete()
             tools.assert_equal(httplib.NOT_FOUND, response[1])
             tools.assert_equal(mock_service.call_count, 1)
@@ -118,7 +118,7 @@ class TestDeleteListResourceController(unittest.TestCase):
         with app.test_request_context('/index/app/type/6d04bd2d-da75-420f-a52a-d2ffa0c48c42',
                                       method='DELETE',
                                       headers=Headers(test_sandbox_headers),
-                                      data=json.dumps({})):
+                                      data=json.dumps({'filePath': 'file'})):
             response = self.controller.delete()
             tools.assert_equal(httplib.INTERNAL_SERVER_ERROR, response[1])
             tools.assert_equal(mock_service.call_count, 1)

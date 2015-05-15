@@ -8,7 +8,7 @@ from werkzeug import exceptions as flask_errors
 
 from app import exceptions, models, services
 from app.controllers import base
-from app.controllers.schemas import put_list, post_empty
+from app.controllers.schemas import put_list, delete_list
 
 logger = logging.getLogger(__name__)
 
@@ -46,7 +46,7 @@ class GetListByIdResourceController(base.BaseListResourceController, controllers
 class DeleteListResourceController(base.BaseListResourceController, controllers.DeleteResourceController):
 
     def __init__(self):
-        super(DeleteListResourceController, self).__init__(schema=post_empty.REQUEST,
+        super(DeleteListResourceController, self).__init__(schema=delete_list.REQUEST,
                                                            exception_translations=exceptions.EXCEPTION_TRANSLATIONS)
         self.http_successful_response_status = httplib.ACCEPTED
 

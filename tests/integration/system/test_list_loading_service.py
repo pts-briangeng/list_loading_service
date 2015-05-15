@@ -27,7 +27,7 @@ class ListsServiceIntegrationTest(base.BaseFullIntegrationTestCase):
     def setUp(self):
         super(ListsServiceIntegrationTest, self).setUp()
         self.headers = testing_utilities.generate_headers(base_url='http://live.lcpenv')
-        self.data = {'file': '/config/test.csv'}  # this file is copied over in the fab task
+        self.data = {'filePath': '/config/test.csv'}  # this file is copied over in the fab task
 
     def test_list_functionality(self):
 
@@ -66,7 +66,7 @@ class ListsServiceIntegrationTest(base.BaseFullIntegrationTestCase):
 
         def _assert_list_delete():
             response = requests.delete(base.ListPaths.delete(
-                **self.__class__.path_params), data=json.dumps({}), headers=self.headers)
+                **self.__class__.path_params), data=json.dumps({'filePath': '/config/test.csv'}), headers=self.headers)
             response_content = json.loads(response.content)
 
             tools.assert_equal(httplib.ACCEPTED, response.status_code)
@@ -81,7 +81,7 @@ class ListsServiceIntegrationTest(base.BaseFullIntegrationTestCase):
 
         def _assert_deleted_list_cannot_be_deleted():
             response = requests.delete(base.ListPaths.delete(
-                **self.__class__.path_params), data=json.dumps({}), headers=self.headers)
+                **self.__class__.path_params), data=json.dumps({'filePath': '/config/test.csv'}), headers=self.headers)
             tools.assert_equal(httplib.NOT_FOUND, response.status_code)
 
         _assert_list_create()

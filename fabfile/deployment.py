@@ -1,13 +1,15 @@
 import yaml
 import os
 import fabrika
-# import configuration as sys_config
+import configuration
 
 from fabric.decorators import roles
 from fabric.api import task
 from fabric.api import env
 from fabric.api import execute
 from fabrika.tasks.docker import SetupLoadBalancerBehindGateway
+
+from fabfile.app_configuration import configured_for
 
 CONTAINER_HOSTNAME = 'node'
 DEPENDENCIES = 'dependencies'
@@ -41,7 +43,7 @@ def full_deploy(environment, full_image_name, configuration_dir, run_migrate=Fal
     """
     print(env_properties.format(roledefs=env.roledefs, hosts=env.hosts, properties=env.host_role_properties))
 
-    execute(deploy_docker_image, full_image_name, configuration_dir, enable_nscd=enable_nscd)
+    execute(deploy_docker_image, environment, full_image_name, configuration_dir, enable_nscd=enable_nscd)
     execute(setup_elastic_search_service_load_balancer)
     execute(setup_lls_service_load_balancer)
 
@@ -98,13 +100,17 @@ def _process_nscd_mapping(volume_mappings, configuration, override):
 
 
 @roles(FABRIC_ROLE_DOCKER_HOST)
-def deploy_docker_image(fully_qualified_image_name, app_container_config_path, enable_nscd=None, stop_existing=True):
+def deploy_docker_image(environment, fully_qualified_image_name, app_container_config_path, enable_nscd=None,
+                        stop_existing=True):
     print(">>>>>>> deploy_docker_image on host {}".format(env.host))
     node_deploy_configuration = env.host_role_properties[(env.host, FABRIC_ROLE_DOCKER_HOST)]
 
     volume_mappings = _process_nscd_mapping({}, node_deploy_configuration, enable_nscd)
-    # FIXME: will be fixed soon, B.G.
-    # volume_mappings[sys_config.volumn_mappings_file_upload_source] = sys_config.volumn_mappings_file_upload_target
+
+    with configured_for(environment):
+        file_upload_source = configuration.data.volumn_mappings_file_upload_source
+        file_upload_target = configuration.data.volumn_mappings_file_upload_target
+        volume_mappings[file_upload_source] = file_upload_target
 
     print "*************************************************************************************"
     print volume_mappings

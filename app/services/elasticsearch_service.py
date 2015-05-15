@@ -102,14 +102,12 @@ class ElasticSearchService(object):
 
     def _create_es_index_if_required(self, es, index):
         try:
-            es.indices.get(index=index, feature="_settings")
-        except exceptions.TransportError as e:
-            if e.status_code == httplib.NOT_FOUND:
+            if not es.indices.exists(index=index):
                 logger.info("Creating new index {}".format(index))
                 es.indices.create(index=index)
-            else:
-                logger.warning("Elastic search get index request exception: {}".format(e.info))
-                raise e
+        except exceptions.TransportError as e:
+            logger.warning("Elastic search get index request exception: {}".format(e.info))
+            raise e
 
     def _create_es_mapping(self, es, index, doc_type):
         try:

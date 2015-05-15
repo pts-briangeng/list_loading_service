@@ -106,13 +106,13 @@ class TestElasticSearchService(unittest.TestCase):
     @mock.patch.object(csv, 'reader', autospec=True)
     @mock.patch.object(services.elasticsearch_service, 'open', create=True)
     @mock.patch.object(os.path, 'isfile', autospec=True)
-    def test_elastic_search_operation_with_csv(self, mock_is_file, mock_open, mock_csv_reader, mock_elastic_search,
-                                               mock_bulk, mock_requests_wrapper_post):
+    def test_create_list_with_csv(self, mock_is_file, mock_open, mock_csv_reader, mock_elastic_search,
+                                  mock_bulk, mock_requests_wrapper_post):
         mock_open.return_value = mock.MagicMock(spec=file)
         mock_csv_reader.return_value = CsvMock([['abc']])
 
         mock_elastic_search.return_value = mock.MagicMock()
-        mock_elastic_search.return_value.indices.get.side_effect = not_found_exception
+        mock_elastic_search.return_value.indices.exists.return_value = False
         mock_requests_wrapper_post.return_value = MockHttpResponse(httplib.OK, {})
         request = models.Request(**self.data)
 
@@ -122,7 +122,7 @@ class TestElasticSearchService(unittest.TestCase):
                                      [{'_type': 'id', '_id': 'abc', '_source': {'accountNumber': 'abc'},
                                        '_index': 'service'}])
         mock_elastic_search.return_value.indices.refresh.assert_called_with(index='service')
-        mock_elastic_search.return_value.indices.get.assert_called_once_with(index='service', feature='_settings')
+        mock_elastic_search.return_value.indices.exists.assert_called_once_with(index='service')
         mock_elastic_search.return_value.indices.create.assert_called_once_with(index='service')
         mock_elastic_search.return_value.indices.put_mapping.assert_called_once_with(
             body={'properties': {
@@ -145,14 +145,14 @@ class TestElasticSearchService(unittest.TestCase):
         mock_csv_reader.return_value = CsvMock([['abc']])
 
         mock_elastic_search.return_value = mock.MagicMock()
-        mock_elastic_search.return_value.indices.get.side_effect = general_exception
+        mock_elastic_search.return_value.indices.exists.side_effect = general_exception
         mock_requests_wrapper_post.return_value = MockHttpResponse(httplib.OK, {})
         request = models.Request(**self.data)
 
         self.service.create_list(request)
 
         tools.assert_equal(0, mock_elastic_search.return_value.indices.refresh.call_count)
-        mock_elastic_search.return_value.indices.get.assert_called_once_with(index='service', feature='_settings')
+        mock_elastic_search.return_value.indices.exists.assert_called_once_with(index='service')
         tools.assert_equal(0, mock_elastic_search.return_value.indices.put_mapping.call_count)
         tools.assert_equal(0, mock_elastic_search.return_value.indices.refresh.call_count)
         self._assert_callback(mock_requests_wrapper_post, False)
@@ -175,7 +175,7 @@ class TestElasticSearchService(unittest.TestCase):
         self.service.create_list(request)
 
         tools.assert_equal(0, mock_elastic_search.return_value.indices.refresh.call_count)
-        mock_elastic_search.return_value.indices.get.assert_called_once_with(index='service', feature='_settings')
+        mock_elastic_search.return_value.indices.exists.assert_called_once_with(index='service')
         tools.assert_equal(0, mock_elastic_search.return_value.indices.create.call_count)
         mock_elastic_search.return_value.indices.put_mapping.assert_called_once_with(
             body={'properties': {

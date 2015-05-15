@@ -103,7 +103,9 @@ def deploy_docker_image(fully_qualified_image_name, app_container_config_path, e
     node_deploy_configuration = env.host_role_properties[(env.host, FABRIC_ROLE_DOCKER_HOST)]
 
     volume_mappings = _process_nscd_mapping({}, node_deploy_configuration, enable_nscd)
-    volume_mappings[sys_config.volumn_mappings_file_upload_source] = sys_config.volumn_mappings_file_upload_source
+    # FIXME: will be fixed soon, B.G.
+    # volume_mappings[sys_config.volumn_mappings_file_upload_source] = sys_config.volumn_mappings_file_upload_target
+    volume_mappings['/content/list_upload'] = '/content/list_upload'
 
     print "*************************************************************************************"
     print volume_mappings

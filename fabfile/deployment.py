@@ -108,8 +108,8 @@ def deploy_docker_image(environment, fully_qualified_image_name, app_container_c
     volume_mappings = _process_nscd_mapping({}, node_deploy_configuration, enable_nscd)
 
     with configured_for(environment):
-        file_upload_source = configuration.data.volumn_mappings_file_upload_source
-        file_upload_target = configuration.data.volumn_mappings_file_upload_target
+        file_upload_source = configuration.data.VOLUME_MAPPINGS_FILE_UPLOAD_SOURCE
+        file_upload_target = configuration.data.VOLUME_MAPPINGS_FILE_UPLOAD_TARGET
         volume_mappings[file_upload_source] = file_upload_target
 
     print "*************************************************************************************"

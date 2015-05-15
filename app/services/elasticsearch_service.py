@@ -120,10 +120,11 @@ class ElasticSearchService(object):
 
     @elastic_search_callback
     def create_list(self, request):
-        if not os.path.isfile(request.filePath):
+        file_path = os.path.join(configuration.data.VOLUME_MAPPINGS_FILE_UPLOAD_TARGET, request.filePath)
+        if not os.path.isfile(file_path):
             raise IOError("File does not exist")
-        filetype = request.filePath.split('.')[-1]
-        file_reader = CsvReader(request.filePath) if filetype == 'csv' else ExcelReader(request.filePath)
+        file_type = file_path.split('.')[-1]
+        file_reader = CsvReader(file_path) if file_type == 'csv' else ExcelReader(file_path)
         actions = []
         with file_reader:
             for line in file_reader.get_rows():
@@ -147,6 +148,7 @@ class ElasticSearchService(object):
         logger.info("Finished indexing {} documents".format(result[0]))
 
     def delete_list(self, request):
+        file_path = os.path.join(configuration.data.VOLUME_MAPPINGS_FILE_UPLOAD_TARGET, request.filePath)
         es = elasticsearch.Elasticsearch(configuration.data.ELASTIC_SEARCH_SERVER)
 
         try:
@@ -166,7 +168,7 @@ class ElasticSearchService(object):
             raise Exception
 
         try:
-            os.remove(request.filePath)
+            os.remove(file_path)
         except OSError as e:
             logger.warning("Error deleting file: {}".format(e))
 

@@ -124,9 +124,13 @@ class TestElasticSearchService(unittest.TestCase):
         mock_elastic_search.return_value.indices.refresh.assert_called_with(index='service')
         mock_elastic_search.return_value.indices.get.assert_called_once_with(index='service', feature='_settings')
         mock_elastic_search.return_value.indices.create.assert_called_once_with(index='service')
-        mock_elastic_search.return_value.indices.put_mapping.assert_called_once_with(body=None,
-                                                                                     index='service',
-                                                                                     doc_type='id')
+        mock_elastic_search.return_value.indices.put_mapping.assert_called_once_with(
+            body={'properties': {
+                'accountNumber': {
+                    'index': 'not_analyzed',
+                    'type': 'string'}}},
+            index='service',
+            doc_type='id')
         mock_elastic_search.return_value.indices.refresh.assert_called_once_with(index='service')
         self._assert_callback(mock_requests_wrapper_post, True)
 
@@ -173,9 +177,13 @@ class TestElasticSearchService(unittest.TestCase):
         tools.assert_equal(0, mock_elastic_search.return_value.indices.refresh.call_count)
         mock_elastic_search.return_value.indices.get.assert_called_once_with(index='service', feature='_settings')
         tools.assert_equal(0, mock_elastic_search.return_value.indices.create.call_count)
-        mock_elastic_search.return_value.indices.put_mapping.assert_called_once_with(body=None,
-                                                                                     index='service',
-                                                                                     doc_type='id')
+        mock_elastic_search.return_value.indices.put_mapping.assert_called_once_with(
+            body={'properties': {
+                'accountNumber': {
+                    'index': 'not_analyzed',
+                    'type': 'string'}}},
+            index='service',
+            doc_type='id')
         tools.assert_equal(0, mock_elastic_search.return_value.indices.refresh.call_count)
         self._assert_callback(mock_requests_wrapper_post, False)
 

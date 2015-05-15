@@ -16,13 +16,11 @@ from liblcp import context
 
 logger = logging.getLogger(__name__)
 
-MAPPINGS = {
-    "offers": {
-        "properties": {
-            "accountNumber": {
-                "type": "string",
-                "index": "not_analyzed"
-            }
+MAPPING = {
+    "properties": {
+        "accountNumber": {
+            "type": "string",
+            "index": "not_analyzed"
         }
     }
 }
@@ -115,7 +113,7 @@ class ElasticSearchService(object):
 
     def _create_es_mapping(self, es, index, doc_type):
         try:
-            es.indices.put_mapping(doc_type=doc_type, body=MAPPINGS.get(index), index=index)
+            es.indices.put_mapping(doc_type=doc_type, body=MAPPING, index=index)
         except exceptions.TransportError as e:
             logger.warning("Elastic search create mapping request exception: {}".format(e.info))
             raise e
@@ -179,8 +177,8 @@ class ElasticSearchService(object):
         result = es.search(index=request.service, doc_type=request.list_id, search_type="count")
         logger.info("elastic search response {}".format(result))
         if result['hits']['total'] == 0:
-            logger.warning("Elastic search index/type- {}/{} request not found".format(request.service,
-                                                                                       request.list_id))
+            logger.warning("Elastic search index/type - {}/{} request not found".format(request.service,
+                                                                                        request.list_id))
             raise LookupError
         return result
 

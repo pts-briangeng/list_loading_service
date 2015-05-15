@@ -1,7 +1,7 @@
 import yaml
 import os
 import fabrika
-# import configuration
+import configuration
 
 from fabric.decorators import roles
 from fabric.api import task
@@ -9,7 +9,7 @@ from fabric.api import env
 from fabric.api import execute
 from fabrika.tasks.docker import SetupLoadBalancerBehindGateway
 
-# from fabfile.app_configuration import configured_for
+from fabfile.app_configuration import configured_for
 
 CONTAINER_HOSTNAME = 'node'
 DEPENDENCIES = 'dependencies'
@@ -107,12 +107,10 @@ def deploy_docker_image(environment, fully_qualified_image_name, app_container_c
 
     volume_mappings = _process_nscd_mapping({}, node_deploy_configuration, enable_nscd)
 
-    # FIXME: B.G. configurable path
-    # with configured_for(environment):
-    #     file_upload_source = configuration.data.volumn_mappings_file_upload_source
-    #     file_upload_target = configuration.data.volumn_mappings_file_upload_target
-    #     volume_mappings[file_upload_source] = file_upload_target
-    volume_mappings['/content/list_upload'] = '/content/list_upload'
+    with configured_for(environment):
+        file_upload_source = configuration.data.volumn_mappings_file_upload_source
+        file_upload_target = configuration.data.volumn_mappings_file_upload_target
+        volume_mappings[file_upload_source] = file_upload_target
 
     print "*************************************************************************************"
     print volume_mappings

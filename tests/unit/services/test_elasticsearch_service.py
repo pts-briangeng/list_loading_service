@@ -218,13 +218,16 @@ class TestElasticSearchService(unittest.TestCase):
         self.service.create_list(request)
         mock_requests_wrapper_post.assert_has_calls([])
 
+    @mock.patch.object(os, 'remove')
     @mock.patch.object(elasticsearch, 'Elasticsearch', autospec=True)
-    def test_delete_list(self, mock_elastic_search):
+    def test_delete_list(self, mock_elastic_search, mock_remove):
         mock_elastic_search.return_value = mock.MagicMock()
         request = models.Request(**self.data)
         self.service.delete_list(request)
         mock_elastic_search.return_value.indices.delete_mapping.assert_called_once_with(doc_type='id',
                                                                                         index='service')
+        file_path = os.path.join(configuration.data.VOLUME_MAPPINGS_FILE_UPLOAD_TARGET, request.filePath)
+        mock_remove.assert_called_once_with(file_path)
 
     @tools.raises(LookupError)
     @mock.patch.object(elasticsearch, 'Elasticsearch', autospec=True)

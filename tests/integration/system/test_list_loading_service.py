@@ -2,7 +2,11 @@ import json
 import time
 import httplib
 import copy
+import shutil
+import os
+import fabfile
 
+import random
 from nose.plugins import attrib
 from nose import tools
 import requests
@@ -27,13 +31,17 @@ class ListsServiceIntegrationTest(base.BaseFullIntegrationTestCase):
     def setUp(self):
         super(ListsServiceIntegrationTest, self).setUp()
         self.headers = testing_utilities.generate_headers(base_url='http://live.lcpenv')
-        self.data = {'filePath': 'test.csv'}
+        source_file_path = os.path.join(fabfile.configuration_path, '..', 'tests/samples/test.csv')
+        destination_file_path = os.path.join(
+            fabfile.configuration_path, '..', 'tests/samples/test_{}.csv'.format(random.randint(0, 99999)))
+        shutil.copy(source_file_path, destination_file_path)
+        self.request_data = {'filePath': destination_file_path.split("/")[-1]}
 
     def test_list_functionality(self):
 
         def _assert_list_create():
             response = requests.put(base.ListPaths.create(
-                **self.__class__.path_params), json.dumps(self.data), headers=self.headers)
+                **self.__class__.path_params), json.dumps(self.request_data), headers=self.headers)
             response_content = json.loads(response.content)
             tools.assert_equal(httplib.ACCEPTED, response.status_code)
             tools.assert_in(base.ListPaths.create(
@@ -66,7 +74,7 @@ class ListsServiceIntegrationTest(base.BaseFullIntegrationTestCase):
 
         def _assert_list_delete():
             response = requests.delete(base.ListPaths.delete(
-                **self.__class__.path_params), data=json.dumps({'filePath': '/config/test.csv'}), headers=self.headers)
+                **self.__class__.path_params), data=json.dumps(self.request_data), headers=self.headers)
             response_content = json.loads(response.content)
 
             tools.assert_equal(httplib.ACCEPTED, response.status_code)
@@ -81,7 +89,7 @@ class ListsServiceIntegrationTest(base.BaseFullIntegrationTestCase):
 
         def _assert_deleted_list_cannot_be_deleted():
             response = requests.delete(base.ListPaths.delete(
-                **self.__class__.path_params), data=json.dumps({'filePath': '/config/test.csv'}), headers=self.headers)
+                **self.__class__.path_params), data=json.dumps(self.request_data), headers=self.headers)
             tools.assert_equal(httplib.NOT_FOUND, response.status_code)
 
         _assert_list_create()

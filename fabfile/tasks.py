@@ -15,6 +15,7 @@ from lcpenv import tasks as lcpenv_tasks
 
 from fabfile.app_configuration import configured_for
 from app.controllers import api_builder
+import configuration as service_container_configuration
 
 
 COVERAGE_OPTIONS = [
@@ -55,7 +56,7 @@ class ListLoadingServiceTestInContainerTask(fabrika.tasks.docker.TestInContainer
             port=5000,
             services_profile='testincontainer',
             test_config='testincontainer.ini',
-            logs_dir=None):
+            logs_dir=None, volume_mappings=None):
 
         if "-v" in nose_options or "--verbose" in nose_options:
             test_config += ";export LOG_LCP_REQUESTS=True"
@@ -64,14 +65,17 @@ class ListLoadingServiceTestInContainerTask(fabrika.tasks.docker.TestInContainer
 
         execute(start_lcp)
         execute(configure_routing, host='vagrant@lcpenv')
-        # copy over test file to container
-        shutil.copy('tests/samples/test.csv', os.path.join(configuration_path, configuration))
         with create_container_profile(os.path.join(configuration_path, configuration, 'servicecontainer.cfg')):
             if not logs_dir:
                 logs_dir = os.path.join(os.path.dirname(os.path.realpath(__file__)),
                                         os.pardir,
                                         'list_loading_service_logs')
             try:
+                with configured_for(services_profile):
+                    file_upload_volume_mapping = {
+                        os.path.join(configuration_path, '..', 'tests/samples/'):
+                            service_container_configuration.data.VOLUME_MAPPINGS_FILE_UPLOAD_TARGET
+                    }
                 super(ListLoadingServiceTestInContainerTask, self).run(repo_type,
                                                                        tag,
                                                                        configuration,
@@ -79,7 +83,8 @@ class ListLoadingServiceTestInContainerTask(fabrika.tasks.docker.TestInContainer
                                                                        port,
                                                                        services_profile,
                                                                        test_config=test_config,
-                                                                       logs_dir=logs_dir)
+                                                                       logs_dir=logs_dir,
+                                                                       volume_mappings=file_upload_volume_mapping)
             finally:
                 execute(lcpenv_tasks.preserve_logs)
                 if not keeplcp:

@@ -14,7 +14,7 @@ restframework==1.2.2
 liblcp==8.4.0
 aspectlib==1.2.2
 PyYAML==3.11
-fabrika==1.10.0
+fabrika==1.11.0
 pexpect==3.3
 elasticsearch==1.4.0
 openpyxl==2.2.2

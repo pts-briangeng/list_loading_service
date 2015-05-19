@@ -27,7 +27,7 @@ class ListsServiceIntegrationTest(base.BaseFullIntegrationTestCase):
     def setUp(self):
         super(ListsServiceIntegrationTest, self).setUp()
         self.headers = testing_utilities.generate_headers(base_url='http://live.lcpenv')
-        self.data = {'filePath': '/config/test.csv'}  # this file is copied over in the fab task
+        self.data = {'filePath': 'test.csv'}
 
     def test_list_functionality(self):
 

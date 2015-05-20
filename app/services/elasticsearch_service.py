@@ -120,7 +120,7 @@ class ElasticSearchService(object):
     def create_list(self, request):
         file_path = os.path.join(configuration.data.VOLUME_MAPPINGS_FILE_UPLOAD_TARGET, request.filePath)
         if not os.path.isfile(file_path):
-            raise IOError("File does not exist")
+            raise IOError("File {} does not exist!".format(file_path))
         file_type = file_path.split('.')[-1]
         file_reader = CsvReader(file_path) if file_type == 'csv' else ExcelReader(file_path)
         actions = []

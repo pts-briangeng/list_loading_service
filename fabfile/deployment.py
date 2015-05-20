@@ -29,7 +29,6 @@ FABRIC_ROLE_ELASTIC_SEARCH_LOAD_BALANCER = 'elastic_search_lb_config_node'
 NSCD_SOCKET_SOURCE = '/var/run/nscd'
 NSCD_SOCKET_TARGET = '/tmp/nscd-extern'
 
-deploy_task = fabrika.tasks.docker.DeployTask('list_loading_service')
 load_balancer_task = SetupLoadBalancerBehindGateway()
 
 
@@ -112,12 +111,7 @@ def deploy_docker_image(environment, fully_qualified_image_name, app_container_c
         file_upload_target = configuration.data.VOLUME_MAPPINGS_FILE_UPLOAD_TARGET
         volume_mappings[file_upload_source] = file_upload_target
 
-    print "*************************************************************************************"
-    print volume_mappings
-    print "*************************************************************************************"
-
     deploy_task = fabrika.tasks.docker.DeployTask('list_loading_service', volume_mappings=volume_mappings)
-
     execute(deploy_task,
             fully_qualified_image_name,
             node_deploy_configuration.get(DEPENDENCIES),

@@ -8,13 +8,13 @@ import uuid
 
 import mock
 from liblcp import context
-import elasticsearch
 import openpyxl
 from elasticsearch import helpers, exceptions
 from nose import tools
 
-from app.services import elasticsearch_service
 import configuration
+import app
+from app.services import elasticsearch_service
 from app import models, services
 from tests import builders
 
@@ -24,6 +24,7 @@ class CsvMock(list):
 
 
 class MockCell(object):
+
     def __init__(self, cell_value):
         self.cell_value = cell_value
 
@@ -33,6 +34,7 @@ class MockCell(object):
 
 
 class MockHttpResponse(object):
+
     def __init__(self, status_code=httplib.OK, response=None):
         self.status_code = status_code
         self.response = response
@@ -65,6 +67,7 @@ general_exception = exceptions.TransportError(httplib.INTERNAL_SERVER_ERROR, 'Se
 
 
 class TestElasticSearchService(unittest.TestCase):
+
     def setUp(self):
         self.data = {
             'url': 'url',
@@ -96,12 +99,12 @@ class TestElasticSearchService(unittest.TestCase):
                               }
                           }
                       })
-            )
+                      )
         ])
 
     @mock.patch.object(elasticsearch_service.requests_wrapper, 'post', autospec=True)
     @mock.patch.object(helpers, 'bulk', autospec=True)
-    @mock.patch.object(elasticsearch, 'Elasticsearch', autospec=True)
+    @mock.patch.object(elasticsearch_service, 'ElasticSearchClient', autospec=True)
     @mock.patch.object(csv, 'reader', autospec=True)
     @mock.patch.object(services.elasticsearch_service, 'open', create=True)
     @mock.patch.object(os.path, 'isfile', autospec=True)
@@ -119,77 +122,16 @@ class TestElasticSearchService(unittest.TestCase):
 
         mock_bulk.assert_called_with(mock_elastic_search.return_value,
                                      [{'_type': 'id', '_id': 'abc', '_source': {'accountNumber': 'abc'},
-                                       '_index': 'service'}])
-        mock_elastic_search.return_value.indices.refresh.assert_called_with(index='service')
-        mock_elastic_search.return_value.indices.exists.assert_called_once_with(index='service')
-        mock_elastic_search.return_value.indices.create.assert_called_once_with(index='service')
-        mock_elastic_search.return_value.indices.put_mapping.assert_called_once_with(
-            body={'properties': {
-                'accountNumber': {
-                    'index': 'not_analyzed',
-                    'type': 'string'}}},
-            index='service',
-            doc_type='id')
+                                       '_index': 'service'}],
+                                     index='service',
+                                     doc_type='id')
         mock_elastic_search.return_value.indices.refresh.assert_called_once_with(index='service')
         self._assert_callback(mock_requests_wrapper_post, True)
 
     @mock.patch.object(elasticsearch_service.requests_wrapper, 'post', autospec=True)
-    @mock.patch.object(elasticsearch, 'Elasticsearch', autospec=True)
-    @mock.patch.object(csv, 'reader', autospec=True)
-    @mock.patch.object(services.elasticsearch_service, 'open', create=True)
-    @mock.patch.object(os.path, 'isfile', autospec=True)
-    def test_create_throws_error_on_create_index(self, mock_is_file, mock_open, mock_csv_reader, mock_elastic_search,
-                                                 mock_requests_wrapper_post):
-        mock_open.return_value = mock.MagicMock(spec=file)
-        mock_csv_reader.return_value = CsvMock([['abc']])
-
-        mock_elastic_search.return_value = mock.MagicMock()
-        mock_elastic_search.return_value.indices.exists.side_effect = general_exception
-        mock_requests_wrapper_post.return_value = MockHttpResponse(httplib.OK, {})
-        request = models.Request(**self.data)
-
-        self.service.create_list(request)
-
-        tools.assert_equal(0, mock_elastic_search.return_value.indices.refresh.call_count)
-        mock_elastic_search.return_value.indices.exists.assert_called_once_with(index='service')
-        tools.assert_equal(0, mock_elastic_search.return_value.indices.put_mapping.call_count)
-        tools.assert_equal(0, mock_elastic_search.return_value.indices.refresh.call_count)
-        self._assert_callback(mock_requests_wrapper_post, False)
-
-    @mock.patch.object(elasticsearch_service.requests_wrapper, 'post', autospec=True)
-    @mock.patch.object(elasticsearch, 'Elasticsearch', autospec=True)
-    @mock.patch.object(csv, 'reader', autospec=True)
-    @mock.patch.object(services.elasticsearch_service, 'open', create=True)
-    @mock.patch.object(os.path, 'isfile', autospec=True)
-    def test_create_list_fails_when_put_mapping_throws_exception(self, mock_is_file, mock_open, mock_csv_reader,
-                                                                 mock_elastic_search, mock_requests_wrapper_post):
-        mock_open.return_value = mock.MagicMock(spec=file)
-        mock_csv_reader.return_value = CsvMock([['abc']])
-
-        mock_elastic_search.return_value = mock.MagicMock()
-        mock_elastic_search.return_value.indices.put_mapping.side_effect = general_exception
-        mock_requests_wrapper_post.return_value = MockHttpResponse(httplib.OK, {})
-        request = models.Request(**self.data)
-
-        self.service.create_list(request)
-
-        tools.assert_equal(0, mock_elastic_search.return_value.indices.refresh.call_count)
-        mock_elastic_search.return_value.indices.exists.assert_called_once_with(index='service')
-        tools.assert_equal(0, mock_elastic_search.return_value.indices.create.call_count)
-        mock_elastic_search.return_value.indices.put_mapping.assert_called_once_with(
-            body={'properties': {
-                'accountNumber': {
-                    'index': 'not_analyzed',
-                    'type': 'string'}}},
-            index='service',
-            doc_type='id')
-        tools.assert_equal(0, mock_elastic_search.return_value.indices.refresh.call_count)
-        self._assert_callback(mock_requests_wrapper_post, False)
-
-    @mock.patch.object(elasticsearch_service.requests_wrapper, 'post', autospec=True)
     @mock.patch.object(helpers, 'bulk', autospec=True)
     @mock.patch.object(configuration, 'data', autospec=True)
-    @mock.patch.object(elasticsearch, 'Elasticsearch', autospec=True)
+    @mock.patch.object(elasticsearch_service, 'ElasticSearchClient', autospec=True)
     @mock.patch.object(openpyxl, 'load_workbook', autospec=True)
     @mock.patch.object(os.path, 'isfile', autospec=True)
     def test_elastic_search_operation_excel(self, mock_is_file, mock_load_workbook, mock_elastic_search, mock_config,
@@ -205,7 +147,9 @@ class TestElasticSearchService(unittest.TestCase):
 
         mock_bulk.assert_called_with(mock_elastic_search.return_value,
                                      [{'_type': 'id', '_id': 'abc', '_source': {'accountNumber': 'abc'},
-                                       '_index': 'service'}])
+                                       '_index': 'service'}],
+                                     index='service',
+                                     doc_type='id')
         mock_elastic_search.return_value.indices.refresh.assert_called_with(index='service')
         self._assert_callback(mock_requests_wrapper_post, True)
 
@@ -217,8 +161,35 @@ class TestElasticSearchService(unittest.TestCase):
         self.service.create_list(request)
         mock_requests_wrapper_post.assert_has_calls([])
 
+    @mock.patch.object(elasticsearch_service.requests_wrapper, 'post', autospec=True)
+    @mock.patch.object(elasticsearch_service, 'ElasticSearchClient', autospec=True)
+    @mock.patch.object(csv, 'reader', autospec=True)
+    @mock.patch.object(services.elasticsearch_service, 'open', create=True)
+    @mock.patch.object(os.path, 'isfile', autospec=True)
+    def test_create_throws_error_on_bulk_call(self, mock_is_file, mock_open, mock_csv_reader, mock_elastic_search,
+                                              mock_requests_wrapper_post):
+        mock_open.return_value = mock.MagicMock(spec=file)
+        mock_csv_reader.return_value = CsvMock([['abc']])
+
+        mock_elastic_search.return_value = mock.MagicMock()
+        mock_elastic_search.return_value.bulk.side_effect = general_exception
+        mock_requests_wrapper_post.return_value = MockHttpResponse(httplib.OK, {})
+        request = models.Request(**self.data)
+
+        self.service.create_list(request)
+
+        tools.assert_equal(0, mock_elastic_search.return_value.indices.refresh.call_count)
+        mock_elastic_search.return_value.bulk.assert_called_once_with(
+            [{'index': {'_type': 'id', '_id': 'abc', '_index': 'service'}}, {'accountNumber': 'abc'}],
+            index='service',
+            doc_type='id')
+        tools.assert_equal(1, mock_elastic_search.return_value.bulk.call_count)
+        tools.assert_equal(0, mock_elastic_search.return_value.indices.put_mapping.call_count)
+        tools.assert_equal(0, mock_elastic_search.return_value.indices.refresh.call_count)
+        self._assert_callback(mock_requests_wrapper_post, False)
+
     @mock.patch.object(os, 'remove')
-    @mock.patch.object(elasticsearch, 'Elasticsearch', autospec=True)
+    @mock.patch.object(elasticsearch_service, 'ElasticSearchClient', autospec=True)
     def test_delete_list(self, mock_elastic_search, mock_remove):
         mock_elastic_search.return_value = mock.MagicMock()
         request = models.Request(**self.data)
@@ -229,7 +200,7 @@ class TestElasticSearchService(unittest.TestCase):
         mock_remove.assert_called_once_with(file_path)
 
     @tools.raises(LookupError)
-    @mock.patch.object(elasticsearch, 'Elasticsearch', autospec=True)
+    @mock.patch.object(elasticsearch_service, 'ElasticSearchClient', autospec=True)
     def test_delete_list_not_found(self, mock_elastic_search):
         mock_elastic_search.return_value = mock.MagicMock()
         mock_elastic_search.return_value.indices.delete_mapping.side_effect = not_found_exception
@@ -237,7 +208,7 @@ class TestElasticSearchService(unittest.TestCase):
         self.service.delete_list(request)
 
     @tools.raises(exceptions.TransportError)
-    @mock.patch.object(elasticsearch, 'Elasticsearch', autospec=True)
+    @mock.patch.object(elasticsearch_service, 'ElasticSearchClient', autospec=True)
     def test_delete_list_general_error(self, mock_elastic_search):
         mock_elastic_search.return_value = mock.MagicMock()
         mock_elastic_search.return_value.indices.delete_mapping.side_effect = general_exception
@@ -245,7 +216,7 @@ class TestElasticSearchService(unittest.TestCase):
         self.service.delete_list(request)
 
     @tools.raises(Exception)
-    @mock.patch.object(elasticsearch, 'Elasticsearch', autospec=True)
+    @mock.patch.object(elasticsearch_service, 'ElasticSearchClient', autospec=True)
     def test_delete_list_not_acknowledged(self, mock_elastic_search):
         mock_elastic_search.return_value = mock.MagicMock()
         mock_elastic_search.return_value.indices.delete_mapping.return_value = (
@@ -253,7 +224,7 @@ class TestElasticSearchService(unittest.TestCase):
         request = models.Request(**self.data)
         self.service.delete_list(request)
 
-    @mock.patch.object(elasticsearch, 'Elasticsearch', autospec=True)
+    @mock.patch.object(elasticsearch_service, 'ElasticSearchClient', autospec=True)
     def test_list_status(self, mock_elastic_search):
         request = models.Request(**self.data)
         response = self.service.get_list_status(request)
@@ -263,13 +234,13 @@ class TestElasticSearchService(unittest.TestCase):
                                                                         search_type='count')
 
     @tools.raises(LookupError)
-    @mock.patch.object(elasticsearch, 'Elasticsearch', autospec=True)
+    @mock.patch.object(elasticsearch_service, 'ElasticSearchClient', autospec=True)
     def test_list_status_throws_404_when_count_0(self, mock_elastic_search):
         mock_elastic_search.return_value.search.return_value = {"hits": {"total": 0}}
         request = models.Request(**self.data)
         self.service.get_list_status(request)
 
-    @mock.patch.object(elasticsearch, 'Elasticsearch', autospec=True)
+    @mock.patch.object(elasticsearch_service, 'ElasticSearchClient', autospec=True)
     def test_list_member(self, mock_elastic_search):
         mock_elastic_search.return_value.exists.return_value = True
         request = models.Request(**self.member_data)
@@ -278,10 +249,85 @@ class TestElasticSearchService(unittest.TestCase):
         mock_elastic_search.return_value.exists.assert_called_once_with(doc_type='id', index='service', id='member_id')
 
     @tools.raises(LookupError)
-    @mock.patch.object(elasticsearch, 'Elasticsearch', autospec=True)
+    @mock.patch.object(elasticsearch_service, 'ElasticSearchClient', autospec=True)
     def test_list_member_not_found(self, mock_elastic_search):
         mock_elastic_search.return_value.exists.return_value = False
         request = models.Request(**self.member_data)
         response = self.service.get_list_member(request)
         tools.assert_equal({}, response)
         mock_elastic_search.return_value.exists.assert_called_once_with(doc_type='id', index='service', id='member_id')
+
+
+class TestElasticSearchClient(unittest.TestCase):
+
+    def setUp(self):
+        self.client = elasticsearch_service.ElasticSearchClient()
+        configuration.configure_from(os.path.join(configuration.CONFIGURATION_PATH, 'list_loading_service.cfg'))
+
+    @tools.raises(exceptions.TransportError)
+    def test_raises_exception_when_creating_index(self):
+        self.client.indices = mock.MagicMock()
+        self.client.indices.create.side_effect = general_exception
+
+        self.client.bulk([{'_type': 'id', '_id': 'abc', '_source': {'accountNumber': 'abc'}, '_index': 'service'}],
+                         index='service',
+                         doc_type='id')
+
+        tools.assert_equal(0, self.client.indices.put_mapping.call_count)
+        tools.assert_equal(0, self.client.indices.refresh.call_count)
+        tools.assert_equal(0, self.client.bulk.call_count)
+
+    @tools.raises(exceptions.TransportError)
+    @mock.patch.object(app.services.elasticsearch_service.elasticsearch.client, 'Elasticsearch', autospec=True)
+    def test_raises_exception_when_mapping_put(self, mock_elastic_search):
+        self.client.indices = mock.MagicMock()
+        self.client.indices.exists.return_value = True
+        self.client.indices.put_mapping.side_effect = general_exception
+
+        self.client.bulk([{'_type': 'id', '_id': 'abc', '_source': {'accountNumber': 'abc'}, '_index': 'service'}],
+                         index='service',
+                         doc_type='id')
+
+        self.client.indices.exists.assert_called_with_once(index='service')
+        tools.assert_equal(1, self.client.indices.create.call_count)
+        tools.assert_equal(1, self.client.indices.refresh.call_count)
+        self.client.indices.put_mapping.assert_called_once_with(
+            index='service',
+            doc_type='id',
+            body={
+                "properties": {
+                    "accountNumber": {
+                        "type": "string",
+                        "index": "not_analyzed"
+                    }
+                }
+            })
+
+    @mock.patch.object(app.services.elasticsearch_service.elasticsearch.client.Elasticsearch, 'bulk', autospec=True)
+    def test_create_index_and_mapping_success(self, mock_elastic_search_bulk_method):
+        self.client.indices = mock.MagicMock()
+        self.client.indices.exists.return_value = False
+
+        self.client.bulk([{'_type': 'id', '_id': 'abc', '_source': {'accountNumber': 'abc'}, '_index': 'service'}],
+                         index='service',
+                         doc_type='id')
+
+        self.client.indices.exists.assert_called_once_with(index='service')
+        self.client.indices.create.assert_called_once_with(index='service')
+        self.client.indices.put_mapping.assert_called_once_with(index='service',
+                                                                doc_type='id',
+                                                                body={
+                                                                    "properties": {
+                                                                        "accountNumber": {
+                                                                            "type": "string",
+                                                                            "index": "not_analyzed"
+                                                                        }
+                                                                    }
+                                                                })
+        mock_elastic_search_bulk_method.assert_called_once_with(
+            self.client,
+            [{'_type': 'id', '_id': 'abc', '_source': {'accountNumber': 'abc'}, '_index': 'service'}],
+            index='service',
+            params={},
+            doc_type='id'
+        )

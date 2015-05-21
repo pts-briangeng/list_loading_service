@@ -24,7 +24,6 @@ class CsvMock(list):
 
 
 class MockCell(object):
-
     def __init__(self, cell_value):
         self.cell_value = cell_value
 
@@ -34,7 +33,6 @@ class MockCell(object):
 
 
 class MockHttpResponse(object):
-
     def __init__(self, status_code=httplib.OK, response=None):
         self.status_code = status_code
         self.response = response
@@ -57,15 +55,16 @@ context.set_headers_getter(lambda name: {context.HEADERS_EXTERNAL_BASE_URL: 'htt
                                          context.HEADERS_MODE: context.MODE_LIVE,
                                          context.HEADERS_PRINCIPAL: PRINCIPAL}[name])
 
-not_found_exception = exceptions.TransportError(404,
+not_found_exception = exceptions.TransportError(httplib.NOT_FOUND,
                                                 'IndexMissingException[[123] missing]',
-                                                {'status': 400, 'error': 'IndexMissingException[[123] missing]'})
+                                                {'status': httplib.BAD_REQUEST, 'error': 'IndexMissingException[[123] '
+                                                                                         'missing]'})
 
-general_exception = exceptions.TransportError(500, 'Server error', {'status': 500, 'error': 'Server error'})
+general_exception = exceptions.TransportError(httplib.INTERNAL_SERVER_ERROR, 'Server error',
+                                              {'status': httplib.INTERNAL_SERVER_ERROR, 'error': 'Server error'})
 
 
 class TestElasticSearchService(unittest.TestCase):
-
     def setUp(self):
         self.data = {
             'url': 'url',
@@ -97,7 +96,7 @@ class TestElasticSearchService(unittest.TestCase):
                               }
                           }
                       })
-                      )
+            )
         ])
 
     @mock.patch.object(elasticsearch_service.requests_wrapper, 'post', autospec=True)

@@ -96,7 +96,7 @@ class TestElasticSearchService(unittest.TestCase):
                               }
                           }
                       })
-            )
+                      )
         ])
 
     @mock.patch.object(elasticsearch_service.requests_wrapper, 'post', autospec=True)

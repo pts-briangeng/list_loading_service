@@ -26,51 +26,58 @@ MAPPING = {
 }
 
 
-class FileReader(object):
+class BulkAccountFileReaders(object):
 
-    def __init__(self, filename):
-        self.filename = filename
+    class FileReader(object):
 
-    def __enter__(self):
-        pass
+        def __init__(self, filename):
+            self.filename = filename
 
-    def __exit__(self, exc_type, exc_val, exc_tb):
-        pass
+        def __enter__(self):
+            pass
 
-    def get_rows(self):
-        pass
+        def __exit__(self, exc_type, exc_val, exc_tb):
+            pass
 
+        def get_rows(self):
+            pass
 
-class CsvReader(FileReader):
+    class CsvReader(FileReader):
 
-    def __init__(self, filename):
-        super(CsvReader, self).__init__(filename)
+        def __init__(self, filename):
+            super(BulkAccountFileReaders.CsvReader, self).__init__(filename)
 
-    def __enter__(self):
-        self.csv_file = open(self.filename, 'r')
-        return self.csv_file
+        def __enter__(self):
+            self.csv_file = open(self.filename, 'r')
+            return self.csv_file
 
-    def __exit__(self, exc_type, exc_val, exc_tb):
-        self.csv_file.close()
+        def __exit__(self, exc_type, exc_val, exc_tb):
+            self.csv_file.close()
 
-    def get_rows(self):
-        for row in csv.reader(self.csv_file):
-            yield row[0]
+        def get_rows(self):
+            for row in csv.reader(self.csv_file):
+                yield row[0]
 
+    class ExcelReader(FileReader):
 
-class ExcelReader(FileReader):
+        def __init__(self, filename):
+            super(BulkAccountFileReaders.ExcelReader, self).__init__(filename)
 
-    def __init__(self, filename):
-        super(ExcelReader, self).__init__(filename)
+        def __enter__(self):
+            self.workbook = openpyxl.load_workbook(self.filename, read_only=True)
+            self.worksheet = self.workbook.active
+            return self.worksheet
 
-    def __enter__(self):
-        self.workbook = openpyxl.load_workbook(self.filename, read_only=True)
-        self.worksheet = self.workbook.active
-        return self.worksheet
+        def get_rows(self):
+            for row in self.worksheet.rows:
+                yield row[0].value
 
-    def get_rows(self):
-        for row in self.worksheet.rows:
-            yield row[0].value
+    @classmethod
+    def get(cls, file_path):
+        file_type = file_path.split('.')[-1].lower()
+        if file_type in ['csv', 'txt']:
+            return BulkAccountFileReaders.CsvReader(file_path)
+        return BulkAccountFileReaders.ExcelReader(file_path)
 
 
 def elastic_search_callback(f):
@@ -121,8 +128,7 @@ class ElasticSearchService(object):
         file_path = os.path.join(configuration.data.VOLUME_MAPPINGS_FILE_UPLOAD_TARGET, request.filePath)
         if not os.path.isfile(file_path):
             raise IOError("File {} does not exist!".format(file_path))
-        file_type = file_path.split('.')[-1]
-        file_reader = CsvReader(file_path) if file_type == 'csv' else ExcelReader(file_path)
+        file_reader = BulkAccountFileReaders.get(file_path)
         actions = []
         with file_reader:
             for line in file_reader.get_rows():
@@ -177,8 +183,7 @@ class ElasticSearchService(object):
         result = es.search(index=request.service, doc_type=request.list_id, search_type="count")
         logger.info("elastic search response {}".format(result))
         if result['hits']['total'] == 0:
-            logger.warning("Elastic search index/type - {}/{} request not found".format(request.service,
-                                                                                        request.list_id))
+            logger.warning("Elastic search (index:{}, Type:{}) not found!".format(request.service, request.list_id))
             raise LookupError
         return result
 

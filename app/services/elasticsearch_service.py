@@ -8,7 +8,7 @@ import elasticsearch
 import openpyxl
 import httplib
 
-from elasticsearch import helpers, exceptions, transport
+from elasticsearch import helpers, exceptions
 from elasticsearch.client.utils import query_params
 from requestswrapper import requests_wrapper
 

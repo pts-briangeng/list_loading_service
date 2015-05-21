@@ -9,6 +9,7 @@ import openpyxl
 import httplib
 
 from elasticsearch import helpers, exceptions
+from elasticsearch.client.utils import query_params
 from requestswrapper import requests_wrapper
 
 from liblcp import context
@@ -16,61 +17,59 @@ from liblcp import context
 
 logger = logging.getLogger(__name__)
 
-MAPPING = {
-    "properties": {
-        "accountNumber": {
-            "type": "string",
-            "index": "not_analyzed"
-        }
-    }
-}
 
+class BulkAccountsFileReaders(object):
 
-class FileReader(object):
+    class FileReader(object):
 
-    def __init__(self, filename):
-        self.filename = filename
+        def __init__(self, filename):
+            self.filename = filename
 
-    def __enter__(self):
-        pass
+        def __enter__(self):
+            pass
 
-    def __exit__(self, exc_type, exc_val, exc_tb):
-        pass
+        def __exit__(self, exc_type, exc_val, exc_tb):
+            pass
 
-    def get_rows(self):
-        pass
+        def get_rows(self):
+            pass
 
+    class CsvReader(FileReader):
 
-class CsvReader(FileReader):
+        def __init__(self, filename):
+            super(BulkAccountsFileReaders.CsvReader, self).__init__(filename)
 
-    def __init__(self, filename):
-        super(CsvReader, self).__init__(filename)
+        def __enter__(self):
+            self.csv_file = open(self.filename, 'r')
+            return self.csv_file
 
-    def __enter__(self):
-        self.csv_file = open(self.filename, 'r')
-        return self.csv_file
+        def __exit__(self, exc_type, exc_val, exc_tb):
+            self.csv_file.close()
 
-    def __exit__(self, exc_type, exc_val, exc_tb):
-        self.csv_file.close()
+        def get_rows(self):
+            for row in csv.reader(self.csv_file):
+                yield row[0]
 
-    def get_rows(self):
-        for row in csv.reader(self.csv_file):
-            yield row[0]
+    class ExcelReader(FileReader):
 
+        def __init__(self, filename):
+            super(BulkAccountsFileReaders.ExcelReader, self).__init__(filename)
 
-class ExcelReader(FileReader):
+        def __enter__(self):
+            self.workbook = openpyxl.load_workbook(self.filename, read_only=True)
+            self.worksheet = self.workbook.active
+            return self.worksheet
 
-    def __init__(self, filename):
-        super(ExcelReader, self).__init__(filename)
+        def get_rows(self):
+            for row in self.worksheet.rows:
+                yield row[0].value
 
-    def __enter__(self):
-        self.workbook = openpyxl.load_workbook(self.filename, read_only=True)
-        self.worksheet = self.workbook.active
-        return self.worksheet
-
-    def get_rows(self):
-        for row in self.worksheet.rows:
-            yield row[0].value
+    @classmethod
+    def get(cls, file_path):
+        file_type = file_path.split('.')[-1].lower()
+        if file_type in ['csv', 'txt']:
+            return BulkAccountsFileReaders.CsvReader(file_path)
+        return BulkAccountsFileReaders.ExcelReader(file_path)
 
 
 def elastic_search_callback(f):
@@ -98,60 +97,90 @@ def elastic_search_callback(f):
     return wrapper
 
 
-class ElasticSearchService(object):
+class ElasticSearchClient(elasticsearch.Elasticsearch):
 
-    def _create_es_index_if_required(self, es, index):
+    def __init__(self, **kwargs):
+        super(ElasticSearchClient, self).__init__(hosts=[configuration.data.ELASTIC_SEARCH_SERVER], **kwargs)
+
+    def _create_es_index_if_required(self, index):
         try:
-            if not es.indices.exists(index=index):
+            if not self.indices.exists(index=index):
                 logger.info("Creating new index {}".format(index))
-                es.indices.create(index=index)
+                self.indices.create(index=index)
         except exceptions.TransportError as e:
-            logger.warning("Elastic search get index request exception: {}".format(e.info))
+            logger.warning("Elastic search get index request exception!")
+            logger.warning(traceback.format_exc(), exc_info=1)
             raise e
 
-    def _create_es_mapping(self, es, index, doc_type):
+    def _create_es_mapping(self, index, doc_type):
         try:
-            es.indices.put_mapping(doc_type=doc_type, body=MAPPING, index=index)
+            self.indices.put_mapping(
+                doc_type=doc_type,
+                index=index,
+                body={
+                    "properties": {
+                        "accountNumber": {
+                            "type": "string",
+                            "index": "not_analyzed"
+                        }
+                    }
+                })
         except exceptions.TransportError as e:
-            logger.warning("Elastic search create mapping request exception: {}".format(e.info))
+            logger.warning("Elastic search create mapping request exception")
+            logger.warning(traceback.format_exc(), exc_info=1)
             raise e
+
+    @query_params('consistency', 'refresh', 'routing', 'replication', 'timeout')
+    def bulk(self, body, index=None, doc_type=None, params=None):
+        self._create_es_index_if_required(index)
+        self._create_es_mapping(index, doc_type)
+        return super(ElasticSearchClient, self).bulk(body, index=index, doc_type=doc_type, params=params)
+
+
+class ElasticSearchDocument(object):
+
+    def __init__(self, index, type, account_number):
+        self.index = index
+        self.type = type
+        self.account_number = account_number
+
+    @property
+    def doc(self):
+        return {
+            "_index": self.index,
+            "_type": self.type,
+            "_id": self.account_number,
+            "_source": {
+                "accountNumber": self.account_number
+            }
+        }
+
+
+class ElasticSearchService(object):
 
     @elastic_search_callback
     def create_list(self, request):
         file_path = os.path.join(configuration.data.VOLUME_MAPPINGS_FILE_UPLOAD_TARGET, request.filePath)
         if not os.path.isfile(file_path):
             raise IOError("File {} does not exist!".format(file_path))
-        file_type = file_path.split('.')[-1]
-        file_reader = CsvReader(file_path) if file_type == 'csv' else ExcelReader(file_path)
-        actions = []
+        file_reader = BulkAccountsFileReaders.get(file_path)
         with file_reader:
-            for line in file_reader.get_rows():
-                action = {
-                    "_index": request.service,
-                    "_type": request.list_id,
-                    "_id": line,
-                    "_source": {
-                        "accountNumber": line
-                    }
-                }
-                actions.append(action)
+            actions = [ElasticSearchDocument(index=request.service, type=request.list_id, account_number=line).doc
+                       for line in file_reader.get_rows()]
 
-        es = elasticsearch.Elasticsearch([configuration.data.ELASTIC_SEARCH_SERVER])
-        self._create_es_index_if_required(es, request.service)
-        self._create_es_mapping(es, request.service, request.list_id)
-
-        logger.info("Bulk indexing file")
-        result = helpers.bulk(es, actions)
-        es.indices.refresh(index=request.service)
+        logger.info("Bulk indexing file using index: {}, type: {}".format(request.service, request.list_id))
+        elastic_search_client = ElasticSearchClient()
+        result = helpers.bulk(elastic_search_client, actions, index=request.service, doc_type=request.list_id)
+        logger.info("Uploading ...Done! Refresh index")
+        elastic_search_client.indices.refresh(index=request.service)
         logger.info("Finished indexing {} documents".format(result[0]))
 
     def delete_list(self, request):
         file_path = os.path.join(configuration.data.VOLUME_MAPPINGS_FILE_UPLOAD_TARGET, request.filePath)
-        es = elasticsearch.Elasticsearch(configuration.data.ELASTIC_SEARCH_SERVER)
-
         try:
             logger.info("Elasticsearch is deleting index: {}, doc_type: {}".format(request.service, request.list_id))
-            result = es.indices.delete_mapping(index=request.service, doc_type=request.list_id)
+            elastic_search_client = ElasticSearchClient()
+            result = elastic_search_client.indices.delete_mapping(index=request.service, doc_type=request.list_id)
             logger.info("Elastic search delete response {}".format(result))
         except exceptions.TransportError as e:
             if e.status_code == httplib.NOT_FOUND:
@@ -173,17 +202,16 @@ class ElasticSearchService(object):
         return result
 
     def get_list_status(self, request):
-        es = elasticsearch.Elasticsearch(configuration.data.ELASTIC_SEARCH_SERVER)
-        result = es.search(index=request.service, doc_type=request.list_id, search_type="count")
+        elastic_search_client = ElasticSearchClient()
+        result = elastic_search_client.search(index=request.service, doc_type=request.list_id, search_type="count")
         logger.info("elastic search response {}".format(result))
         if result['hits']['total'] == 0:
-            logger.warning("Elastic search index/type - {}/{} request not found".format(request.service,
-                                                                                        request.list_id))
+            logger.warning("Elastic search (index:{}, Type:{}) not found!".format(request.service, request.list_id))
             raise LookupError
         return result
 
     def get_list_member(self, request):
-        es = elasticsearch.Elasticsearch(configuration.data.ELASTIC_SEARCH_SERVER)
-        if not es.exists(index=request.service, doc_type=request.list_id, id=request.member_id):
+        elastic_search_client = ElasticSearchClient()
+        if not elastic_search_client.exists(index=request.service, doc_type=request.list_id, id=request.member_id):
             raise LookupError
         return {}

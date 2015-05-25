@@ -80,10 +80,10 @@ def set_load_balancer(role):
 def seed_test_file():
     print(">>>>>>> seeding sanity test file on host {}".format(env.host_string))
     sanity_test_file = os.path.join(configuration.data.VOLUME_MAPPINGS_FILE_UPLOAD_SOURCE, 'offers_sanity')
-    account_numbers = '''1c30bfeb-9a03-4144-b838-094652f28aec\ndff85334-2af5-492c-827d-efb7c98b2917\n
-    2045ecfd-7f7c-4b04-ae27-f85af578d574\n2b37b80e-e89e-49d2-91b6-ccb90f59d2a4\n10afc5e5-18b1-4e42-b453-ca4d2e814ab0\n
-    7f1871ee-80b8-4910-85fb-de9a1ae2c54e\n25b4bff8-4966-4153-8edb-a1d87034b0dc\n8994d37b-1b48-4df1-a7be-f6e605293ce3\n
-    0da717d9-8535-4c0e-865a-e08de9c1865e'''
+    account_numbers = '1c30bfeb-9a03-4144-b838-094652f28aec\ndff85334-2af5-492c-827d-efb7c98b2917\n2045ecfd-7f7c-' \
+                      '4b04-ae27-f85af578d574\n2b37b80e-e89e-49d2-91b6-ccb90f59d2a4\n10afc5e5-18b1-4e42-b453-ca4d' \
+                      '2e814ab0\n7f1871ee-80b8-4910-85fb-de9a1ae2c54e\n25b4bff8-4966-4153-8edb-a1d87034b0dc\n8994' \
+                      'd37b-1b48-4df1-a7be-f6e605293ce3\n0da717d9-8535-4c0e-865a-e08de9c1865e'
     cmd = 'echo -e "{}" > {}'.format(account_numbers, sanity_test_file)
     operations.run(cmd)
 

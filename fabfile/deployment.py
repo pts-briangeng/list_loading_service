@@ -79,9 +79,9 @@ def set_load_balancer(role):
 @roles(FABRIC_ROLE_SEED_SANITY_TEST_FILE)
 def seed_test_file():
     print(">>>>>>> seeding sanity test file on host {}".format(env.host_string))
-    print os.getcwd()
-    sanity_test_file = os.path.join(configuration.data.VOLUME_MAPPINGS_FILE_UPLOAD_SOURCE, 'offers_sanity.csv')
-    operations.put('../tests/samples/offers_sanity.csv', sanity_test_file)
+    local_csv_file = os.path.join(os.getcwd(), "tests/samples/offers_sanity.csv")
+    remote_sanity_test_file = os.path.join(configuration.data.VOLUME_MAPPINGS_FILE_UPLOAD_SOURCE, 'offers_sanity.csv')
+    operations.put(local_csv_file, remote_sanity_test_file)
 
 
 @roles(FABRIC_ROLE_LOAD_BALANCER)

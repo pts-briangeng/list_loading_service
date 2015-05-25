@@ -15,7 +15,7 @@ AMOUNT_OF_ACCOUNT_NUMBERS = 9
 LIST_LOADING_SERVICE_INDEX_OFFERS_SANITY = 'offers_sanity'
 MOCK_VARIATION_ID = 'b8dbaf3f-8a70-49a8-a563-40329e52bb32'
 VALID_ACCOUNT_NUMBER = '25b4bff8-4966-4153-8edb-a1d87034b0dc'
-TEST_FILE_PATH = 'sanity_test.csv'
+TEST_FILE_PATH = 'offers_sanity.csv'
 TEST_CALL_BACK_URL = 'http://callback.url'
 
 
@@ -58,7 +58,7 @@ def _get_test_file_full_path():
 
 
 def has_the_upload_file_been_removed():
-    return os.path.isfile(_get_test_file_full_path())
+    return not os.path.isfile(_get_test_file_full_path())
 
 
 @attrib.attr('sanity_tests')

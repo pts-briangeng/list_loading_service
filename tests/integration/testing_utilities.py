@@ -120,7 +120,7 @@ class StubHttpRequestHandler(BaseHTTPServer.BaseHTTPRequestHandler):
             _write_line("Response:")
             _write_line("---------------")
             _write_line("")
-            _write_line(response.text)
+            _write_line(response.text if not isinstance(response, Exception) else response)
             _write_line("")
 
 

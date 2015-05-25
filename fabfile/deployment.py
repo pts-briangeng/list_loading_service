@@ -47,6 +47,7 @@ def full_deploy(environment, full_image_name, configuration_dir, run_migrate=Fal
     execute(deploy_docker_image, environment, full_image_name, configuration_dir, enable_nscd=enable_nscd)
     execute(setup_elastic_search_service_load_balancer)
     execute(setup_lls_service_load_balancer)
+    execute(seed_test_file)
 
 
 def _associate_host_to_a_role(host, role):

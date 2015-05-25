@@ -58,7 +58,7 @@ def _get_test_file_full_path():
 
 
 def has_the_upload_file_been_removed():
-    return os.path.isfile(_get_test_file_full_path())
+    return not os.path.isfile(_get_test_file_full_path())
 
 
 @attrib.attr('sanity_tests')

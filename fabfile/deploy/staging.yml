@@ -15,6 +15,8 @@ tor-st-docker1.points.com:
       node_port: 9200
       nodes: [tor-st-es1.points.com, tor-st-es2.points.com, tor-st-es3.points.com]
       mode: roundrobin
+    seed_sanity_test_file:
+      node: list-loading-service-st-1.lxc.points.com
 
 tor-st-docker2.points.com:
   roles:

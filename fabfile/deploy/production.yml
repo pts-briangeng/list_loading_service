@@ -15,6 +15,8 @@ tp-list-loading-service1.points.com:
       node_port: 9200
       nodes: [tp-es1.points.com, tp-es2.points.com, tp-es3.points.com]
       mode: roundrobin
+    seed_sanity_test_file:
+      node: list-loading-service1.prd.points.com
 
 tp-list-loading-service2.points.com:
   roles:

@@ -85,7 +85,6 @@ def seed_test_file():
     0da717d9-8535-4c0e-865a-e08de9c1865e'''
     cmd = 'echo -e "{}" > {}'.format(account_numbers, sanity_test_file)
     operations.run(cmd)
-    pass
 
 
 @roles(FABRIC_ROLE_LOAD_BALANCER)

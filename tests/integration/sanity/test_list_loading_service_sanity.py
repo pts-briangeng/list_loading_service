@@ -21,6 +21,10 @@ TEST_CALL_BACK_URL = 'http://callback.url'
 
 def create_list():
     create_url = '/lists/{}/{}'.format(LIST_LOADING_SERVICE_INDEX_OFFERS_SANITY, MOCK_VARIATION_ID)
+    print '#####################################################'
+    print create_url
+    print TEST_FILE_PATH
+
     post_data = {
         "filePath": TEST_FILE_PATH,
         "callbackUrl": TEST_CALL_BACK_URL

@@ -21,8 +21,6 @@ TEST_FILE_PATH = 'offers_sanity.csv'
 
 def create_list(variation_id):
     create_url = '/lists/{}/{}'.format(LIST_LOADING_SERVICE_INDEX_OFFERS_SANITY, variation_id)
-    print ">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>"
-    print create_url
     post_data = {
         "filePath": TEST_FILE_PATH,
     }
@@ -34,16 +32,12 @@ def create_list(variation_id):
 
 def list_status(variation_id):
     status_url = '/lists/{}/{}/statistics'.format(LIST_LOADING_SERVICE_INDEX_OFFERS_SANITY, variation_id)
-    print ">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>"
-    print status_url
     headers = testing_utilities.generate_headers()
     return requests.get(urlparse.urljoin(configuration.data.list_loading_service_base_url, status_url), headers=headers)
 
 
 def delete_list(variation_id):
     delete_url = '/lists/{}/{}/'.format(LIST_LOADING_SERVICE_INDEX_OFFERS_SANITY, variation_id)
-    print ">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>"
-    print delete_url
     headers = testing_utilities.generate_headers()
     post_data = {"filePath": TEST_FILE_PATH}
     return requests.delete(urlparse.urljoin(configuration.data.list_loading_service_base_url, delete_url),
@@ -53,8 +47,6 @@ def delete_list(variation_id):
 def check_membership(account_number, variation_id):
     check_membership_url = '/lists/{}/{}/{}'.format(LIST_LOADING_SERVICE_INDEX_OFFERS_SANITY, variation_id,
                                                     account_number)
-    print ">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>"
-    print check_membership_url
     headers = testing_utilities.generate_headers()
     return requests.get(urlparse.urljoin(configuration.data.list_loading_service_base_url, check_membership_url),
                         headers=headers)
@@ -68,7 +60,7 @@ def _has_the_upload_file_been_removed():
 def _get_testing_data():
     local_csv_file = os.path.join(os.getcwd(), "tests/samples/offers_sanity.csv")
     with open(local_csv_file) as f:
-        account_numbers = f.readlines()
+        account_numbers = f.read().splitlines()
     return len(account_numbers), random.choice(account_numbers)
 
 

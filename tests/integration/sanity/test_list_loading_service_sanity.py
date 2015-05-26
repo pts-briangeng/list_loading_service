@@ -87,6 +87,8 @@ class SanityTests(base.BaseIntegrationTestCase):
         tools.assert_equal(httplib.OK, response.status_code)
         tools.assert_equal(amount_of_account_numbers, response.json()['hits']['total'])
 
+        print ">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>"
+        print valid_account_number
         response = check_membership(valid_account_number, self.variation_id)
         tools.assert_equal(httplib.OK, response.status_code)
 

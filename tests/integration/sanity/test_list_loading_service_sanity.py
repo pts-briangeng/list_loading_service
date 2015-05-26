@@ -54,7 +54,7 @@ def check_membership(account_number):
 
 
 def _get_test_file_full_path():
-    return os.path.join(configuration.data.volume_mappings_file_upload_target, TEST_FILE_PATH)
+    return os.path.join(configuration.data.VOLUME_MAPPINGS_FILE_UPLOAD_TARGET, TEST_FILE_PATH)
 
 
 def has_the_upload_file_been_removed():

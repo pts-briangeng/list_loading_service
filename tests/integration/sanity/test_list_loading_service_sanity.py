@@ -60,7 +60,7 @@ def _has_the_upload_file_been_removed():
 def _get_testing_data():
     local_csv_file = os.path.join(os.getcwd(), "tests/samples/offers_sanity.csv")
     with open(local_csv_file) as f:
-        account_numbers = f.readlines()
+        account_numbers = f.read().splitlines()
     return len(account_numbers), random.choice(account_numbers)
 
 

@@ -24,7 +24,6 @@ def create_list():
     create_url = '/lists/{}/{}'.format(LIST_LOADING_SERVICE_INDEX_OFFERS_SANITY, MOCK_VARIATION_ID)
     post_data = {
         "filePath": TEST_FILE_PATH,
-        "callbackUrl": "http://callback.url"
     }
 
     headers = testing_utilities.generate_headers()

@@ -3,7 +3,7 @@ tor-ft-docker1.points.com:
     docker_host:
       node: list-loading-service-ft-1.lxc.points.com
       enable_nscd: True
-      dependencies: []
+      dependencies: ['http://tor-ft-es1.points.com:9200', 'http://tor-ft-es2.points.com:9200', 'http://tor-ft-es3.points.com:9200']
     lb_config_node:
       load_balancer_host: list-loading-service-ft.lxc.points.com
       load_balancer_port: 2000
@@ -24,4 +24,4 @@ tor-ft-docker2.points.com:
     docker_host:
       node: list-loading-service-ft-2.lxc.points.com
       enable_nscd: True
-      dependencies: []
+      dependencies: ['http://tor-ft-es1.points.com:9200', 'http://tor-ft-es2.points.com:9200', 'http://tor-ft-es3.points.com:9200']

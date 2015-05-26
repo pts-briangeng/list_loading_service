@@ -3,7 +3,7 @@ tp-list-loading-service1.points.com:
     docker_host:
       node: list-loading-service1.prd.points.com
       enable_nscd: True
-      dependencies: []
+      dependencies: ['http://tp-es1.points.com:9200', 'http://tp-es2.points.com:9200', 'http://tp-es3.points.com:9200']
     lb_config_node:
       load_balancer_host: list-loading-service.prd.points.com
       load_balancer_port: 2000
@@ -23,4 +23,4 @@ tp-list-loading-service2.points.com:
     docker_host:
       node: list-loading-service2.prd.points.com
       enable_nscd: True
-      dependencies: []
+      dependencies: ['http://tp-es1.points.com:9200', 'http://tp-es2.points.com:9200', 'http://tp-es3.points.com:9200']

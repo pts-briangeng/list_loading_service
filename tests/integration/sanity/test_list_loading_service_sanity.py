@@ -54,16 +54,14 @@ def check_membership(account_number):
                         headers=headers)
 
 
-def _get_test_file_full_path():
-    return os.path.join(configuration.data.VOLUME_MAPPINGS_FILE_UPLOAD_TARGET, TEST_FILE_PATH)
-
-
 def _has_the_upload_file_been_removed():
-    return not os.path.isfile(_get_test_file_full_path())
+    uploaded_file = os.path.join(configuration.data.VOLUME_MAPPINGS_FILE_UPLOAD_SOURCE, TEST_FILE_PATH)
+    return not os.path.isfile(uploaded_file)
 
 
 def _get_testing_data():
-    with open(_get_test_file_full_path()) as f:
+    local_csv_file = os.path.join(os.getcwd(), "tests/samples/offers_sanity.csv")
+    with open(local_csv_file) as f:
         account_numbers = f.readlines()
     return len(account_numbers), random.choice(account_numbers)
 

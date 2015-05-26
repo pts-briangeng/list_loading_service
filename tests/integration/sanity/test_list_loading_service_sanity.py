@@ -21,6 +21,8 @@ TEST_FILE_PATH = 'offers_sanity.csv'
 
 def create_list(variation_id):
     create_url = '/lists/{}/{}'.format(LIST_LOADING_SERVICE_INDEX_OFFERS_SANITY, variation_id)
+    print ">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>"
+    print create_url
     post_data = {
         "filePath": TEST_FILE_PATH,
     }
@@ -32,12 +34,16 @@ def create_list(variation_id):
 
 def list_status(variation_id):
     status_url = '/lists/{}/{}/statistics'.format(LIST_LOADING_SERVICE_INDEX_OFFERS_SANITY, variation_id)
+    print ">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>"
+    print status_url
     headers = testing_utilities.generate_headers()
     return requests.get(urlparse.urljoin(configuration.data.list_loading_service_base_url, status_url), headers=headers)
 
 
 def delete_list(variation_id):
     delete_url = '/lists/{}/{}/'.format(LIST_LOADING_SERVICE_INDEX_OFFERS_SANITY, variation_id)
+    print ">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>"
+    print delete_url
     headers = testing_utilities.generate_headers()
     post_data = {"filePath": TEST_FILE_PATH}
     return requests.delete(urlparse.urljoin(configuration.data.list_loading_service_base_url, delete_url),
@@ -47,6 +53,8 @@ def delete_list(variation_id):
 def check_membership(account_number, variation_id):
     check_membership_url = '/lists/{}/{}/{}'.format(LIST_LOADING_SERVICE_INDEX_OFFERS_SANITY, variation_id,
                                                     account_number)
+    print ">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>"
+    print check_membership_url
     headers = testing_utilities.generate_headers()
     return requests.get(urlparse.urljoin(configuration.data.list_loading_service_base_url, check_membership_url),
                         headers=headers)
@@ -87,8 +95,6 @@ class SanityTests(base.BaseIntegrationTestCase):
         tools.assert_equal(httplib.OK, response.status_code)
         tools.assert_equal(amount_of_account_numbers, response.json()['hits']['total'])
 
-        print ">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>"
-        print valid_account_number
         response = check_membership(valid_account_number, self.variation_id)
         tools.assert_equal(httplib.OK, response.status_code)
 

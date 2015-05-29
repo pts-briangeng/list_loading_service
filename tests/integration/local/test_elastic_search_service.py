@@ -14,6 +14,7 @@ from tests import builders
 from tests.integration import base, testing_utilities
 
 
+@attrib.attr('local_integration')
 class CreateListServiceTest(base.BaseIntegrationLiveStubServerTestCase):
 
     @classmethod
@@ -104,7 +105,6 @@ class CreateListServiceTest(base.BaseIntegrationLiveStubServerTestCase):
         testing_utilities.remove_test_file(
             os.path.join(fabfile.configuration_path, '..', 'tests/samples/{}.csv'.format(list_id)))
 
-    @attrib.attr('local_integration')
     @mock.patch.object(elasticsearch_service.requests_wrapper, 'post', autospec=True)
     def test_create_list_fails_on_non_existent_file(self, mock_requests_wrapper_post):
         data = {

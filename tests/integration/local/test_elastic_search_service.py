@@ -9,7 +9,7 @@ from app.services import elasticsearch_service
 from app import models
 from app import services
 from tests import builders
-from tests.integration import base
+from tests.integration import base, testing_utilities
 
 
 @attrib.attr('local_integration')
@@ -21,13 +21,14 @@ class CreateListServiceTest(base.BaseIntegrationLiveStubServerTestCase):
         base.BaseIntegrationTestCase.setUpClass()
 
     def setUp(self):
+        self.test_path = testing_utilities.copy_test_file()
         self.service = services.ElasticSearch()
 
     @mock.patch.object(elasticsearch_service.requests_wrapper, 'post', autospec=True)
     def test_create_list(self, mock_requests_wrapper_post):
         data = {
             'url': 'url',
-            'filePath': './tests/samples/test.csv',
+            'filePath': self.test_path,
             'service': 'offers',
             'list_id': 'edaa3541-7376-4eb3-8047-aaf78af900da',
             'callbackUrl': 'http://localhost:5001/offers/callback',
@@ -53,6 +54,7 @@ class CreateListServiceTest(base.BaseIntegrationLiveStubServerTestCase):
             },
             data=json.dumps({
                 'success': True,
+                'file': 'tests/samples/edaa3541-7376-4eb3-8047-aaf78af900da.csv',
                 'links': {
                     'self': {
                         'href': 'url'
@@ -64,7 +66,7 @@ class CreateListServiceTest(base.BaseIntegrationLiveStubServerTestCase):
     def test_create_list_fails_on_elastic_search_error(self, mock_requests_wrapper_post):
         data = {
             'url': 'url',
-            'file': './tests/samples/test.csv',
+            'filePath': 'tests/samples/test.csv',
             'service': 'offers',
             'list_id': 'edaa3541-7376-4eb3-8047-aaf78af900da',
             'callbackUrl': 'http://localhost:5001/offers/callback',
@@ -86,6 +88,7 @@ class CreateListServiceTest(base.BaseIntegrationLiveStubServerTestCase):
             },
             data=json.dumps({
                 'success': False,
+                'file': 'tests/samples/edaa3541-7376-4eb3-8047-aaf78af900da.csv',
                 'links': {
                     'self': {
                         'href': 'url'
@@ -94,10 +97,10 @@ class CreateListServiceTest(base.BaseIntegrationLiveStubServerTestCase):
             }))
 
     @mock.patch.object(elasticsearch_service.requests_wrapper, 'post', autospec=True)
-    def test_create_list_fails_on_non_existant_file(self, mock_requests_wrapper_post):
+    def test_create_list_fails_on_non_existent_file(self, mock_requests_wrapper_post):
         data = {
             'url': 'url',
-            'file': 'not_here.csv',
+            'filePath': 'not_here.csv',
             'service': 'offers',
             'list_id': 'edaa3541-7376-4eb3-8047-aaf78af900da',
             'callbackUrl': 'http://localhost:5001/offers/callback',
@@ -117,6 +120,7 @@ class CreateListServiceTest(base.BaseIntegrationLiveStubServerTestCase):
             },
             data=json.dumps({
                 'success': False,
+                'file': 'edaa3541-7376-4eb3-8047-aaf78af900da.csv',
                 'links': {
                     'self': {
                         'href': 'url'

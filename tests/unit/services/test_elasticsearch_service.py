@@ -81,7 +81,7 @@ class TestElasticSearchService(unittest.TestCase):
         self.service = services.ElasticSearch()
         configuration.configure_from(os.path.join(configuration.CONFIGURATION_PATH, 'list_loading_service.cfg'))
 
-    def _assert_callback(self, mock_requests_wrapper_post, success):
+    def _assert_callback(self, mock_requests_wrapper_post, success, file):
         mock_requests_wrapper_post.assert_has_calls([
             mock.call(url='callback',
                       headers={
@@ -93,6 +93,7 @@ class TestElasticSearchService(unittest.TestCase):
                       },
                       data=json.dumps({
                           'success': success,
+                          'file': file,
                           'links': {
                               'self': {
                                   'href': 'url'
@@ -102,6 +103,7 @@ class TestElasticSearchService(unittest.TestCase):
                       )
         ])
 
+    @mock.patch.object(os, 'rename', autospec=True)
     @mock.patch.object(elasticsearch_service.requests_wrapper, 'post', autospec=True)
     @mock.patch.object(helpers, 'bulk', autospec=True)
     @mock.patch.object(elasticsearch_service, 'ElasticSearchClient', autospec=True)
@@ -109,7 +111,7 @@ class TestElasticSearchService(unittest.TestCase):
     @mock.patch.object(services.elasticsearch_service, 'open', create=True)
     @mock.patch.object(os.path, 'isfile', autospec=True)
     def test_create_list_with_csv(self, mock_is_file, mock_open, mock_csv_reader, mock_elastic_search,
-                                  mock_bulk, mock_requests_wrapper_post):
+                                  mock_bulk, mock_requests_wrapper_post, mock_os_rename):
         mock_open.return_value = mock.MagicMock(spec=file)
         mock_csv_reader.return_value = CsvMock([['abc']])
 
@@ -126,8 +128,9 @@ class TestElasticSearchService(unittest.TestCase):
                                      index='service',
                                      doc_type='id')
         mock_elastic_search.return_value.indices.refresh.assert_called_once_with(index='service')
-        self._assert_callback(mock_requests_wrapper_post, True)
+        self._assert_callback(mock_requests_wrapper_post, True, 'id.csv')
 
+    @mock.patch.object(os, 'rename', autospec=True)
     @mock.patch.object(elasticsearch_service.requests_wrapper, 'post', autospec=True)
     @mock.patch.object(helpers, 'bulk', autospec=True)
     @mock.patch.object(configuration, 'data', autospec=True)
@@ -135,7 +138,7 @@ class TestElasticSearchService(unittest.TestCase):
     @mock.patch.object(openpyxl, 'load_workbook', autospec=True)
     @mock.patch.object(os.path, 'isfile', autospec=True)
     def test_elastic_search_operation_excel(self, mock_is_file, mock_load_workbook, mock_elastic_search, mock_config,
-                                            mock_bulk, mock_requests_wrapper_post):
+                                            mock_bulk, mock_requests_wrapper_post, mock_os_rename):
         mock_load_workbook.return_value.active.rows = [[MockCell('abc')]]
 
         mock_elastic_search.return_value = mock.MagicMock()
@@ -151,7 +154,7 @@ class TestElasticSearchService(unittest.TestCase):
                                      index='service',
                                      doc_type='id')
         mock_elastic_search.return_value.indices.refresh.assert_called_with(index='service')
-        self._assert_callback(mock_requests_wrapper_post, True)
+        self._assert_callback(mock_requests_wrapper_post, True, 'id.xlsx')
 
     @mock.patch.object(elasticsearch_service.requests_wrapper, 'post', autospec=True)
     def test_elastic_search_operation_without_callback(self, mock_requests_wrapper_post):
@@ -161,13 +164,14 @@ class TestElasticSearchService(unittest.TestCase):
         self.service.create_list(request)
         mock_requests_wrapper_post.assert_has_calls([])
 
+    @mock.patch.object(os, 'rename', autospec=True)
     @mock.patch.object(elasticsearch_service.requests_wrapper, 'post', autospec=True)
     @mock.patch.object(elasticsearch_service, 'ElasticSearchClient', autospec=True)
     @mock.patch.object(csv, 'reader', autospec=True)
     @mock.patch.object(services.elasticsearch_service, 'open', create=True)
     @mock.patch.object(os.path, 'isfile', autospec=True)
     def test_create_throws_error_on_bulk_call(self, mock_is_file, mock_open, mock_csv_reader, mock_elastic_search,
-                                              mock_requests_wrapper_post):
+                                              mock_requests_wrapper_post, mock_os_rename):
         mock_open.return_value = mock.MagicMock(spec=file)
         mock_csv_reader.return_value = CsvMock([['abc']])
 
@@ -186,7 +190,7 @@ class TestElasticSearchService(unittest.TestCase):
         tools.assert_equal(1, mock_elastic_search.return_value.bulk.call_count)
         tools.assert_equal(0, mock_elastic_search.return_value.indices.put_mapping.call_count)
         tools.assert_equal(0, mock_elastic_search.return_value.indices.refresh.call_count)
-        self._assert_callback(mock_requests_wrapper_post, False)
+        self._assert_callback(mock_requests_wrapper_post, False, 'id.csv')
 
     @mock.patch.object(os, 'remove')
     @mock.patch.object(elasticsearch_service, 'ElasticSearchClient', autospec=True)

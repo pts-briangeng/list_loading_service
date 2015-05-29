@@ -2,14 +2,10 @@ import json
 import time
 import httplib
 import copy
-import shutil
-import os
-import fabfile
+import requests
 
-import random
 from nose.plugins import attrib
 from nose import tools
-import requests
 from liblcp import urls
 
 from tests.integration import base, testing_utilities
@@ -31,11 +27,7 @@ class ListsServiceIntegrationTest(base.BaseFullIntegrationTestCase):
     def setUp(self):
         super(ListsServiceIntegrationTest, self).setUp()
         self.headers = testing_utilities.generate_headers(base_url='http://live.lcpenv')
-        source_file_path = os.path.join(fabfile.configuration_path, '..', 'tests/samples/test.csv')
-        destination_file_path = os.path.join(
-            fabfile.configuration_path, '..', 'tests/samples/test_{}.csv'.format(random.randint(0, 99999)))
-        shutil.copy(source_file_path, destination_file_path)
-        self.request_data = {'filePath': destination_file_path.split("/")[-1]}
+        self.request_data = {'filePath': testing_utilities.copy_test_file()}
 
     def test_list_functionality(self):
 

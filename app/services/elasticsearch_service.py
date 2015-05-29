@@ -72,6 +72,15 @@ class BulkAccountsFileReaders(object):
         return BulkAccountsFileReaders.ExcelReader(file_path)
 
 
+def rename_file(request_file, request_list):
+    def rreplace(s, old, new, occurrence):
+        li = s.rsplit(old, occurrence)
+        return new.join(li)
+
+    file_name, _ = os.path.splitext(os.path.basename(request_file))
+    return rreplace(request_file, file_name, request_list, 1)
+
+
 def elastic_search_callback(f):
     def wrapper(self, request):
         errors = False
@@ -85,6 +94,7 @@ def elastic_search_callback(f):
             if request.callbackUrl:
                 data = {
                     'success': not errors,
+                    'file': rename_file(request.filePath, request.list_id),
                     'links': {
                         'self': {
                             'href': request.url
@@ -163,7 +173,11 @@ class ElasticSearchService(object):
         file_path = os.path.join(configuration.data.VOLUME_MAPPINGS_FILE_UPLOAD_TARGET, request.filePath)
         if not os.path.isfile(file_path):
             raise IOError("File {} does not exist!".format(file_path))
-        file_reader = BulkAccountsFileReaders.get(file_path)
+
+        updated_path = rename_file(request.filePath, request.list_id)
+        os.rename(file_path, updated_path)
+
+        file_reader = BulkAccountsFileReaders.get(updated_path)
         with file_reader:
             actions = [ElasticSearchDocument(index=request.service, type=request.list_id, account_number=line).doc
                        for line in file_reader.get_rows()]
@@ -174,6 +188,7 @@ class ElasticSearchService(object):
         logger.info("Uploading ...Done! Refresh index")
         elastic_search_client.indices.refresh(index=request.service)
         logger.info("Finished indexing {} documents".format(result[0]))
+        return updated_path
 
     def delete_list(self, request):
         file_path = os.path.join(configuration.data.VOLUME_MAPPINGS_FILE_UPLOAD_TARGET, request.filePath)

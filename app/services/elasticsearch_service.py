@@ -175,7 +175,7 @@ class ElasticSearchService(object):
         if not os.path.isfile(file_path):
             raise IOError("File {} does not exist!".format(file_path))
 
-        updated_path = rename_file(request.filePath, request.list_id)
+        updated_path = rename_file(file_path, request.list_id)
         shutil.move(file_path, updated_path)
 
         file_reader = BulkAccountsFileReaders.get(updated_path)

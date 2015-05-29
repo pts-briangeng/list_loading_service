@@ -21,7 +21,7 @@ class ListsServiceIntegrationTest(base.BaseFullIntegrationTestCase):
             'base_url': 'http://0.0.0.0:5000',
             'service': 'offers',
             'list_id': 'edaa3541-7376-4eb3-8047-aaf78af900da',
-            'member_id': '34ef0a1f-d5a0-45d7-b065-8ea363875b2f'
+            'member_id': 'dff85334-2af5-492c-827d-efb7c98b2917'
         }
 
     def setUp(self):

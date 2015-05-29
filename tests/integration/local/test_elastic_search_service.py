@@ -1,6 +1,8 @@
 import httplib
 import json
 import mock
+import os
+import fabfile
 
 from liblcp import context
 from nose.plugins import attrib
@@ -12,7 +14,6 @@ from tests import builders
 from tests.integration import base, testing_utilities
 
 
-@attrib.attr('local_integration')
 class CreateListServiceTest(base.BaseIntegrationLiveStubServerTestCase):
 
     @classmethod
@@ -21,16 +22,18 @@ class CreateListServiceTest(base.BaseIntegrationLiveStubServerTestCase):
         base.BaseIntegrationTestCase.setUpClass()
 
     def setUp(self):
-        self.test_path = testing_utilities.copy_test_file()
+        test_file = testing_utilities.copy_test_file()
+        self.test_path = os.path.join(fabfile.configuration_path, '..', 'tests/samples/{}'.format(test_file))
         self.service = services.ElasticSearch()
 
     @mock.patch.object(elasticsearch_service.requests_wrapper, 'post', autospec=True)
     def test_create_list(self, mock_requests_wrapper_post):
+        list_id = 'edaa3541-7376-4eb3-8047-aaf78af900da'
         data = {
             'url': 'url',
             'filePath': self.test_path,
             'service': 'offers',
-            'list_id': 'edaa3541-7376-4eb3-8047-aaf78af900da',
+            'list_id': list_id,
             'callbackUrl': 'http://localhost:5001/offers/callback',
         }
         request = models.Request(**data)
@@ -54,21 +57,24 @@ class CreateListServiceTest(base.BaseIntegrationLiveStubServerTestCase):
             },
             data=json.dumps({
                 'success': True,
-                'file': 'tests/samples/edaa3541-7376-4eb3-8047-aaf78af900da.csv',
+                'file': os.path.join(fabfile.configuration_path, '..', 'tests/samples/{}.csv'.format(list_id)),
                 'links': {
                     'self': {
                         'href': 'url'
                     }
                 }
             }))
+        testing_utilities.remove_test_file(
+            os.path.join(fabfile.configuration_path, '..', 'tests/samples/{}.csv'.format(list_id)))
 
     @mock.patch.object(elasticsearch_service.requests_wrapper, 'post', autospec=True)
     def test_create_list_fails_on_elastic_search_error(self, mock_requests_wrapper_post):
+        list_id = 'edaa3541-7376-4eb3-8047-aaf78af900da'
         data = {
             'url': 'url',
-            'filePath': 'tests/samples/test.csv',
+            'filePath': self.test_path,
             'service': 'offers',
-            'list_id': 'edaa3541-7376-4eb3-8047-aaf78af900da',
+            'list_id': list_id,
             'callbackUrl': 'http://localhost:5001/offers/callback',
         }
         request = models.Request(**data)
@@ -88,14 +94,17 @@ class CreateListServiceTest(base.BaseIntegrationLiveStubServerTestCase):
             },
             data=json.dumps({
                 'success': False,
-                'file': 'tests/samples/edaa3541-7376-4eb3-8047-aaf78af900da.csv',
+                'file': os.path.join(fabfile.configuration_path, '..', 'tests/samples/{}.csv'.format(list_id)),
                 'links': {
                     'self': {
                         'href': 'url'
                     }
                 }
             }))
+        testing_utilities.remove_test_file(
+            os.path.join(fabfile.configuration_path, '..', 'tests/samples/{}.csv'.format(list_id)))
 
+    @attrib.attr('local_integration')
     @mock.patch.object(elasticsearch_service.requests_wrapper, 'post', autospec=True)
     def test_create_list_fails_on_non_existent_file(self, mock_requests_wrapper_post):
         data = {
@@ -127,3 +136,4 @@ class CreateListServiceTest(base.BaseIntegrationLiveStubServerTestCase):
                     }
                 }
             }))
+        testing_utilities.remove_test_file(self.test_path)

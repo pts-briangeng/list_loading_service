@@ -186,8 +186,12 @@ def generate_headers(mode=context.MODE_SANDBOX,
 
 
 def copy_test_file():
-    source_file_path = os.path.join(fabfile.configuration_path, '..', 'tests/samples/test.csv')
+    source_file_path = os.path.join(fabfile.configuration_path, '..', 'tests/samples/offers_sanity.csv')
     destination_file_path = os.path.join(
-        fabfile.configuration_path, '..', 'tests/samples/test_{}.csv'.format(random.randint(0, 99999)))
+        fabfile.configuration_path, '..', 'tests/samples/offers_sanity_{}.csv'.format(random.randint(0, 99999)))
     shutil.copy(source_file_path, destination_file_path)
     return destination_file_path.split("/")[-1]
+
+
+def remove_test_file(path):
+    os.remove(path)

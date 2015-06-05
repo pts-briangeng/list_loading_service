@@ -1,3 +1,3 @@
-import elasticsearch_service
+import elastic
 
-ElasticSearch = elasticsearch_service.ElasticSearchService
+ElasticSearch = elastic.ElasticSearchService

@@ -6,7 +6,7 @@ import fabfile
 
 from liblcp import context
 from nose.plugins import attrib
-from app.services import elasticsearch_service
+from app.services import elastic
 
 from app import models
 from app import services
@@ -27,7 +27,7 @@ class CreateListServiceTest(base.BaseIntegrationLiveStubServerTestCase):
         self.test_path = os.path.join(fabfile.configuration_path, '..', 'tests/samples/{}'.format(test_file))
         self.service = services.ElasticSearch()
 
-    @mock.patch.object(elasticsearch_service.requests_wrapper, 'post', autospec=True)
+    @mock.patch.object(elastic.requests_wrapper, 'post', autospec=True)
     def test_create_list(self, mock_requests_wrapper_post):
         list_id = 'edaa3541-7376-4eb3-8047-aaf78af900da'
         data = {
@@ -68,7 +68,7 @@ class CreateListServiceTest(base.BaseIntegrationLiveStubServerTestCase):
         testing_utilities.remove_test_file(
             os.path.join(fabfile.configuration_path, '..', 'tests/samples/{}.csv'.format(list_id)))
 
-    @mock.patch.object(elasticsearch_service.requests_wrapper, 'post', autospec=True)
+    @mock.patch.object(elastic.requests_wrapper, 'post', autospec=True)
     def test_create_list_fails_on_elastic_search_error(self, mock_requests_wrapper_post):
         list_id = 'edaa3541-7376-4eb3-8047-aaf78af900da'
         data = {
@@ -81,6 +81,10 @@ class CreateListServiceTest(base.BaseIntegrationLiveStubServerTestCase):
         request = models.Request(**data)
         self.queue_stub_response({"status_code": httplib.OK})
         self.queue_stub_response(builders.ESCreateResponseBuilder().build().singleton())
+        # mock put mapping
+        self.queue_stub_response({"status_code": httplib.CREATED})
+        # mock get index
+        self.queue_stub_response({"status_code": httplib.OK})
 
         self.service.create_list(request)
 
@@ -105,7 +109,7 @@ class CreateListServiceTest(base.BaseIntegrationLiveStubServerTestCase):
         testing_utilities.remove_test_file(
             os.path.join(fabfile.configuration_path, '..', 'tests/samples/{}.csv'.format(list_id)))
 
-    @mock.patch.object(elasticsearch_service.requests_wrapper, 'post', autospec=True)
+    @mock.patch.object(elastic.requests_wrapper, 'post', autospec=True)
     def test_create_list_fails_on_non_existent_file(self, mock_requests_wrapper_post):
         data = {
             'url': 'url',

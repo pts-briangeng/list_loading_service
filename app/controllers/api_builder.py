@@ -29,8 +29,8 @@ APIS = [
 class ApiConfiguration(object):
     profiled_targets = [api.controller for api in APIS]
     profiled_targets.extend([
-        'app.services.elasticsearch_service',
-        'app.services.elasticsearch_service.ElasticSearchService',
+        'app.services.elastic',
+        'app.services.elastic.ElasticSearchService',
     ])
 
     def __init__(self, flask_app):

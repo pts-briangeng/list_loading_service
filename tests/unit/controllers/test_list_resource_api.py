@@ -29,10 +29,6 @@ class TestCreateListPutResourceController(unittest.TestCase):
     def setUp(self):
         self.controller = lls_resource_api.CreateListPutResourceController()
 
-    def test_resource_by_id_resource_controller(self):
-        tools.assert_equal('CreateListPutResourceController',
-                           self.controller.resource_by_id_resource_controller.__name__)
-
     def test_put_empty(self):
         app = flask.Flask(__name__)
         with app.test_request_context('/index/app/type/6d04bd2d-da75-420f-a52a-d2ffa0c48c42',
@@ -58,10 +54,6 @@ class TestGetListByIdResourceController(unittest.TestCase):
 
     def setUp(self):
         self.controller = lls_resource_api.GetListByIdResourceController()
-
-    def test_resource_by_id_resource_controller(self):
-        tools.assert_equal('GetListByIdResourceController',
-                           self.controller.resource_by_id_resource_controller.__name__)
 
     def test_get(self):
         app = flask.Flask(__name__)
@@ -95,7 +87,8 @@ class TestDeleteListResourceController(unittest.TestCase):
             response = self.controller.delete()
             tools.assert_equal(httplib.ACCEPTED, response[1])
             tools.assert_equal(mock_service.call_count, 1)
-            mock_url_for.assert_called_once_with('getlistbyidresourcecontroller', _external=True)
+            mock_url_for.assert_called_once_with(
+                lls_resource_api.GetListByIdResourceController.__name__.lower(), _external=True)
 
     @mock.patch.object(services.ElasticSearch, 'delete_list', autospec=True)
     @mock.patch.object(flask, 'url_for', autospec=True)
@@ -141,7 +134,7 @@ class TestListStatusGetResourceController(unittest.TestCase):
             response = self.controller.get()
             tools.assert_equal(httplib.OK, response[1])
             tools.assert_equal(mock_service.call_count, 1)
-            mock_url_for.assert_called_once_with('liststatusgetresourcecontroller', _external=True)
+            mock_url_for.assert_called_once_with(self.controller.__class__.__name__.lower(), _external=True)
 
     @mock.patch.object(services.ElasticSearch, 'get_list_status', autospec=True)
     @mock.patch.object(flask, 'url_for', autospec=True)
@@ -173,7 +166,7 @@ class TestListMemberGetResourceController(unittest.TestCase):
             response = self.controller.get()
             tools.assert_equal(httplib.OK, response[1])
             tools.assert_equal(mock_service.call_count, 1)
-            mock_url_for.assert_called_once_with('getlistmemberbyidresourcecontroller', _external=True)
+            mock_url_for.assert_called_once_with(self.controller.__class__.__name__.lower(), _external=True)
 
     @mock.patch.object(services.ElasticSearch, 'get_list_member', autospec=True)
     @mock.patch.object(flask, 'url_for', autospec=True)

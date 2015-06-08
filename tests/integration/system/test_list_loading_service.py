@@ -6,7 +6,6 @@ import httplib
 import copy
 import requests
 import urllib
-import os
 
 from nose.plugins import attrib
 from nose import tools

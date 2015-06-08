@@ -2,7 +2,6 @@ import httplib
 import json
 import mock
 import os
-import fabfile
 
 from liblcp import context
 from nose.plugins import attrib
@@ -23,8 +22,8 @@ class CreateListServiceTest(base.BaseIntegrationLiveStubServerTestCase):
         base.BaseIntegrationTestCase.setUpClass()
 
     def setUp(self):
-        test_file = testing_utilities.copy_test_file()
-        self.test_path = os.path.join(fabfile.configuration_path, '..', 'tests/samples/{}'.format(test_file))
+        self.test_file = testing_utilities.copy_test_file()
+        self.test_path = os.path.join('tests/samples/{}'.format(self.test_file))
         self.service = services.ElasticSearch()
 
     @mock.patch.object(elastic.requests_wrapper, 'post', autospec=True)
@@ -58,15 +57,14 @@ class CreateListServiceTest(base.BaseIntegrationLiveStubServerTestCase):
             },
             data=json.dumps({
                 'success': True,
-                'file': os.path.join(fabfile.configuration_path, '..', 'tests/samples/{}.csv'.format(list_id)),
+                'file': os.path.join('tests/samples/{}.csv'.format(list_id)),
                 'links': {
                     'self': {
                         'href': 'url'
                     }
                 }
             }))
-        testing_utilities.remove_test_file(
-            os.path.join(fabfile.configuration_path, '..', 'tests/samples/{}.csv'.format(list_id)))
+        testing_utilities.delete_test_files('{}.csv'.format(list_id))
 
     @mock.patch.object(elastic.requests_wrapper, 'post', autospec=True)
     def test_create_list_fails_on_elastic_search_error(self, mock_requests_wrapper_post):
@@ -99,15 +97,14 @@ class CreateListServiceTest(base.BaseIntegrationLiveStubServerTestCase):
             },
             data=json.dumps({
                 'success': False,
-                'file': os.path.join(fabfile.configuration_path, '..', 'tests/samples/{}.csv'.format(list_id)),
+                'file': os.path.join('tests/samples/{}.csv'.format(list_id)),
                 'links': {
                     'self': {
                         'href': 'url'
                     }
                 }
             }))
-        testing_utilities.remove_test_file(
-            os.path.join(fabfile.configuration_path, '..', 'tests/samples/{}.csv'.format(list_id)))
+        testing_utilities.delete_test_files('{}.csv'.format(list_id))
 
     @mock.patch.object(elastic.requests_wrapper, 'post', autospec=True)
     def test_create_list_fails_on_non_existent_file(self, mock_requests_wrapper_post):
@@ -140,4 +137,4 @@ class CreateListServiceTest(base.BaseIntegrationLiveStubServerTestCase):
                     }
                 }
             }))
-        testing_utilities.remove_test_file(self.test_path)
+        testing_utilities.delete_test_files(self.test_file)

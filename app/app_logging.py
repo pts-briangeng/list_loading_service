@@ -8,7 +8,7 @@ def context_mode_adder(value):
         context_mode = context.get_headers().get(context.HEADERS_MODE, None)
     except:
         context_mode = None
-    return '{} [{}]'.format(value, context_mode)
+    return u'{} [{}]'.format(value, context_mode)
 
 
 class ApplicationLoggingFormatter(logging.Formatter):

@@ -98,9 +98,9 @@ class GetListMemberByIdResourceController(base.BaseListResourceController, contr
             request = models.Request(url=self.request_url, **kwargs)
             response_model = services.ElasticSearch().get_list_member(request)
         except Exception as e:
-            logger.exception("An error occurred in get member {} for the list {} - {}".format(kwargs.get('member_id'),
-                                                                                              kwargs.get('list_id'),
-                                                                                              traceback.format_exc()))
+            logger.exception(u"An error occurred in get member {} for the list {} - {}".format(kwargs.get('member_id'),
+                                                                                               kwargs.get('list_id'),
+                                                                                               traceback.format_exc()))
             return self.translate_exceptions(e)
         response_dict = self.create_restful_response_payload(response_model, **kwargs)
         response_headers = self.create_response_headers(response_dict)

@@ -24,11 +24,15 @@ class ListsServiceIntegrationTest(base.BaseFullIntegrationTestCase):
     def setUp(self):
         super(ListsServiceIntegrationTest, self).setUp()
         self.headers = testing_utilities.generate_headers(base_url='http://live.lcpenv')
+        self.path_params = {
+            'base_url': 'http://0.0.0.0:5000',
+            'service': 'offers',
+            'list_id': 'list_id',
+            'member_id': 'member_id'
+        }
 
-    @classmethod
-    def tearDownClass(cls):
-        super(ListsServiceIntegrationTest, cls).tearDownClass()
-        testing_utilities.delete_test_files()
+    def tearDown(self):
+        testing_utilities.delete_test_files(self.renamed_file)
 
     def _test_list_functionality(self, request_data, path_params, accounts_count):
 
@@ -95,25 +99,22 @@ class ListsServiceIntegrationTest(base.BaseFullIntegrationTestCase):
         _assert_deleted_list_cannot_be_deleted()
 
     def test_list_functionality_csv(self):
-        path_params = {
-            'base_url': 'http://0.0.0.0:5000',
-            'service': 'offers',
-            'list_id': 'edaa3541-7376-4eb3-8047-aaf78af900da',
-            'member_id': 'dff85334-2af5-492c-827d-efb7c98b2917'
-        }
+        self.renamed_file = 'edaa3541-7376-4eb3-8047-aaf78af900da.csv'
+
+        path_params = copy.deepcopy(self.path_params)
+        path_params['list_id'] = 'edaa3541-7376-4eb3-8047-aaf78af900da'
+        path_params['member_id'] = 'dff85334-2af5-492c-827d-efb7c98b2917'
 
         request_data = {'filePath': testing_utilities.copy_test_file('accounts_list.csv')}
 
         self._test_list_functionality(request_data, path_params, 5)
 
     def test_list_functionality_xlsx(self):
-        member_id = u'آخر النهر'
-        path_params = {
-            'base_url': 'http://0.0.0.0:5000',
-            'service': 'offers',
-            'list_id': 'c7df9810-90bb-4597-a5ab-c41869bf72e0',
-            'member_id': member_id.encode('UTF-8')
-        }
+        self.renamed_file = 'c7df9810-90bb-4597-a5ab-c41869bf72e0.xlsx'
+
+        path_params = copy.deepcopy(self.path_params)
+        path_params['list_id'] = 'c7df9810-90bb-4597-a5ab-c41869bf72e0'
+        path_params['member_id'] = u'آخر النهر'.encode('UTF-8')
 
         request_data = {'filePath': testing_utilities.copy_test_file('accounts_list.xlsx')}
 

@@ -196,9 +196,8 @@ def copy_test_file(file_name='accounts_list.csv'):
     return destination_file_path.split("/")[-1]
 
 
-def delete_test_files():
-    os.remove(os.path.join(fabfile.configuration_path, '..', 'tests/samples/edaa3541-7376-4eb3-8047-aaf78af900da.csv'))
-    os.remove(os.path.join(fabfile.configuration_path, '..', 'tests/samples/c7df9810-90bb-4597-a5ab-c41869bf72e0.xlsx'))
+def delete_test_files(file_name):
+    os.remove(os.path.join(fabfile.configuration_path, '..', 'tests/samples/', file_name))
 
 
 def remove_test_file(path):

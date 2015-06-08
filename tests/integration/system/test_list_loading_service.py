@@ -27,6 +27,7 @@ class ListsServiceIntegrationTest(base.BaseFullIntegrationTestCase):
 
     @classmethod
     def tearDownClass(cls):
+        super(ListsServiceIntegrationTest, cls).tearDownClass()
         testing_utilities.delete_test_files()
 
     def _test_list_functionality(self, request_data, path_params, accounts_count):

@@ -88,6 +88,18 @@ class TestElasticSearchService(unittest.TestCase):
         configuration.configure_from(os.path.join(configuration.CONFIGURATION_PATH, 'list_loading_service.cfg'))
 
     def _assert_callback(self, mock_requests_wrapper_post, success, file):
+        data = {
+            'success': success,
+            'file': file,
+            'links': {
+                'self': {
+                    'href': 'url'
+                }
+            }
+        }
+        if success:
+            data['links']['member'] = {'href': '/service/id/{member-id}'}
+
         mock_requests_wrapper_post.assert_has_calls([
             mock.call(url='callback',
                       headers={
@@ -97,18 +109,7 @@ class TestElasticSearchService(unittest.TestCase):
                           'PTS-LCP-Principal': PRINCIPAL,
                           'Content-Type': 'application/json'
                       },
-                      data=json.dumps({
-                          'success': success,
-                          'file': file,
-                          'links': {
-                              'self': {
-                                  'href': 'url'
-                              },
-                              'member': {
-                                  'href': '/service/id/{member-id}'
-                              }
-                          }
-                      })
+                      data=json.dumps(data)
                       )
         ])
 

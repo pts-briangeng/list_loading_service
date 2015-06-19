@@ -99,12 +99,13 @@ def elastic_search_callback(f):
                     'links': {
                         'self': {
                             'href': request.url
-                        },
-                        'member': {
-                            'href': '/{}/{}/'.format(request.service, request.list_id) + '{member-id}'
                         }
                     }
                 }
+                if not errors:
+                    data['links']['member'] = {
+                        'href': '/{}/{}/'.format(request.service, request.list_id) + '{member-id}'
+                    }
                 requests_wrapper.post(url=request.callbackUrl, data=json.dumps(data),
                                       headers=dict(context.get_headers(), **{'Content-Type': 'application/json'}))
 

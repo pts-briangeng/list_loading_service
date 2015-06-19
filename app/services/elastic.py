@@ -99,6 +99,9 @@ def elastic_search_callback(f):
                     'links': {
                         'self': {
                             'href': request.url
+                        },
+                        'member': {
+                            'href': '/{}/{}/'.format(request.service, request.list_id) + '{member-id}'
                         }
                     }
                 }

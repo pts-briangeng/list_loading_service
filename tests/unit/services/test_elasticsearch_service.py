@@ -103,6 +103,9 @@ class TestElasticSearchService(unittest.TestCase):
                           'links': {
                               'self': {
                                   'href': 'url'
+                              },
+                              'member': {
+                                  'href': '/service/id/{member-id}'
                               }
                           }
                       })

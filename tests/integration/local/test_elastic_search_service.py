@@ -61,6 +61,9 @@ class CreateListServiceTest(base.BaseIntegrationLiveStubServerTestCase):
                 'links': {
                     'self': {
                         'href': 'url'
+                    },
+                    'member': {
+                        'href': '/{}/{}/'.format(request.service, request.list_id) + '{member-id}'
                     }
                 }
             }))
@@ -101,6 +104,9 @@ class CreateListServiceTest(base.BaseIntegrationLiveStubServerTestCase):
                 'links': {
                     'self': {
                         'href': 'url'
+                    },
+                    'member': {
+                        'href': '/{}/{}/'.format(request.service, request.list_id) + '{member-id}'
                     }
                 }
             }))
@@ -134,6 +140,9 @@ class CreateListServiceTest(base.BaseIntegrationLiveStubServerTestCase):
                 'links': {
                     'self': {
                         'href': 'url'
+                    },
+                    'member': {
+                        'href': '/{}/{}/'.format(request.service, request.list_id) + '{member-id}'
                     }
                 }
             }))

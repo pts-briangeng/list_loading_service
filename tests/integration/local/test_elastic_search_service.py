@@ -63,7 +63,7 @@ class CreateListServiceTest(base.BaseIntegrationLiveStubServerTestCase):
                         'href': 'url'
                     },
                     'member': {
-                        'href': '/{}/{}/'.format(request.service, request.list_id) + '{member-id}'
+                        'href': '/{}/{}/{{member-id}}'.format(request.service, request.list_id)
                     }
                 }
             }))

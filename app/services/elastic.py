@@ -8,6 +8,7 @@ import configuration
 import elasticsearch
 import openpyxl
 import httplib
+import abc
 
 from elasticsearch import helpers, exceptions
 from elasticsearch.client.utils import query_params
@@ -32,6 +33,7 @@ class BulkAccountsFileReaders(object):
         def __exit__(self, exc_type, exc_val, exc_tb):
             pass
 
+        @abc.abstractmethod
         def get_rows(self):
             pass
 
@@ -115,7 +117,8 @@ def elastic_search_callback(f):
 class ElasticSearchClient(elasticsearch.Elasticsearch):
 
     def __init__(self, **kwargs):
-        super(ElasticSearchClient, self).__init__(hosts=[configuration.data.ELASTIC_SEARCH_SERVER], **kwargs)
+        super(ElasticSearchClient, self).__init__(
+            hosts=["http://list-loading-service-tor-st-es.lxc.points.com:9200"], **kwargs)
 
     def _create_es_index_if_required(self, index):
         try:

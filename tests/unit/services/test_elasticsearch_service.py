@@ -238,14 +238,27 @@ class TestElasticSearchService(unittest.TestCase):
         request = models.Request(**self.data)
         self.service.delete_list(request)
 
+    @mock.patch.object(os, 'remove')
+    @mock.patch.object(elastic, 'ElasticSearchClient', autospec=True)
+    def test_delete_list_os_raises_exception(self, mock_elastic_search, mock_remove):
+        mock_elastic_search.return_value = mock.MagicMock()
+        request = models.Request(**self.data)
+        mock_remove.side_effect = OSError
+
+        self.service.delete_list(request)
+
+        mock_elastic_search.return_value.indices.delete_mapping.assert_called_once_with(
+            doc_type='id', index='service')
+        file_path = os.path.join(configuration.data.VOLUME_MAPPINGS_FILE_UPLOAD_TARGET, request.filePath)
+        mock_remove.assert_called_once_with(file_path)
+
     @mock.patch.object(elastic, 'ElasticSearchClient', autospec=True)
     def test_list_status(self, mock_elastic_search):
         request = models.Request(**self.data)
         response = self.service.get_list_status(request)
         tools.assert_equal(mock_elastic_search.return_value.search.return_value, response)
-        mock_elastic_search.return_value.search.assert_called_once_with(doc_type='id',
-                                                                        index='service',
-                                                                        search_type='count')
+        mock_elastic_search.return_value.search.assert_called_once_with(
+            doc_type='id', index='service', search_type='count')
 
     @tools.raises(LookupError)
     @mock.patch.object(elastic, 'ElasticSearchClient', autospec=True)
@@ -279,7 +292,8 @@ class TestElasticSearchClient(unittest.TestCase):
         configuration.configure_from(os.path.join(configuration.CONFIGURATION_PATH, 'list_loading_service.cfg'))
 
     @tools.raises(exceptions.TransportError)
-    def test_raises_exception_when_creating_index(self):
+    @mock.patch.object(app.services.elastic.elasticsearch.client, 'Elasticsearch', autospec=True)
+    def test_raises_exception_when_creating_index(self, mock_elastic_search):
         self.client.indices = mock.MagicMock()
         self.client.indices.create.side_effect = general_exception
 
@@ -290,6 +304,21 @@ class TestElasticSearchClient(unittest.TestCase):
         tools.assert_equal(0, self.client.indices.put_mapping.call_count)
         tools.assert_equal(0, self.client.indices.refresh.call_count)
         tools.assert_equal(0, self.client.bulk.call_count)
+
+    @tools.raises(exceptions.TransportError)
+    @mock.patch.object(app.services.elastic.elasticsearch.client, 'Elasticsearch', autospec=True)
+    def test_raises_exception_when_mapping_put_raises_exception(self, mock_elastic_search):
+        self.client.indices = mock.MagicMock()
+        self.client.indices.exists.side_effect = general_exception
+
+        self.client.bulk([{'_type': 'id', '_id': 'abc', '_source': {'accountNumber': 'abc'}, '_index': 'service'}],
+                         index='service',
+                         doc_type='id')
+
+        self.client.indices.exists.assert_called_with_once(index='service')
+        tools.assert_equal(0, self.client.indices.create.call_count)
+        tools.assert_equal(0, self.client.indices.refresh.call_count)
+        tools.assert_equal(0, self.client.indices.put_mapping.call_count)
 
     @tools.raises(exceptions.TransportError)
     @mock.patch.object(app.services.elastic.elasticsearch.client, 'Elasticsearch', autospec=True)

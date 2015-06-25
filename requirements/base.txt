@@ -16,7 +16,7 @@ fabrika==1.11.0
 pexpect==3.3
 elasticsearch==1.6.0
 openpyxl==2.2.4
-functools32==3.2.3.post1
+functools32==3.2.3-1
 
 restframework==1.4.0
 requestswrapper==1.0.2

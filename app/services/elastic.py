@@ -85,10 +85,10 @@ def rename_file(request_file, request_list):
 
 
 def elastic_search_callback(f):
-    def wrapper(self, request):
+    def wrapper(request):
         errors = False
         try:
-            f(self, request)
+            f(request)
         except Exception as e:
             errors = True
             logger.error('An error occurred when creating a new list: {}'.format(e.message))
@@ -175,8 +175,9 @@ class ElasticSearchDocument(object):
 
 class ElasticSearchService(object):
 
+    @staticmethod
     @elastic_search_callback
-    def create_list(self, request):
+    def create_list(request):
         file_path = os.path.join(configuration.data.VOLUME_MAPPINGS_FILE_UPLOAD_TARGET, request.filePath)
         if not os.path.isfile(file_path):
             raise IOError("File {} does not exist!".format(file_path))
@@ -197,7 +198,8 @@ class ElasticSearchService(object):
         logger.info("Finished indexing {} documents".format(result[0]))
         return updated_path
 
-    def delete_list(self, request):
+    @staticmethod
+    def delete_list(request):
         file_path = os.path.join(configuration.data.VOLUME_MAPPINGS_FILE_UPLOAD_TARGET, request.filePath)
         try:
             logger.info("Elasticsearch is deleting index: {}, doc_type: {}".format(request.service, request.list_id))
@@ -223,7 +225,8 @@ class ElasticSearchService(object):
 
         return result
 
-    def get_list_status(self, request):
+    @staticmethod
+    def get_list_status(request):
         elastic_search_client = ElasticSearchClient()
         result = elastic_search_client.search(index=request.service, doc_type=request.list_id, search_type="count")
         logger.info("elastic search response {}".format(result))
@@ -232,7 +235,8 @@ class ElasticSearchService(object):
             raise LookupError
         return result
 
-    def get_list_member(self, request):
+    @staticmethod
+    def get_list_member(request):
         elastic_search_client = ElasticSearchClient()
         if not elastic_search_client.exists(index=request.service, doc_type=request.list_id, id=request.member_id):
             raise LookupError

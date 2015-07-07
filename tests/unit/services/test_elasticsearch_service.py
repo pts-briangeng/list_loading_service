@@ -98,7 +98,7 @@ class TestElasticSearchService(unittest.TestCase):
             }
         }
         if success:
-            data['links']['member'] = {'href': '/service/id/{member-id}'}
+            data['links']['member'] = '/service/id/{member-id}'
 
         mock_requests_wrapper_post.assert_has_calls([
             mock.call(url='callback',

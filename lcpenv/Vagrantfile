@@ -10,8 +10,8 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
   # options are documented and commented below. For a complete reference,
   # please see the online documentation at vagrantup.com.
 
-  config.vm.box = "lcp-lxc-20150325"
-  config.vm.box_url = "http://knife.points.com:8080/vagrant/vagrant-lcp-lxc-2015-03-25.box"
+  config.vm.box = "lcp-lxc-20150610"
+  config.vm.box_url = "http://knife.points.com:8080/vagrant/vagrant-lcp-lxc-2015-06-10.box"
   # Uncomment for local testing when rebuilding the box
   # config.vm.box_url = "file:///tmp/vagrant-lcp-lxc/vagrant-lcp-lxc.box"
   config.vm.hostname = "lcpenv"

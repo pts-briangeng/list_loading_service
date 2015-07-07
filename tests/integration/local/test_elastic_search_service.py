@@ -62,7 +62,9 @@ class CreateListServiceTest(base.BaseIntegrationLiveStubServerTestCase):
                     'self': {
                         'href': 'url'
                     },
-                    'member': '/{}/{}/{{member-id}}'.format(request.service, request.list_id)
+                    'member': {
+                        'href': '/{}/{}/{{member-id}}'.format(request.service, request.list_id)
+                    }
                 }
             }))
         testing_utilities.delete_test_files('{}.csv'.format(list_id))

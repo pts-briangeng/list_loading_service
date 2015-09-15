@@ -161,14 +161,14 @@ remove_containers_task = fabrika.tasks.docker.RemoveContainersTask('list_loading
 
 @task()
 def test_integration(test_config='local.ini', run_server=True, nose_options='--attr local_integration',
-                     service_profile='localhost'):
+                     services_profile='localhost'):
     if "-v" in nose_options or "--verbose" in nose_options:
         test_config += ";export LOG_LCP_REQUESTS=True"
     if "-a" not in nose_options and "--attr" not in nose_options:
         nose_options += " --attr local_integration "
-    with configured_for(service_profile):
+    with configured_for(services_profile):
         test_integration_task = fabrika.tasks.testing.TestIntegrationTask()
-        test_integration_task.run(test_config, run_server, nose_options, service_profile)
+        test_integration_task.run(test_config, run_server, nose_options, services_profile)
 
 
 class AutoPep8Task(Task):

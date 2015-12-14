@@ -8,7 +8,7 @@ tp-list-loading-service1.points.com:
       load_balancer_host: list-loading-service.prd.points.com
       load_balancer_port: 2000
       node_port: 8080
-      nodes: [list-loading-service1.prd.points.com, list-loading-service2.prd.points.com]
+      nodes: [list-loading-service1.prd.points.com, list-loading-service2.prd.points.com, list-loading-service3.prd.points.com, list-loading-service4.prd.points.com]
     elastic_search_lb_config_node:
       load_balancer_host: es-list-loading-service.prd.points.com
       load_balancer_port: 9200
@@ -22,5 +22,19 @@ tp-list-loading-service2.points.com:
   roles:
     docker_host:
       node: list-loading-service2.prd.points.com
+      enable_nscd: True
+      dependencies: ['http://tp-es1.points.com:9200', 'http://tp-es2.points.com:9200', 'http://tp-es3.points.com:9200']
+
+tp-list-loading-service3.points.com:
+  roles:
+    docker_host:
+      node: list-loading-service3.prd.points.com
+      enable_nscd: True
+      dependencies: ['http://tp-es1.points.com:9200', 'http://tp-es2.points.com:9200', 'http://tp-es3.points.com:9200']
+
+tp-list-loading-service4.points.com:
+  roles:
+    docker_host:
+      node: list-loading-service4.prd.points.com
       enable_nscd: True
       dependencies: ['http://tp-es1.points.com:9200', 'http://tp-es2.points.com:9200', 'http://tp-es3.points.com:9200']

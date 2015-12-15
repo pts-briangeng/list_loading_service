@@ -187,6 +187,12 @@ class TestElasticSearchService(unittest.TestCase):
 
         mock_elastic_search.return_value = mock.MagicMock()
         mock_elastic_search.return_value.bulk.side_effect = general_exception
+        mock_serializer = mock.MagicMock()
+        mock_serializer.dumps.side_effect = [
+            json.dumps({'index': {'_type': 'id', '_id': 'abc', '_index': 'service'}}),
+            json.dumps({'accountNumber': 'abc'})
+        ]
+        mock_elastic_search.return_value.transport = mock.MagicMock(serializer=mock_serializer)
         mock_requests_wrapper_post.return_value = MockHttpResponse(httplib.OK, {})
         request = models.Request(**self.data)
 
@@ -194,7 +200,9 @@ class TestElasticSearchService(unittest.TestCase):
 
         tools.assert_equal(0, mock_elastic_search.return_value.indices.refresh.call_count)
         mock_elastic_search.return_value.bulk.assert_called_once_with(
-            [{'index': {'_type': 'id', '_id': 'abc', '_index': 'service'}}, {'accountNumber': 'abc'}],
+            '\n'.join([
+                json.dumps({'index': {'_type': 'id', '_id': 'abc', '_index': 'service'}}),
+                json.dumps({'accountNumber': 'abc'})]) + '\n',
             index='service',
             doc_type='id')
         tools.assert_equal(1, mock_elastic_search.return_value.bulk.call_count)

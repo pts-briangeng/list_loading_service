@@ -1,46 +1,25 @@
 import logging
-import collections
 
 from liblcp import configuration as lcp_config
 from liblcp import context as lcp_context
 from restframework import rest_api
 
-from app import app_logging, instrumentation
-from app.controllers.lls_resource_api import (CreateListPutResourceController,
-                                              GetListByIdResourceController,
-                                              DeleteListResourceController,
-                                              ListStatusGetResourceController,
-                                              GetListMemberByIdResourceController)
+from app import app_logging, instrumentation, controllers
 
 
 logger = logging.getLogger(__name__)
 
-Api = collections.namedtuple('Api', 'controller resource_url')
-
-APIS = [
-    Api(CreateListPutResourceController, '/lists/<service>/<list_id>'),
-    Api(GetListByIdResourceController, '/lists/<service>/<list_id>/'),
-    Api(DeleteListResourceController, '/lists/<service>/<list_id>/'),
-    Api(ListStatusGetResourceController, '/lists/<service>/<list_id>/statistics'),
-    Api(GetListMemberByIdResourceController, '/lists/<service>/<list_id>/<member_id>'),
-]
-
 
 class ApiConfiguration(object):
-    profiled_targets = [api.controller for api in APIS]
-    profiled_targets.extend([
-        'app.services.elastic',
-        'app.services.elastic.ElasticSearchService',
-    ])
 
     def __init__(self, flask_app):
         self.api = rest_api.RestApi(flask_app)
         self.setup_endpoints()
-        instrumentation.instrument(ApiConfiguration.profiled_targets, logger.getEffectiveLevel())
+        instrumentation.instrument(instrumentation.PROFILED_TARGETS, logger.getEffectiveLevel())
 
     def setup_endpoints(self):
-        for api in APIS:
-            self.api.add_resource(api.controller, api.resource_url)
+        for controller in controllers.__all__:
+            self.api.add_resource(controller, controller.__resource__)
 
 
 def build_server():

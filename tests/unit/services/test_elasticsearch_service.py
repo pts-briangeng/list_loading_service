@@ -132,6 +132,7 @@ class TestElasticSearchService(unittest.TestCase):
 
         self.service.create_list(request)
 
+        mock_open.assert_called_with('/content/list_upload/id.csv', 'rU')
         mock_bulk.assert_called_with(mock_elastic_search.return_value,
                                      [{'_type': 'id', '_id': 'abc', '_source': {'accountNumber': 'abc'},
                                        '_index': 'service'}],

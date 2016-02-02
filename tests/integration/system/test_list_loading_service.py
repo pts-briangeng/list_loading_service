@@ -103,11 +103,11 @@ class ListsServiceIntegrationTest(base.BaseFullIntegrationTestCase):
 
         path_params = copy.deepcopy(self.path_params)
         path_params['list_id'] = 'edaa3541-7376-4eb3-8047-aaf78af900da'
-        path_params['member_id'] = 'dff85334-2af5-492c-827d-efb7c98b2917'
+        path_params['member_id'] = u'اختبار'.encode('UTF-8')
 
         request_data = {'filePath': testing_utilities.copy_test_file('accounts_list.csv')}
 
-        self._test_list_functionality(request_data, path_params, 5)
+        self._test_list_functionality(request_data, path_params, 9)
 
     def test_list_functionality_xlsx(self):
         self.renamed_file = 'c7df9810-90bb-4597-a5ab-c41869bf72e0.xlsx'

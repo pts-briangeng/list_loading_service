@@ -43,7 +43,7 @@ class BulkAccountsFileReaders(object):
             super(BulkAccountsFileReaders.CsvReader, self).__init__(filename)
 
         def __enter__(self):
-            self.csv_file = open(self.filename, 'r')
+            self.csv_file = open(self.filename, 'rU')
             return self.csv_file
 
         def __exit__(self, exc_type, exc_val, exc_tb):

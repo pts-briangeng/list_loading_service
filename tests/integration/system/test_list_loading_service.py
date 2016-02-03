@@ -112,15 +112,15 @@ class ListsServiceIntegrationTest(base.BaseFullIntegrationTestCase):
 
     def test_dos_csv(self):
         request_data = {'filePath': testing_utilities.copy_test_file('dos.csv')}
-        self._test_list_functionality(request_data, self.path_params, 5)
+        self._test_list_functionality(request_data, self.path_params, 9)
 
     def test_mac_csv(self):
         request_data = {'filePath': testing_utilities.copy_test_file('mac.csv')}
-        self._test_list_functionality(request_data, self.path_params, 5)
+        self._test_list_functionality(request_data, self.path_params, 9)
 
     def test_windows_csv(self):
         request_data = {'filePath': testing_utilities.copy_test_file('windows.csv')}
-        self._test_list_functionality(request_data, self.path_params, 5)
+        self._test_list_functionality(request_data, self.path_params, 9)
 
     def test_list_functionality_xlsx(self):
         self.renamed_file = 'c7df9810-90bb-4597-a5ab-c41869bf72e0.xlsx'

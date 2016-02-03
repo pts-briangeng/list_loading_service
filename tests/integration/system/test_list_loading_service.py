@@ -24,11 +24,12 @@ class ListsServiceIntegrationTest(base.BaseFullIntegrationTestCase):
     def setUp(self):
         super(ListsServiceIntegrationTest, self).setUp()
         self.headers = testing_utilities.generate_headers(base_url='http://live.lcpenv')
+        self.renamed_file = 'edaa3541-7376-4eb3-8047-aaf78af900da.csv'
         self.path_params = {
             'base_url': 'http://0.0.0.0:5000',
             'service': 'offers',
-            'list_id': 'list_id',
-            'member_id': 'member_id'
+            'list_id': 'edaa3541-7376-4eb3-8047-aaf78af900da',
+            'member_id': 'dff85334-2af5-492c-827d-efb7c98b2917'
         }
 
     def tearDown(self):
@@ -98,16 +99,21 @@ class ListsServiceIntegrationTest(base.BaseFullIntegrationTestCase):
         _assert_deleted_list_cannot_be_accessed()
         _assert_deleted_list_cannot_be_deleted()
 
-    def test_list_functionality_csv(self):
-        self.renamed_file = 'edaa3541-7376-4eb3-8047-aaf78af900da.csv'
+    def test_normal_csv(self):
+        request_data = {'filePath': testing_utilities.copy_test_file('normal.csv')}
+        self._test_list_functionality(request_data, self.path_params, 5)
 
-        path_params = copy.deepcopy(self.path_params)
-        path_params['list_id'] = 'edaa3541-7376-4eb3-8047-aaf78af900da'
-        path_params['member_id'] = 'dff85334-2af5-492c-827d-efb7c98b2917'
+    def test_dos_csv(self):
+        request_data = {'filePath': testing_utilities.copy_test_file('dos.csv')}
+        self._test_list_functionality(request_data, self.path_params, 5)
 
-        request_data = {'filePath': testing_utilities.copy_test_file('accounts_list.csv')}
+    def test_mac_csv(self):
+        request_data = {'filePath': testing_utilities.copy_test_file('mac.csv')}
+        self._test_list_functionality(request_data, self.path_params, 5)
 
-        self._test_list_functionality(request_data, path_params, 5)
+    def test_windows_csv(self):
+        request_data = {'filePath': testing_utilities.copy_test_file('windows.csv')}
+        self._test_list_functionality(request_data, self.path_params, 5)
 
     def test_list_functionality_xlsx(self):
         self.renamed_file = 'c7df9810-90bb-4597-a5ab-c41869bf72e0.xlsx'

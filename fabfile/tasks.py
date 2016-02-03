@@ -18,6 +18,8 @@ from app.controllers import api_builder
 import configuration as service_container_configuration
 
 
+DEFAULT_REGISTRY = 'prod_head'
+DEFAULT_TAG = "1"
 COVERAGE_OPTIONS = [
     '--with-coverage',
     '--cover-package={0}'.format('app'),
@@ -50,7 +52,7 @@ local("mkdir -p list_loading_service_logs")
 
 class ListLoadingServiceTestInContainerTask(fabrika.tasks.docker.TestInContainerTask):
 
-    def run(self, repo_type, tag, host=None, keeplcp=False,
+    def run(self, repo_type=DEFAULT_REGISTRY, tag=DEFAULT_TAG, host=None, keeplcp=False,
             configuration=os.path.join(configuration_path, 'testincontainer'),
             nose_options='-a system_integration',
             port=5000,

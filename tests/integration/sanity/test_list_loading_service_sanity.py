@@ -14,7 +14,7 @@ import configuration
 from tests.integration import base, testing_utilities
 
 LIST_LOADING_SERVICE_INDEX_OFFERS_SANITY = 'offers'
-TEST_FILE_PATH = 'accounts_list.csv'
+TEST_FILE_PATH = 'normal.csv'
 
 
 def create_list(variation_id):

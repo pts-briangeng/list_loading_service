@@ -185,7 +185,7 @@ def generate_headers(mode=context.MODE_SANDBOX,
                  context.HEADERS_PRINCIPAL: principal or configuration.data.lcp_principal})
 
 
-def copy_test_file(file_name='accounts_list.csv'):
+def copy_test_file(file_name='normal.csv'):
 
     old_file = file_name.rsplit(".", 1)
     destination_file_name = old_file[0] + str(random.randint(0, 99999)) + "." + old_file[1]

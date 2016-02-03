@@ -1,3 +1,5 @@
+# -*- coding: UTF-8 -*-
+
 import httplib
 import urlparse
 import json
@@ -60,7 +62,11 @@ def _get_testing_data():
         "dff85334-2af5-492c-827d-efb7c98b2917",
         "2045ecfd-7f7c-4b04-ae27-f85af578d574",
         "2b37b80e-e89e-49d2-91b6-ccb90f59d2a4",
-        "10afc5e5-18b1-4e42-b453-ca4d2e814ab0"
+        "10afc5e5-18b1-4e42-b453-ca4d2e814ab0",
+        "اختبار",
+        "一二三二百",
+        "ANGÈLE",
+        "двадцать четыре"
     ]
     return len(account_numbers), random.choice(account_numbers)
 

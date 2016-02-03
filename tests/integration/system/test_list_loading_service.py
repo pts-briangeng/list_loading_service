@@ -100,8 +100,15 @@ class ListsServiceIntegrationTest(base.BaseFullIntegrationTestCase):
         _assert_deleted_list_cannot_be_deleted()
 
     def test_normal_csv(self):
+        self.renamed_file = 'edaa3541-7376-4eb3-8047-aaf78af900da.csv'
+
+        path_params = copy.deepcopy(self.path_params)
+        path_params['list_id'] = 'edaa3541-7376-4eb3-8047-aaf78af900da'
+        path_params['member_id'] = u'اختبار'.encode('UTF-8')
+
         request_data = {'filePath': testing_utilities.copy_test_file('normal.csv')}
-        self._test_list_functionality(request_data, self.path_params, 5)
+
+        self._test_list_functionality(request_data, path_params, 9)
 
     def test_dos_csv(self):
         request_data = {'filePath': testing_utilities.copy_test_file('dos.csv')}

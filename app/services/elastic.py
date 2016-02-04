@@ -4,24 +4,23 @@ import traceback
 import csv
 import os
 import shutil
-import configuration
-import elasticsearch
-import openpyxl
 import httplib
 import abc
 
+import elasticsearch
+import openpyxl
 from elasticsearch import helpers, exceptions
 from elasticsearch.client.utils import query_params
 from requestswrapper import requests_wrapper
-
 from liblcp import context
+
+import configuration
 
 
 logger = logging.getLogger(__name__)
 
 
 class BulkAccountsFileReaders(object):
-
     class FileReader(object):
 
         def __init__(self, filename):
@@ -35,6 +34,10 @@ class BulkAccountsFileReaders(object):
 
         @abc.abstractmethod
         def get_rows(self):
+            pass
+
+        @abc.abstractmethod
+        def is_empty(self):
             pass
 
     class CsvReader(FileReader):
@@ -53,6 +56,9 @@ class BulkAccountsFileReaders(object):
             for row in csv.reader(self.csv_file):
                 yield row[0]
 
+        def is_empty(self):
+            return os.stat(self.filename).st_size == 0
+
     class ExcelReader(FileReader):
 
         def __init__(self, filename):
@@ -66,6 +72,9 @@ class BulkAccountsFileReaders(object):
         def get_rows(self):
             for row in self.worksheet.rows:
                 yield row[0].value
+
+        def is_empty(self):
+            return len(self.worksheet.rows) == 0
 
     @classmethod
     def get(cls, file_path):
@@ -108,6 +117,8 @@ def elastic_search_callback(f):
                     data['links']['member'] = {
                         'href': '/{}/{}/{{member-id}}'.format(request.service, request.list_id)
                     }
+                else:
+                    data['error'] = str(e)
                 requests_wrapper.post(url=request.callbackUrl, data=json.dumps(data),
                                       headers=dict(context.get_headers(), **{'Content-Type': 'application/json'}))
 
@@ -115,7 +126,6 @@ def elastic_search_callback(f):
 
 
 class ElasticSearchClient(elasticsearch.Elasticsearch):
-
     def __init__(self, **kwargs):
         super(ElasticSearchClient, self).__init__(hosts=[configuration.data.ELASTIC_SEARCH_SERVER], **kwargs)
 
@@ -155,7 +165,6 @@ class ElasticSearchClient(elasticsearch.Elasticsearch):
 
 
 class ElasticSearchDocument(object):
-
     def __init__(self, index, type, account_number):
         self.index = index
         self.type = type
@@ -174,7 +183,6 @@ class ElasticSearchDocument(object):
 
 
 class ElasticSearchService(object):
-
     @staticmethod
     @elastic_search_callback
     def create_list(request):
@@ -187,6 +195,9 @@ class ElasticSearchService(object):
 
         file_reader = BulkAccountsFileReaders.get(updated_path)
         with file_reader:
+            if file_reader.is_empty():
+                raise EOFError("File {} is empty!".format(file_path))
+
             actions = [ElasticSearchDocument(index=request.service, type=request.list_id, account_number=line).doc
                        for line in file_reader.get_rows()]
 
@@ -196,6 +207,7 @@ class ElasticSearchService(object):
         logger.info("Uploading ...Done! Refresh index")
         elastic_search_client.indices.refresh(index=request.service)
         logger.info("Finished indexing {} documents".format(result[0]))
+
         return updated_path
 
     @staticmethod

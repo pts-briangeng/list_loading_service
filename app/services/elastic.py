@@ -74,7 +74,7 @@ class BulkAccountsFileReaders(object):
                 yield row[0].value
 
         def is_empty(self):
-            return len(self.worksheet.rows) == 0
+            return sum(1 for _ in self.worksheet.rows) == 0
 
     @classmethod
     def get(cls, file_path):

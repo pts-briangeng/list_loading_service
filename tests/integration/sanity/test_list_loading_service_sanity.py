@@ -71,7 +71,7 @@ def _get_testing_data():
     return len(account_numbers), random.choice(account_numbers)
 
 
-@attrib.attr('application_sanity_tests')
+@attrib.attr('application_sanity_tests', 'production_sanity_tests')
 class SanityTests(base.BaseIntegrationTestCase):
 
     def setUp(self):

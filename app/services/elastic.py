@@ -117,8 +117,7 @@ def elastic_search_callback(f):
                     data['links']['member'] = {
                         'href': '/{}/{}/{{member-id}}'.format(request.service, request.list_id)
                     }
-                else:
-                    data['error'] = str(e)
+
                 requests_wrapper.post(url=request.callbackUrl, data=json.dumps(data),
                                       headers=dict(context.get_headers(), **{'Content-Type': 'application/json'}))
 

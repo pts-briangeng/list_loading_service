@@ -105,8 +105,7 @@ class CreateListServiceTest(base.BaseIntegrationLiveStubServerTestCase):
                     'self': {
                         'href': 'url'
                     }
-                },
-                'error': "'items'"
+                }
             }))
         testing_utilities.delete_test_files('{}.csv'.format(list_id))
 
@@ -139,7 +138,6 @@ class CreateListServiceTest(base.BaseIntegrationLiveStubServerTestCase):
                     'self': {
                         'href': 'url'
                     }
-                },
-                'error': 'File ./not_here.csv does not exist!'
+                }
             }))
         testing_utilities.delete_test_files(self.test_file)

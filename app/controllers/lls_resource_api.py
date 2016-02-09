@@ -15,6 +15,8 @@ logger = logging.getLogger(__name__)
 
 class CreateListPutResourceController(base.BaseListResourceController, controllers.PutResourceController):
 
+    __resource__ = '/lists/<service>/<list_id>'
+
     def __init__(self):
         super(CreateListPutResourceController, self).__init__(schema=put_list.REQUEST)
         self.http_successful_response_status = httplib.ACCEPTED
@@ -31,6 +33,7 @@ class CreateListPutResourceController(base.BaseListResourceController, controlle
 
 class GetListByIdResourceController(base.BaseListResourceController, controllers.GetResourceController):
     NOT_FOUND_DESCRIPTION = flask_errors.NotFound.description
+    __resource__ = '/lists/<service>/<list_id>/'
 
     def __init__(self):
         super(GetListByIdResourceController, self).__init__()
@@ -44,6 +47,8 @@ class GetListByIdResourceController(base.BaseListResourceController, controllers
 
 
 class DeleteListResourceController(base.BaseListResourceController, controllers.DeleteResourceController):
+
+    __resource__ = '/lists/<service>/<list_id>/'
 
     def __init__(self):
         super(DeleteListResourceController, self).__init__(schema=delete_list.REQUEST,
@@ -61,6 +66,8 @@ class DeleteListResourceController(base.BaseListResourceController, controllers.
 
 
 class ListStatusGetResourceController(base.BaseListResourceController, controllers.GetResourceController):
+
+    __resource__ = '/lists/<service>/<list_id>/statistics'
 
     def __init__(self):
         super(ListStatusGetResourceController, self).__init__(exception_translations=exceptions.EXCEPTION_TRANSLATIONS)
@@ -84,6 +91,7 @@ class ListStatusGetResourceController(base.BaseListResourceController, controlle
 
 class GetListMemberByIdResourceController(base.BaseListResourceController, controllers.GetResourceController):
     NOT_FOUND_DESCRIPTION = flask_errors.NotFound.description
+    __resource__ = '/lists/<service>/<list_id>/<member_id>'
 
     def __init__(self):
         super(GetListMemberByIdResourceController, self).__init__(

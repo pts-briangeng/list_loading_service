@@ -3,6 +3,8 @@ import inspect
 import logging
 import time
 
+from app import controllers
+
 
 logger = logging.getLogger(__name__)
 
@@ -10,6 +12,13 @@ INDEX_FUNCTION_FRAME = 3
 INDEX_FILE = 0
 INDEX_LINE = 2
 INDEX_FUNCTION_NAME = 3
+
+
+PROFILED_TARGETS = list(controllers.__all__)
+PROFILED_TARGETS.extend([
+    'app.services.elastic',
+    'app.services.elastic.ElasticSearchService',
+])
 
 
 def instrument(targets_to_profile, log_level):

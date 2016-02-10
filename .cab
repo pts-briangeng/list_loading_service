@@ -1,0 +1,21 @@
+[TC_Values]
+project: ListLoadService-RC
+wrapup: ProductionBuilds_ReleaseCandidates_ProdOffersServiceRc_WrapUpBuild
+buildSys: eBuild
+lastDeployed: 2581
+
+[Build_Request_Values]
+product: ListLoadService-RC
+target_environment: production
+# change_req_#: 731
+
+[Change_Request_Values]
+summary: List Load Service - Bug Fixes
+description: List Load Service - Bug Fixes, DPPTSOFFA-1181, DPPTSOFFA-1182, DPPTSOFFA-1814
+approver: Sonia Walia
+deploy_date: 2016-02-09 11:00:00
+build_instructions:
+qa_instructions:
+dba_instructions: None. Backup of Offers DB is done during deployment
+ops_instructions: docker run -i -t -v /config/list_loading_service:/content/configuration rc-docker.points.com:80/list_loading_service_rc_deploy_rc:42 deploy-deployment-image.sh --fab-directory=/content/fabfile --environment=production --user={{user}} --run-tests
+rollback_instructions: Please follow the deployment instructions of http://tor-build.points.com/ebuild/show_build.php?num=2581

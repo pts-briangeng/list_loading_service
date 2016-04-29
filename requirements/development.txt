@@ -5,11 +5,11 @@
 autopep8==1.2.1
 coverage==4.1b2
 ecdsa==0.13
-flake8==2.5.2
+flake8==2.5.4
 mock==1.0.1
 nose==1.3.7
 nose-parallel==0.1.4
 retrying==1.3.3
 
-lcpenv==3.11.4
+lcpenv==3.13.1
 teamcity-messages-pts==1.7.2

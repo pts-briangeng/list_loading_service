@@ -17,7 +17,6 @@ from fabfile.app_configuration import configured_for
 from app.controllers import api_builder
 import configuration as service_container_configuration
 
-
 DEFAULT_REGISTRY = 'prod_head'
 DEFAULT_TAG = "1"
 COVERAGE_OPTIONS = [
@@ -50,7 +49,7 @@ generate_vagrantfile = lcpenv_tasks.generate_vagrantfile
 local("mkdir -p list_loading_service_logs")
 
 
-class ListLoadingServiceTestInContainerTask(fabrika.tasks.docker.TestInContainerTask):
+class ListLoadingServiceTestInContainerTask(fabrika.tasks.docker.TestInContainerTask, fabrika.tasks.testing.TestTask):
 
     def run(self, repo_type=DEFAULT_REGISTRY, tag=DEFAULT_TAG, host=None, keeplcp=False,
             configuration=os.path.join(configuration_path, 'testincontainer'),
@@ -65,6 +64,7 @@ class ListLoadingServiceTestInContainerTask(fabrika.tasks.docker.TestInContainer
         if "-a" not in nose_options and "--attr" not in nose_options:
             nose_options += " --attr container_integration "
 
+        fabrika.tasks.testing.TestTask().test_requirements()
         execute(start_lcp)
         execute(configure_routing, host='vagrant@lcpenv')
         with create_container_profile(os.path.join(configuration_path, configuration, 'servicecontainer.cfg')):
@@ -132,6 +132,7 @@ class ListLoadingServiceTestUnitsTask(fabrika.tasks.testing.TestUnitsTask):
         super(ListLoadingServiceTestUnitsTask, self).__init__(app_package_name, coverage_options)
 
     def run(self, nose_options=None):
+        self.test_requirements()
         execute(clean_task)
         execute(flake8_task)
         super(ListLoadingServiceTestUnitsTask, self).run(nose_options)

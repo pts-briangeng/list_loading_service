@@ -1,9 +1,5 @@
-# We use Chishop as our primary location to look for dependencies;
-# if it's not found there we use our PyPI mirror, followed by
-# the main PyPI server
---index-url=http://ops-build2.points.com:8000/pypi/
---extra-index-url=http://pypi.points.com/simple
---extra-index-url=https://pypi.python.org/simple/
+--index-url=https://devpi.points.com/root/points/+simple/
+--extra-index-url=http://ops-build2.points.com:8000/pypi/
 
 PyYAML==3.11
 aspectlib==1.4.0

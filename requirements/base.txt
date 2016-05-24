@@ -1,18 +1,20 @@
 --index-url=https://devpi.points.com/root/points/+simple/
 --extra-index-url=http://ops-build2.points.com:8000/pypi/
 
-PyYAML==3.11
-aspectlib==1.4.0
-elasticsearch==1.7.0
+# External Libraries
+aspectlib==1.4.2
+elasticsearch==1.6.0
 flask-restful==0.3.5
 jsonpickle==0.9.3
 jsonschema==2.5.1
 openpyxl==2.3.3
 pexpect==4.0.1
-requests==2.9.1
+PyYAML==3.11
+requests==2.10.0
 
-fabrika==3.0.1
-liblcp==10.0.0
-restframework==2.1.0
+# Internal Points Libraries
+fabrika==3.4.2
+liblcp==11.1.1
 requestswrapper==1.0.3
+restframework==2.1.0
 servicecontainer==1.4.0

@@ -11,10 +11,7 @@ from app import services
 from app.services import elastic
 from tests import builders
 from tests.integration import base, testing_utilities
-
-
-def _generator(data):
-    yield data
+from tests.mocks import generator
 
 
 @attrib.attr('local_integration')
@@ -36,7 +33,7 @@ class CreateListServiceTest(base.BaseIntegrationLiveStubServerTestCase):
 
         mock_csv_reader = mock.MagicMock(autospec=elastic.BulkAccountsFileReaders.CsvReader)
         mock_csv_reader.is_empty.return_value = False
-        mock_csv_reader.get_rows.return_value = _generator("account_no")
+        mock_csv_reader.get_rows.return_value = generator("account_no")
         mock_file_readers.get.return_value = mock_csv_reader
         list_id = 'edaa3541-7376-4eb3-8047-aaf78af900da'
         data = {
@@ -85,7 +82,7 @@ class CreateListServiceTest(base.BaseIntegrationLiveStubServerTestCase):
     def test_create_list_fails_on_elastic_search_error(self, mock_requests_wrapper_post, mock_file_readers):
         mock_csv_reader = mock.MagicMock(autospec=elastic.BulkAccountsFileReaders.CsvReader)
         mock_csv_reader.is_empty.return_value = False
-        mock_csv_reader.get_rows.return_value = _generator("account_no")
+        mock_csv_reader.get_rows.return_value = generator("account_no")
 
         list_id = 'edaa3541-7376-4eb3-8047-aaf78af900da'
         data = {

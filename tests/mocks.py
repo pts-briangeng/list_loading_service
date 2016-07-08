@@ -5,3 +5,7 @@ def Any(cls):
             return type(other) == cls
 
     return Any()
+
+
+def generator(data):
+    yield data

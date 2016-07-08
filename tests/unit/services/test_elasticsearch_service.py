@@ -16,7 +16,7 @@ from nose import tools
 import configuration
 from app import models, services
 from app.services import elastic
-from tests import builders
+from tests import builders, mocks
 
 
 class CsvMock(list):
@@ -140,7 +140,7 @@ class TestElasticSearchService(unittest.TestCase):
         args, _ = mock_bulk.call_args
         tools.assert_equals(type(args[1]), types.GeneratorType)
         mock_bulk.assert_called_with(mock_elastic_search.return_value,
-                                     mock.ANY,
+                                     mocks.Any(types.GeneratorType),
                                      index='service',
                                      doc_type='id')
         mock_elastic_search.return_value.indices.refresh.assert_called_once_with(index='service')
@@ -167,7 +167,7 @@ class TestElasticSearchService(unittest.TestCase):
         args, _ = mock_bulk.call_args
         tools.assert_equals(type(args[1]), types.GeneratorType)
         mock_bulk.assert_called_with(mock_elastic_search.return_value,
-                                     mock.ANY,
+                                     mocks.Any(types.GeneratorType),
                                      index='service',
                                      doc_type='id')
         mock_elastic_search.return_value.indices.refresh.assert_called_with(index='service')

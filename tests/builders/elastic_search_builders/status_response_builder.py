@@ -3,7 +3,6 @@ import httplib
 
 from tests.builders import base
 
-
 LIST_STATUS_RESPONSE = {
     "_shards": {
         "failed": 0,

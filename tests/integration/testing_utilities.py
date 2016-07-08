@@ -1,21 +1,21 @@
 import BaseHTTPServer
-import shutil
-import fabfile
-import random
 import httplib
-import os
-import logging
-import sys
-import configuration
-import uuid
 import json
+import logging
+import os
+import random
+import shutil
+import sys
 import threading
 import urlparse
+import uuid
+from collections import namedtuple
 
 from fabrika.tasks import testing
 from liblcp import context
-from collections import namedtuple
 
+import configuration
+import fabfile
 
 logger = logging.getLogger(__name__)
 

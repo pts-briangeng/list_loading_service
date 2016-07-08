@@ -1,21 +1,21 @@
-import json
-import unittest
-import os
-import csv
 import copy
+import csv
 import httplib
+import json
+import os
+import unittest
 import uuid
 
 import mock
-from liblcp import context
 import openpyxl
 from elasticsearch import helpers, exceptions
+from liblcp import context
 from nose import tools
 
-import configuration
 import app
-from app.services import elastic
+import configuration
 from app import models, services
+from app.services import elastic
 from tests import builders
 
 

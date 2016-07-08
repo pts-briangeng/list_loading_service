@@ -1,21 +1,21 @@
-import os
 import contextlib
-import uuid
+import os
 import shutil
+import uuid
 
-from fabric.api import env, execute, task
-from fabric.operations import local
-from fabric.tasks import Task
 import fabrika.tasks.analysis
 import fabrika.tasks.build
 import fabrika.tasks.docker
 import fabrika.tasks.testing
-from liblcp import context
+from fabric.api import env, execute, task
+from fabric.operations import local
+from fabric.tasks import Task
 from lcpenv import tasks as lcpenv_tasks
+from liblcp import context
 
-from fabfile.app_configuration import configured_for
-from app.controllers import api_builder
 import configuration as service_container_configuration
+from app.controllers import api_builder
+from fabfile.app_configuration import configured_for
 
 DEFAULT_REGISTRY = 'prod_head'
 DEFAULT_TAG = "1"

@@ -3,7 +3,6 @@ import httplib
 
 from tests.builders import base
 
-
 DELETE_LIST_OK_RESPONSE = {
     "acknowledged": True
 }

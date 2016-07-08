@@ -3,13 +3,12 @@ import os
 import unittest
 import uuid
 
-from liblcp import configuration as liblcp_config, context
 from elasticsearch import exceptions
+from liblcp import configuration as liblcp_config, context
 
 import configuration
 import fabfile
 from tests.integration import testing_utilities
-
 
 CONFIGURATION_PATH = fabfile.configuration_path
 INTEGRATION_TEST_PATH = os.path.dirname(os.path.realpath(__file__))

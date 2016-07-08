@@ -1,7 +1,7 @@
 import logging
-import mock
 import unittest
 
+import mock
 from nose.tools import assert_equal, assert_false, assert_true
 
 from app import instrumentation

@@ -1,10 +1,9 @@
 import logging
 from collections import namedtuple
-import flask
 
+import flask
 from restframework import controllers
 from werkzeug import exceptions as flask_exceptions
-
 
 logger = logging.getLogger(__name__)
 

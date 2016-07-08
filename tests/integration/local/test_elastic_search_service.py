@@ -1,14 +1,14 @@
 import httplib
 import json
-import mock
 import os
 
+import mock
 from liblcp import context
 from nose.plugins import attrib
-from app.services import elastic
 
 from app import models
 from app import services
+from app.services import elastic
 from tests import builders
 from tests.integration import base, testing_utilities
 

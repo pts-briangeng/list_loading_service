@@ -1,16 +1,15 @@
 # -*- coding: UTF-8 -*-
 
 import httplib
-import urlparse
 import json
-import requests
-import uuid
 import random
+import urlparse
+import uuid
 
-from retrying import retry
-
-from nose.plugins import attrib
+import backoff
+import requests
 from nose import tools
+from nose.plugins import attrib
 
 import configuration
 from tests.integration import base, testing_utilities
@@ -79,7 +78,7 @@ class SanityTests(base.BaseIntegrationTestCase):
 
     def test_list_loading_service_succeeds(self):
 
-        @retry(stop_max_attempt_number=5, wait_fixed=2000, retry_on_exception=lambda e: isinstance(e, AssertionError))
+        @backoff.on_exception(backoff.expo, AssertionError, max_tries=5)
         def _assert(status_code, response_status_code):
             tools.assert_equal(status_code, response_status_code)
 

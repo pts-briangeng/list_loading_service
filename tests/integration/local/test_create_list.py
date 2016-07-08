@@ -8,7 +8,6 @@ from nose.plugins import attrib
 
 from tests.integration import base, testing_utilities
 
-
 PATH_PARAMS = {
     'base_url': 'http://0.0.0.0:5000',
     'service': 'offers',

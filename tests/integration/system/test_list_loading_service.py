@@ -1,15 +1,15 @@
 # -*- coding: UTF-8 -*-
 
+import copy
+import httplib
 import json
 import time
-import httplib
-import copy
-import requests
 import urllib
 
-from nose.plugins import attrib
-from nose import tools
+import requests
 from liblcp import urls
+from nose import tools
+from nose.plugins import attrib
 
 from tests.integration import base, testing_utilities
 

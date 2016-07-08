@@ -25,12 +25,7 @@ class BulkAccountsFileReaders(object):
 
         def __init__(self, filename):
             self.filename = filename
-
-        def __enter__(self):
-            pass
-
-        def __exit__(self, exc_type, exc_val, exc_tb):
-            pass
+            self.descriptor = None
 
         @abc.abstractmethod
         def get_rows(self):
@@ -40,20 +35,21 @@ class BulkAccountsFileReaders(object):
         def is_empty(self):
             pass
 
+        @abc.abstractmethod
+        def close(self):
+            pass
+
     class CsvReader(FileReader):
 
         def __init__(self, filename):
             super(BulkAccountsFileReaders.CsvReader, self).__init__(filename)
+            self.descriptor = open(filename, 'rU')
 
-        def __enter__(self):
-            self.csv_file = open(self.filename, 'rU')
-            return self.csv_file
-
-        def __exit__(self, exc_type, exc_val, exc_tb):
-            self.csv_file.close()
+        def close(self):
+            self.descriptor.close()
 
         def get_rows(self):
-            for row in csv.reader(self.csv_file):
+            for row in csv.reader(self.descriptor):
                 yield row[0]
 
         def is_empty(self):
@@ -63,18 +59,18 @@ class BulkAccountsFileReaders(object):
 
         def __init__(self, filename):
             super(BulkAccountsFileReaders.ExcelReader, self).__init__(filename)
-
-        def __enter__(self):
             self.workbook = openpyxl.load_workbook(self.filename, read_only=True)
-            self.worksheet = self.workbook.active
-            return self.worksheet
+            self.descriptor = self.workbook.active
 
         def get_rows(self):
-            for row in self.worksheet.rows:
+            for row in self.descriptor.rows:
                 yield row[0].value
 
         def is_empty(self):
-            return sum(1 for _ in self.worksheet.rows) == 0
+            return sum(1 for _ in self.descriptor.rows) == 0
+
+        def close(self):
+            pass
 
     @classmethod
     def get(cls, file_path):
@@ -196,12 +192,11 @@ class ElasticSearchService(object):
         shutil.move(file_path, updated_path)
 
         file_reader = BulkAccountsFileReaders.get(updated_path)
-        with file_reader:
-            if file_reader.is_empty():
-                raise EOFError("File {} is empty!".format(file_path))
+        if file_reader.is_empty():
+            raise EOFError("File {} is empty!".format(file_path))
 
-            actions = (ElasticSearchDocument(index=request.service, type=request.list_id, account_number=line).doc
-                       for line in file_reader.get_rows())
+        actions = (ElasticSearchDocument(index=request.service, type=request.list_id, account_number=line).doc
+                   for line in file_reader.get_rows())
 
         logger.info("Bulk indexing file using index: {}, type: {}".format(request.service, request.list_id))
         elastic_search_client = ElasticSearchClient()
@@ -209,7 +204,7 @@ class ElasticSearchService(object):
         logger.info("Uploading ...Done! Refresh index")
         elastic_search_client.indices.refresh(index=request.service)
         logger.info("Finished indexing {} documents".format(result[0]))
-
+        file_reader.close()
         return updated_path
 
     @staticmethod

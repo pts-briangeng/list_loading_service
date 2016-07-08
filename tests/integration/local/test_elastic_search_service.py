@@ -76,7 +76,6 @@ class CreateListServiceTest(base.BaseIntegrationLiveStubServerTestCase):
             }))
         testing_utilities.delete_test_files('{}.csv'.format(list_id))
 
-    @attrib.attr('int')
     @mock.patch.object(elastic, 'BulkAccountsFileReaders', autospec=True)
     @mock.patch.object(elastic.requests_wrapper, 'post', autospec=True)
     def test_create_list_fails_on_elastic_search_error(self, mock_requests_wrapper_post, mock_file_readers):

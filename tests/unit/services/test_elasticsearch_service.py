@@ -3,6 +3,7 @@ import csv
 import httplib
 import json
 import os
+import types
 import unittest
 import uuid
 
@@ -123,6 +124,7 @@ class TestElasticSearchService(unittest.TestCase):
     @mock.patch.object(os.path, 'isfile', autospec=True)
     def test_create_list_with_csv(self, mock_is_file, mock_open, mock_csv_reader, mock_elastic_search,
                                   mock_bulk, mock_requests_wrapper_post, mock_os_rename, mock_stat):
+
         mock_open.return_value = mock.MagicMock(spec=file)
         mock_csv_reader.return_value = CsvMock([['abc']])
         mock_elastic_search.return_value = mock.MagicMock()
@@ -135,9 +137,10 @@ class TestElasticSearchService(unittest.TestCase):
         self.service.create_list(request)
 
         mock_open.assert_called_with('/content/list_upload/id.csv', 'rU')
+        args, _ = mock_bulk.call_args
+        tools.assert_equals(type(args[1]), types.GeneratorType)
         mock_bulk.assert_called_with(mock_elastic_search.return_value,
-                                     [{'_type': 'id', '_id': 'abc', '_source': {'accountNumber': 'abc'},
-                                       '_index': 'service'}],
+                                     mock.ANY,
                                      index='service',
                                      doc_type='id')
         mock_elastic_search.return_value.indices.refresh.assert_called_once_with(index='service')
@@ -161,9 +164,10 @@ class TestElasticSearchService(unittest.TestCase):
         request = models.Request(**data)
         self.service.create_list(request)
 
+        args, _ = mock_bulk.call_args
+        tools.assert_equals(type(args[1]), types.GeneratorType)
         mock_bulk.assert_called_with(mock_elastic_search.return_value,
-                                     [{'_type': 'id', '_id': 'abc', '_source': {'accountNumber': 'abc'},
-                                       '_index': 'service'}],
+                                     mock.ANY,
                                      index='service',
                                      doc_type='id')
         mock_elastic_search.return_value.indices.refresh.assert_called_with(index='service')

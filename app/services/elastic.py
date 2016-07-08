@@ -20,6 +20,7 @@ logger = logging.getLogger(__name__)
 
 
 class BulkAccountsFileReaders(object):
+
     class FileReader(object):
 
         def __init__(self, filename):
@@ -124,6 +125,7 @@ def elastic_search_callback(f):
 
 
 class ElasticSearchClient(elasticsearch.Elasticsearch):
+
     def __init__(self, **kwargs):
         super(ElasticSearchClient, self).__init__(hosts=[configuration.data.ELASTIC_SEARCH_SERVER], **kwargs)
 
@@ -163,6 +165,7 @@ class ElasticSearchClient(elasticsearch.Elasticsearch):
 
 
 class ElasticSearchDocument(object):
+
     def __init__(self, index, type, account_number):
         self.index = index
         self.type = type
@@ -181,6 +184,7 @@ class ElasticSearchDocument(object):
 
 
 class ElasticSearchService(object):
+
     @staticmethod
     @elastic_search_callback
     def create_list(request):
@@ -196,8 +200,8 @@ class ElasticSearchService(object):
             if file_reader.is_empty():
                 raise EOFError("File {} is empty!".format(file_path))
 
-            actions = [ElasticSearchDocument(index=request.service, type=request.list_id, account_number=line).doc
-                       for line in file_reader.get_rows()]
+            actions = (ElasticSearchDocument(index=request.service, type=request.list_id, account_number=line).doc
+                       for line in file_reader.get_rows())
 
         logger.info("Bulk indexing file using index: {}, type: {}".format(request.service, request.list_id))
         elastic_search_client = ElasticSearchClient()

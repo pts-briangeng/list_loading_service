@@ -8,7 +8,7 @@ from liblcp import configuration as liblcp_config, context
 
 import configuration
 import fabfile
-from tests.integration import testing_utilities
+from tests.integration import servers
 
 CONFIGURATION_PATH = fabfile.configuration_path
 INTEGRATION_TEST_PATH = os.path.dirname(os.path.realpath(__file__))
@@ -39,7 +39,7 @@ class BaseIntegrationLiveStubServerTestCase(unittest.TestCase):
 
     @classmethod
     def setUpClass(cls):
-        cls.stub_lcp = testing_utilities.StubServer.make_stub_lcp()
+        cls.stub_lcp = servers.StubServer.make_stub_server()
         cls.headers = {context.HEADERS_EXTERNAL_BASE_URL: 'http://live.lcpenv',
                        context.HEADERS_CORRELATION_ID: str(uuid.uuid4()),
                        context.HEADERS_MODE: 'sandbox',

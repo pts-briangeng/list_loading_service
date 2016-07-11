@@ -17,6 +17,8 @@ INDEX_FUNCTION_NAME = 3
 PROFILED_TARGETS = list(controllers.__all__)
 PROFILED_TARGETS.extend([
     'app.services.elastic',
+    'app.services.elastic.clients.ElasticSearchClient',
+    'app.services.elastic.readers.BulkAccountsFileReaders',
     'app.services.elastic.ElasticSearchService',
 ])
 

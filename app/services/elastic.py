@@ -46,8 +46,11 @@ class ElasticSearchService(object):
         if file_reader.is_empty():
             raise EOFError("File {} is empty!".format(file_path))
 
-        actions = (_ElasticSearchDocument(index=request.service, type=request.list_id, account_number=line).doc
-                   for line in file_reader.get_rows())
+        actions = (
+            _ElasticSearchDocument(
+                index=request.service, type=request.list_id, account_number=line).doc
+            for line in file_reader.get_rows()
+        )
 
         logger.info("Bulk indexing file using index: {}, type: {}".format(request.service, request.list_id))
         elastic_search_client = clients.ElasticSearchClient()

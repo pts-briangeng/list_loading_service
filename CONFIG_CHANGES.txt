@@ -1,0 +1,6 @@
+11th July 2016
+-------------------------------
+* Add the following item to the list_loading_service.cfg
+{noformat}
+BULK_PROCESSING_THREAD_COUNT = 4
+{noformat}

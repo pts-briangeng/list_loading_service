@@ -83,7 +83,7 @@ class TestElasticSearchService(unittest.TestCase):
     @mock.patch.object(os, 'rename', autospec=True)
     @mock.patch.object(readers, 'BulkAccountsFileReaders', autospec=True)
     @mock.patch.object(decorators.requests_wrapper, 'post', autospec=True)
-    @mock.patch.object(helpers, 'bulk', autospec=True)
+    @mock.patch.object(helpers, 'parallel_bulk', autospec=True)
     @mock.patch.object(clients, 'ElasticSearchClient', autospec=True)
     @mock.patch.object(os.path, 'isfile', autospec=True)
     def test_create_list_with_csv(self, mock_is_file, mock_elastic_search, mock_bulk, mock_requests_wrapper_post,
@@ -95,7 +95,8 @@ class TestElasticSearchService(unittest.TestCase):
         request = models.Request(**self.data)
         mock_csv_reader = mock.MagicMock(autospec=readers.CsvReader)
         mock_csv_reader.is_empty.return_value = False
-        mock_csv_reader.get_rows.return_value = [["account_no"]]
+        mock_csv_reader.get_rows.return_value = [
+            ["account_no_{}".format(account_number_index)] for account_number_index in xrange(10000)]
         mock_bulk_reader_get.get.return_value = mock_csv_reader
 
         self.service.create_list(request)
@@ -104,6 +105,7 @@ class TestElasticSearchService(unittest.TestCase):
         tools.assert_equals(type(args[1]), types.GeneratorType)
         mock_bulk.assert_called_with(mock_elastic_search.return_value,
                                      mocks.Any(types.GeneratorType),
+                                     thread_count=4,
                                      index='service',
                                      doc_type='id')
         mock_elastic_search.return_value.indices.refresh.assert_called_once_with(index='service')
@@ -112,7 +114,7 @@ class TestElasticSearchService(unittest.TestCase):
     @mock.patch.object(os, 'rename', autospec=True)
     @mock.patch.object(readers, 'BulkAccountsFileReaders', autospec=True)
     @mock.patch.object(decorators.requests_wrapper, 'post', autospec=True)
-    @mock.patch.object(helpers, 'bulk', autospec=True)
+    @mock.patch.object(helpers, 'parallel_bulk', autospec=True)
     @mock.patch.object(clients, 'ElasticSearchClient', autospec=True)
     @mock.patch.object(os.path, 'isfile', autospec=True)
     def test_elastic_search_operation_excel(self, mock_is_file, mock_elastic_search, mock_bulk,
@@ -124,7 +126,8 @@ class TestElasticSearchService(unittest.TestCase):
         request = models.Request(**data)
         mock_xl_reader = mock.MagicMock(autospec=readers.ExcelReader)
         mock_xl_reader.is_empty.return_value = False
-        mock_xl_reader.get_rows.return_value = [["account_no"]]
+        mock_xl_reader.get_rows.return_value = [
+            ["account_no_{}".format(account_number_index)] for account_number_index in xrange(10000)]
         mock_bulk_reader_get.get.return_value = mock_xl_reader
 
         self.service.create_list(request)
@@ -133,6 +136,7 @@ class TestElasticSearchService(unittest.TestCase):
         tools.assert_equals(type(args[1]), types.GeneratorType)
         mock_bulk.assert_called_with(mock_elastic_search.return_value,
                                      mocks.Any(types.GeneratorType),
+                                     thread_count=4,
                                      index='service',
                                      doc_type='id')
         mock_elastic_search.return_value.indices.refresh.assert_called_with(index='service')

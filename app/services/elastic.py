@@ -3,6 +3,7 @@ import logging
 import os
 import shutil
 
+import collections
 from elasticsearch import helpers, exceptions
 
 import configuration
@@ -54,10 +55,22 @@ class ElasticSearchService(object):
 
         logger.info("Bulk indexing file using index: {}, type: {}".format(request.service, request.list_id))
         elastic_search_client = clients.ElasticSearchClient()
-        result = helpers.bulk(elastic_search_client, actions, index=request.service, doc_type=request.list_id)
+
+        # Why did we use collections.deque(..)?. helpers.parallel bulk(..) is a generator, meaning it is lazy and
+        # won't produce any results until you start consuming them. If you don't care about the results
+        # (which by default you don't have to since any error will cause an exception) you can use the consume
+        # function from itertools recipes (https://docs.python.org/2/library/itertools.html#recipes)
+        # Source
+        #   https://discuss.elastic.co/t/helpers-parallel-bulk-in-python-not-working/39498
+        collections.deque(
+            helpers.parallel_bulk(
+                elastic_search_client, actions, thread_count=configuration.data.BULK_PROCESSING_THREAD_COUNT,
+                index=request.service, doc_type=request.list_id),
+            maxlen=0)
+
         logger.info("Uploading ...Done! Refresh index")
         elastic_search_client.indices.refresh(index=request.service)
-        logger.info("Finished indexing {} documents".format(result[0]))
+        logger.info("Finished indexing documents")
         file_reader.close()
         return updated_path
 

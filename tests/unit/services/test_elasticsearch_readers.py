@@ -38,6 +38,11 @@ class TestElasticSearchFileReaders(unittest.TestCase):
         tools.assert_equals(mocks.Any(types.GeneratorType), csv_reader.get_rows())
         tools.assert_equals("account_no", next(csv_reader.get_rows()))
         tools.assert_false(csv_reader.is_empty())
+        try:
+            next(next(csv_reader.get_rows()))
+        except StopIteration as e:
+            tools.assert_is_not_none(e)
+        tools.assert_is_none(csv_reader.close())
 
     @mock.patch.object(openpyxl, 'load_workbook', autospec=True)
     def test_reads_excel_file_correctly(self, mock_load_workbook):
@@ -49,6 +54,7 @@ class TestElasticSearchFileReaders(unittest.TestCase):
         tools.assert_equals(mocks.Any(types.GeneratorType), xl_reader.get_rows())
         tools.assert_equals("account_no", next(xl_reader.get_rows()))
         tools.assert_true(xl_reader.is_empty())
+        tools.assert_is_none(xl_reader.close())
 
     @mock.patch.object(openpyxl, 'load_workbook', autospec=True)
     @mock.patch.object(readers, 'open', create=True)

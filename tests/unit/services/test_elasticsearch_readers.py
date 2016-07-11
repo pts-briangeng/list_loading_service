@@ -20,10 +20,7 @@ class TestElasticSearchFileReaders(unittest.TestCase):
 
     @tools.raises(Exception)
     def test_should_always_be_a_instance_of_csv_xls_reader(self):
-        abstract_file_reader = readers.FileReader('/content/list_upload/id.csv')
-        abstract_file_reader.get_rows()
-        abstract_file_reader.is_empty()
-        abstract_file_reader.close()
+        readers.FileReader('/content/list_upload/id.csv')
 
     @mock.patch.object(os, 'stat', autospec=True)
     @mock.patch.object(csv, 'reader', autospec=True)

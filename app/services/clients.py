@@ -2,7 +2,7 @@ import logging
 import traceback
 
 import elasticsearch
-from elasticsearch import exceptions, connection, connection_pool, serializer, transport, client
+from elasticsearch import exceptions, connection, connection_pool, serializer as json_serializer, transport, client
 
 import configuration
 
@@ -14,7 +14,7 @@ class Transport(elasticsearch.Transport):
     def __init__(self, hosts, connection_class=connection.Urllib3HttpConnection,
                  connection_pool_class=connection_pool.ConnectionPool, host_info_callback=transport.get_host_info,
                  sniff_on_start=False, sniffer_timeout=None, sniff_timeout=.1,
-                 sniff_on_connection_fail=False, serializer=serializer.JSONSerializer(), serializers=None,
+                 sniff_on_connection_fail=False, serializer=json_serializer.JSONSerializer(), serializers=None,
                  default_mimetype='application/json', max_retries=1, retry_on_status=(503, 504,),
                  retry_on_timeout=False, send_get_body_as='GET', **kwargs):
 

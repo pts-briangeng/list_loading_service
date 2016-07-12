@@ -1,9 +1,8 @@
 import abc
-import re
 import random
+import re
 import string
 import uuid
-
 
 DATA = {
     "id": str(uuid.uuid4()),

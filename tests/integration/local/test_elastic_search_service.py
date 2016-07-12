@@ -1,16 +1,17 @@
 import httplib
 import json
-import mock
 import os
 
+import mock
 from liblcp import context
 from nose.plugins import attrib
-from app.services import elastic
 
 from app import models
 from app import services
+from app.services import readers, decorators
 from tests import builders
 from tests.integration import base, testing_utilities
+from tests.mocks import generator
 
 
 @attrib.attr('local_integration')
@@ -26,8 +27,14 @@ class CreateListServiceTest(base.BaseIntegrationLiveStubServerTestCase):
         self.test_path = os.path.join('tests/samples/{}'.format(self.test_file))
         self.service = services.ElasticSearch()
 
-    @mock.patch.object(elastic.requests_wrapper, 'post', autospec=True)
-    def test_create_list(self, mock_requests_wrapper_post):
+    @mock.patch.object(readers, 'BulkAccountsFileReaders', autospec=True)
+    @mock.patch.object(decorators.requests_wrapper, 'post', autospec=True)
+    def test_create_list(self, mock_requests_wrapper_post, mock_file_readers):
+
+        mock_csv_reader = mock.MagicMock(autospec=readers.CsvReader)
+        mock_csv_reader.is_empty.return_value = False
+        mock_csv_reader.get_rows.return_value = generator("account_no")
+        mock_file_readers.get.return_value = mock_csv_reader
         list_id = 'edaa3541-7376-4eb3-8047-aaf78af900da'
         data = {
             'url': 'url',
@@ -69,8 +76,13 @@ class CreateListServiceTest(base.BaseIntegrationLiveStubServerTestCase):
             }))
         testing_utilities.delete_test_files('{}.csv'.format(list_id))
 
-    @mock.patch.object(elastic.requests_wrapper, 'post', autospec=True)
-    def test_create_list_fails_on_elastic_search_error(self, mock_requests_wrapper_post):
+    @mock.patch.object(readers, 'BulkAccountsFileReaders', autospec=True)
+    @mock.patch.object(decorators.requests_wrapper, 'post', autospec=True)
+    def test_create_list_fails_on_elastic_search_error(self, mock_requests_wrapper_post, mock_file_readers):
+        mock_csv_reader = mock.MagicMock(autospec=readers.CsvReader)
+        mock_csv_reader.is_empty.return_value = False
+        mock_csv_reader.get_rows.return_value = generator("account_no")
+
         list_id = 'edaa3541-7376-4eb3-8047-aaf78af900da'
         data = {
             'url': 'url',
@@ -109,7 +121,7 @@ class CreateListServiceTest(base.BaseIntegrationLiveStubServerTestCase):
             }))
         testing_utilities.delete_test_files('{}.csv'.format(list_id))
 
-    @mock.patch.object(elastic.requests_wrapper, 'post', autospec=True)
+    @mock.patch.object(decorators.requests_wrapper, 'post', autospec=True)
     def test_create_list_fails_on_non_existent_file(self, mock_requests_wrapper_post):
         data = {
             'url': 'url',

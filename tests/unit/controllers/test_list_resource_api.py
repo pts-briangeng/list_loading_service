@@ -1,19 +1,17 @@
-import unittest
-import flask
 import httplib
 import json
-import mock
 import multiprocessing
 import os
+import unittest
 
+import flask
+import mock
 from nose import tools
 from werkzeug.datastructures import Headers
 
 import configuration
-
 from app.controllers import lls_resource_api
 from tests import builders
-
 
 test_sandbox_headers = {
     'Content-Type': 'application/json',

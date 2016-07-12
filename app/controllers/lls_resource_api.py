@@ -1,6 +1,6 @@
 import httplib
-import multiprocessing
 import logging
+import multiprocessing
 import traceback
 
 from restframework import controllers

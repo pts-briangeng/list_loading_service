@@ -6,9 +6,8 @@ from liblcp import urls
 from nose import tools
 from nose.plugins import attrib
 
-from tests.integration import base, testing_utilities
 from tests import builders
-
+from tests.integration import base, testing_utilities
 
 PATH_PARAMS = {
     'base_url': 'http://0.0.0.0:5000',

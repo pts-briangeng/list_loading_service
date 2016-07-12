@@ -1,21 +1,26 @@
-import os
 import contextlib
-import uuid
+import httplib
+import json
+import os
 import shutil
+import socket
+import traceback
+import uuid
 
-from fabric.api import env, execute, task
-from fabric.operations import local
-from fabric.tasks import Task
+import fabrika.constants
 import fabrika.tasks.analysis
 import fabrika.tasks.build
 import fabrika.tasks.docker
 import fabrika.tasks.testing
-from liblcp import context
+from fabric.api import env, execute, task
+from fabric.operations import local
+from fabric.tasks import Task
 from lcpenv import tasks as lcpenv_tasks
+from liblcp import context
 
-from fabfile.app_configuration import configured_for
-from app.controllers import api_builder
 import configuration as service_container_configuration
+from app.controllers import api_builder
+from fabfile.app_configuration import configured_for
 
 DEFAULT_REGISTRY = 'prod_head'
 DEFAULT_TAG = "1"
@@ -27,6 +32,7 @@ COVERAGE_OPTIONS = [
     '--cover-html-dir={0}'.format(os.path.join('test_results', 'coverage')),
     '--cover-min-percentage=97'
 ]
+BASE_REPOSITORY_TAG = "{}:procs25".format(fabrika.constants.BASE_IMAGE_REPO)
 configuration_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), os.pardir, 'configuration')
 env.use_ssh_config = True
 
@@ -36,10 +42,9 @@ context.set_headers_getter(lambda name: {context.HEADERS_EXTERNAL_BASE_URL: 'htt
                                          context.HEADERS_PRINCIPAL: str(uuid.uuid4())}[name])
 
 # The gateway port will need to be updated later
-configure_routing = lcpenv_tasks.GatewayRoutingConfigurationTask(gateway_port=2000,
-                                                                 local_port=5000,
-                                                                 service_name='list_loading_service',
-                                                                 routing_endpoints=[])
+configure_routing = lcpenv_tasks.GatewayRoutingConfigurationTask(
+    gateway_port=2000, local_port=5000, service_name='list_loading_service', routing_endpoints=['/lists/'])
+
 start_lcp = lcpenv_tasks.StartLcpTask()
 stop_lcp = lcpenv_tasks.stop_lcp
 destroy_lcp = lcpenv_tasks.destroy_lcp
@@ -57,7 +62,7 @@ class ListLoadingServiceTestInContainerTask(fabrika.tasks.docker.TestInContainer
             port=5000,
             services_profile='testincontainer',
             test_config='testincontainer.ini',
-            logs_dir=None, volume_mappings=None):
+            logs_dir=None, volume_mappings=None, base_image_repo=BASE_REPOSITORY_TAG):
 
         if "-v" in nose_options or "--verbose" in nose_options:
             test_config += ";export LOG_LCP_REQUESTS=True"
@@ -67,7 +72,7 @@ class ListLoadingServiceTestInContainerTask(fabrika.tasks.docker.TestInContainer
         fabrika.tasks.testing.TestTask().test_requirements()
         execute(start_lcp)
         execute(configure_routing, host='vagrant@lcpenv')
-        with create_container_profile(os.path.join(configuration_path, configuration, 'servicecontainer.cfg')):
+        with container_profile(os.path.join(configuration_path, configuration, 'servicecontainer.cfg')):
             if not logs_dir:
                 logs_dir = os.path.join(os.path.dirname(os.path.realpath(__file__)),
                                         os.pardir,
@@ -78,15 +83,11 @@ class ListLoadingServiceTestInContainerTask(fabrika.tasks.docker.TestInContainer
                         os.path.join(configuration_path, '..', 'tests/samples/'):
                             service_container_configuration.data.VOLUME_MAPPINGS_FILE_UPLOAD_TARGET
                     }
-                super(ListLoadingServiceTestInContainerTask, self).run(repo_type,
-                                                                       tag,
-                                                                       configuration,
-                                                                       nose_options,
-                                                                       port,
-                                                                       services_profile,
-                                                                       test_config=test_config,
-                                                                       logs_dir=logs_dir,
-                                                                       volume_mappings=file_upload_volume_mapping)
+                super(ListLoadingServiceTestInContainerTask, self).run(
+                    repo_type, tag, configuration, nose_options, port, services_profile,
+                    base_image_repo=base_image_repo, test_config=test_config, logs_dir=logs_dir,
+                    volume_mappings=file_upload_volume_mapping
+                )
             finally:
                 execute(lcpenv_tasks.preserve_logs)
                 if not keeplcp:
@@ -95,35 +96,46 @@ class ListLoadingServiceTestInContainerTask(fabrika.tasks.docker.TestInContainer
 
 
 @contextlib.contextmanager
-def create_container_profile(configuration_profile_path):
-    print("Creating container profile ....")
+def container_profile(configuration_profile_path):
+    print("Creating configuration profile ....")
 
     def backed_up_configuration(profile_path):
         return profile_path + '.orig'
 
-    print("Backing up current configuration ...")
+    def _ip():
+        return [(s.connect(('8.8.8.8', 80)), s.getsockname()[0], s.close())
+                for s in [socket.socket(socket.AF_INET, socket.SOCK_DGRAM)]][0][1]
+
+    print("Backing up current configuration ...{}".format(
+        os.path.basename(backed_up_configuration(configuration_profile_path))))
     shutil.copyfile(configuration_profile_path, backed_up_configuration(configuration_profile_path))
 
-    service_container_configuration = {}
-    execfile(configuration_profile_path, service_container_configuration)
-    del service_container_configuration['__builtins__']
-    with open(configuration_profile_path, 'w') as config_fp:
-        for key, value in service_container_configuration.iteritems():
-            config_fp.write("{} = {}\n".format(key, value if type(value) in [dict, list] else '"{}"'.format(value)))
+    app_configuration = {}
+    execfile(configuration_profile_path, app_configuration)
+    del app_configuration['__builtins__']
 
+    for key, value in app_configuration.iteritems():
+        app_configuration[key] = (json.loads(json.dumps(value).replace('build_agent', _ip()))
+                                  if not isinstance(value, basestring) else value.replace('build_agent', _ip()))
+
+    with open(configuration_profile_path, 'w') as config_fp:
+        for key, value in app_configuration.iteritems():
+            config_fp.write("{} = {}\n".format(key, value)
+                            if not isinstance(value, basestring) else '{} = "{}"\n'.format(key, value))
     try:
         yield
     except:
+        print("Error {}".format(traceback.format_exc()))
         pass
     finally:
-        print("Reverting to original container profile ....")
+        print("Reverting to original configuration profile ....{}".format(os.path.basename(configuration_profile_path)))
         shutil.copyfile(backed_up_configuration(configuration_profile_path), configuration_profile_path)
         os.remove(backed_up_configuration(configuration_profile_path))
         print("Done!")
 
-test_in_container_task = ListLoadingServiceTestInContainerTask('list_loading_service',
-                                                               service_ready_endpoint='/_',
-                                                               service_ready_status=404)
+
+test_in_container_task = ListLoadingServiceTestInContainerTask(
+    'list_loading_service', service_ready_endpoint='/_', service_ready_status=httplib.NOT_FOUND)
 
 
 class ListLoadingServiceTestUnitsTask(fabrika.tasks.testing.TestUnitsTask):

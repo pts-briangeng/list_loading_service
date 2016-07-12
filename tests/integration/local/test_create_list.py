@@ -1,5 +1,6 @@
 import httplib
 import json
+import os
 
 import requests
 from liblcp import urls
@@ -7,7 +8,6 @@ from nose import tools
 from nose.plugins import attrib
 
 from tests.integration import base, testing_utilities
-
 
 PATH_PARAMS = {
     'base_url': 'http://0.0.0.0:5000',
@@ -29,7 +29,11 @@ class CreateListEndpointTest(base.BaseIntegrationLiveStubServerTestCase):
         self.data = {'filePath': '/test/file'}
 
     def test_create_list(self):
-        response = requests.put(base.ListPaths.create(**PATH_PARAMS), json.dumps(self.data), headers=self.headers)
+        test_file = testing_utilities.copy_test_file()
+        response = requests.put(
+            base.ListPaths.create(**PATH_PARAMS),
+            json.dumps({'filePath': os.path.join(os.getcwd(), "tests/samples/{}".format(test_file))}),
+            headers=self.headers)
         response_content = json.loads(response.content)
 
         tools.assert_equal(httplib.ACCEPTED, response.status_code)

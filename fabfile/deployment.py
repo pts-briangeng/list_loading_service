@@ -1,10 +1,9 @@
 import os
 
-import yaml
 import fabrika
+import yaml
+from fabric import api as fabric_api, operations
 from fabric.decorators import roles
-from fabric import api as fabric_api
-from fabric import operations
 from fabrika import deploy_tools
 from fabrika.tasks.docker import SetupLoadBalancerBehindGateway
 

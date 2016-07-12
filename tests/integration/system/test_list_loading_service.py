@@ -11,6 +11,7 @@ import requests
 from nose.plugins import attrib
 from nose import tools
 from liblcp import urls
+from retrying import retry
 
 from tests.integration import base, testing_utilities
 
@@ -43,12 +44,12 @@ class ListsServiceIntegrationTest(base.BaseFullIntegrationTestCase):
                                     headers=self.headers)
             response_content = json.loads(response.content)
             tools.assert_equal(httplib.ACCEPTED, response.status_code)
-            tools.assert_in(base.ListPaths.create(
-                relative_url=True, **path_params), urls.self_link(response_content))
-            time.sleep(2)
+            tools.assert_in(base.ListPaths.create(relative_url=True, **path_params), urls.self_link(response_content))
 
+    @retry(stop_max_attempt_number=10, wait_fixed=2000, retry_on_exception=lambda e: isinstance(e, AssertionError))
     def _test_list_functionality(self, request_data, path_params, accounts_count, assert_create=True):
 
+        @retry(stop_max_attempt_number=10, wait_fixed=2000, retry_on_exception=lambda e: isinstance(e, AssertionError))
         def _assert_search_for_created_list():
             response = requests.get(base.ListPaths.stats(**path_params), headers=self.headers)
             response_content = json.loads(response.content)
@@ -137,16 +138,14 @@ class ListsServiceIntegrationTest(base.BaseFullIntegrationTestCase):
     def test_load(self):
         list_requests = []
         self.renamed_files = []
-        for _ in xrange(30):
+        for _ in xrange(10):
             file_id = str(uuid.uuid4())
             path_params = copy.deepcopy(self.path_params)
             path_params['list_id'] = file_id
             self.renamed_files.append('{}.csv'.format(file_id))
-            request_data = {'filePath': testing_utilities.copy_test_file('normal.csv')}
-            list_requests.append((request_data, path_params, 9))
+            request_data = {'filePath': testing_utilities.copy_test_file('normal_large.csv')}
+            list_requests.append((request_data, path_params, 50000))
             self._assert_list_create(request_data, path_params)
-
-        time.sleep(30)
 
         for list_request in list_requests:
             self._test_list_functionality(*list_request, assert_create=False)

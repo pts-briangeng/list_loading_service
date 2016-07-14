@@ -8,7 +8,7 @@ tor-per-docker1.points.com:
       load_balancer_host: list-loading-service-per.lxc.points.com
       load_balancer_port: 2000
       node_port: 8080
-      nodes: [list-loading-service-per-1.lxc.points.com, list-loading-service-per-2.lxc.points.com]
+      nodes: [list-loading-service-per-1.lxc.points.com, list-loading-service-per-2.lxc.points.com,list-loading-service-per-4.lxc.points.com, list-loading-service-per-5.lxc.points.com]
       mode: roundrobin
     elastic_search_lb_config_node:
       load_balancer_host: list-loading-service-tor-per-es.lxc.points.com
@@ -23,5 +23,19 @@ tor-per-docker2.points.com:
   roles:
     docker_host:
       node: list-loading-service-per-2.lxc.points.com
+      enable_nscd: True
+      dependencies: ['http://tor-per-es1.points.com:9200', 'http://tor-per-es2.points.com:9200', 'http://tor-per-es3.points.com:9200']
+
+tor-per-docker4.points.com:
+  roles:
+    docker_host:
+      node: list-loading-service-per-4.lxc.points.com
+      enable_nscd: True
+      dependencies: ['http://tor-per-es1.points.com:9200', 'http://tor-per-es2.points.com:9200', 'http://tor-per-es3.points.com:9200']
+
+tor-per-docker5.points.com:
+  roles:
+    docker_host:
+      node: list-loading-service-per-5.lxc.points.com
       enable_nscd: True
       dependencies: ['http://tor-per-es1.points.com:9200', 'http://tor-per-es2.points.com:9200', 'http://tor-per-es3.points.com:9200']

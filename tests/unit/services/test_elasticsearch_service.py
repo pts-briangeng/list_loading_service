@@ -270,13 +270,16 @@ class TestElasticSearchService(unittest.TestCase):
         self.service.delete_list(request)
 
     @tools.raises(exceptions.TransportError)
+    @mock.patch.object(os, 'remove')
     @mock.patch.object(clients, 'ElasticSearchClient', autospec=True)
-    def test_delete_list_general_error(self, mock_elastic_search):
+    def test_delete_list_general_error(self, mock_elastic_search, mock_remove):
         mock_elastic_search.return_value = mock.MagicMock()
         mock_elastic_search.return_value.indices.delete_mapping.side_effect = INTERNAL_SERVER_ERROR_EXCEPTION
         request = models.Request(**self.data)
 
         self.service.delete_list(request)
+        file_path = os.path.join(configuration.data.VOLUME_MAPPINGS_FILE_UPLOAD_TARGET, request.filePath)
+        mock_remove.assert_called_once_with(file_path)
 
     @tools.raises(Exception)
     @mock.patch.object(clients, 'ElasticSearchClient', autospec=True)

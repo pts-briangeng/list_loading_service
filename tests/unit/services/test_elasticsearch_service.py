@@ -4,86 +4,31 @@ import json
 import os
 import types
 import unittest
-import uuid
 
 import mock
 from elasticsearch import helpers, exceptions
-from liblcp import context
 from nose import tools
 
+import base
 import configuration
-from app import models, services
+from app import models
 from app.services import readers, clients, decorators
 from tests import builders, mocks
 
-CORRELATION_ID = str(uuid.uuid4())
-PRINCIPAL = str(uuid.uuid4())
-context.set_headers_getter(lambda name: {context.HEADERS_EXTERNAL_BASE_URL: 'http://localhost',
-                                         context.HEADERS_CORRELATION_ID: CORRELATION_ID,
-                                         context.HEADERS_MODE: context.MODE_LIVE,
-                                         context.HEADERS_PRINCIPAL: PRINCIPAL}[name])
-
-NOT_FOUND_EXCEPTION = exceptions.TransportError(httplib.NOT_FOUND,
-                                                'IndexMissingException[[123] missing]',
-                                                {
-                                                    'status': httplib.BAD_REQUEST,
-                                                    'error': 'IndexMissingException[[123] missing]'
-                                                })
-
-INTERNAL_SERVER_ERROR_EXCEPTION = exceptions.TransportError(httplib.INTERNAL_SERVER_ERROR,
-                                                            'Internal Server error',
-                                                            {
-                                                                'status': httplib.INTERNAL_SERVER_ERROR,
-                                                                'error': 'Server error'
-                                                            })
+configuration.configure_from(os.path.join(configuration.CONFIGURATION_PATH, 'list_loading_service.cfg'))
 
 
-class TestElasticSearchService(unittest.TestCase):
+class TestElasticSearchService(base.BaseTestElasticSearchService):
 
     def setUp(self):
-        self.data = {
-            'url': 'url',
-            'filePath': 'file.csv',
-            'service': 'service',
-            'list_id': 'id',
-            'callbackUrl': 'callback',
-        }
-        self.member_data = copy.deepcopy(self.data)
-        self.member_data['member_id'] = 'member_id'
-        self.service = services.ElasticSearch()
-        configuration.configure_from(os.path.join(configuration.CONFIGURATION_PATH, 'list_loading_service.cfg'))
+        super(TestElasticSearchService, self).setUp()
 
-    @staticmethod
-    def _assert_callback(mock_requests_wrapper_post, success, file, error=None):
-        data = {
-            'success': success,
-            'file': file,
-            'links': {
-                'self': {
-                    'href': 'url'
-                }
-            }
-        }
-        if success:
-            data['links']['member'] = {'href': '/service/id/{member-id}'}
-
-        mock_requests_wrapper_post.assert_has_calls([
-            mock.call(url='callback',
-                      headers={
-                          'PTS-LCP-Base-URL': 'http://localhost',
-                          'PTS-LCP-Mode': context.MODE_LIVE,
-                          'PTS-LCP-CID': CORRELATION_ID,
-                          'PTS-LCP-Principal': PRINCIPAL,
-                          'Content-Type': 'application/json'
-                      },
-                      data=json.dumps(data)
-                      )
-        ])
-
+    @unittest.skipIf(
+        configuration.data.LIST_PARALLEL_BULK_PROCESSING_ENABLED is True, "Bulk parallel processing not enabled")
     @mock.patch.object(os, 'rename', autospec=True)
     @mock.patch.object(readers, 'BulkAccountsFileReaders', autospec=True)
     @mock.patch.object(decorators.requests_wrapper, 'post', autospec=True)
-    @mock.patch.object(helpers, 'parallel_bulk', autospec=True)
+    @mock.patch.object(helpers, 'bulk', autospec=True)
     @mock.patch.object(clients, 'ElasticSearchClient', autospec=True)
     @mock.patch.object(os.path, 'isfile', autospec=True)
     def test_create_list_with_csv(self, mock_is_file, mock_elastic_search, mock_bulk, mock_requests_wrapper_post,
@@ -105,16 +50,18 @@ class TestElasticSearchService(unittest.TestCase):
         tools.assert_equals(type(args[1]), types.GeneratorType)
         mock_bulk.assert_called_with(mock_elastic_search.return_value,
                                      mocks.Any(types.GeneratorType),
-                                     thread_count=4,
                                      index='service',
+                                     chunk_size=configuration.data.BULK_PROCESSING_CHUNK_SIZE,
                                      doc_type='id')
         mock_elastic_search.return_value.indices.refresh.assert_called_once_with(index='service')
         self._assert_callback(mock_requests_wrapper_post, True, 'id.csv')
 
+    @unittest.skipIf(
+        configuration.data.LIST_PARALLEL_BULK_PROCESSING_ENABLED is True, "Bulk parallel processing not enabled")
     @mock.patch.object(os, 'rename', autospec=True)
     @mock.patch.object(readers, 'BulkAccountsFileReaders', autospec=True)
     @mock.patch.object(decorators.requests_wrapper, 'post', autospec=True)
-    @mock.patch.object(helpers, 'parallel_bulk', autospec=True)
+    @mock.patch.object(helpers, 'bulk', autospec=True)
     @mock.patch.object(clients, 'ElasticSearchClient', autospec=True)
     @mock.patch.object(os.path, 'isfile', autospec=True)
     def test_elastic_search_operation_excel(self, mock_is_file, mock_elastic_search, mock_bulk,
@@ -136,8 +83,8 @@ class TestElasticSearchService(unittest.TestCase):
         tools.assert_equals(type(args[1]), types.GeneratorType)
         mock_bulk.assert_called_with(mock_elastic_search.return_value,
                                      mocks.Any(types.GeneratorType),
-                                     thread_count=4,
                                      index='service',
+                                     chunk_size=configuration.data.BULK_PROCESSING_CHUNK_SIZE,
                                      doc_type='id')
         mock_elastic_search.return_value.indices.refresh.assert_called_with(index='service')
         self._assert_callback(mock_requests_wrapper_post, True, 'id.xlsx')
@@ -165,7 +112,7 @@ class TestElasticSearchService(unittest.TestCase):
         mock_elastic_search.return_value = mock.MagicMock()
         mock_elastic_search.return_value.transport = mock.MagicMock()
         mock_elastic_search.return_value.transport.serializer = mock_serializer
-        mock_elastic_search.return_value.bulk.side_effect = INTERNAL_SERVER_ERROR_EXCEPTION
+        mock_elastic_search.return_value.bulk.side_effect = base.INTERNAL_SERVER_ERROR_EXCEPTION
         mock_requests_wrapper_post.return_value = mocks.MockHttpResponse(httplib.OK, {})
         request = models.Request(**self.data)
 
@@ -264,7 +211,7 @@ class TestElasticSearchService(unittest.TestCase):
     @mock.patch.object(clients, 'ElasticSearchClient', autospec=True)
     def test_delete_list_not_found(self, mock_elastic_search):
         mock_elastic_search.return_value = mock.MagicMock()
-        mock_elastic_search.return_value.indices.delete_mapping.side_effect = NOT_FOUND_EXCEPTION
+        mock_elastic_search.return_value.indices.delete_mapping.side_effect = base.NOT_FOUND_EXCEPTION
         request = models.Request(**self.data)
 
         self.service.delete_list(request)
@@ -274,7 +221,7 @@ class TestElasticSearchService(unittest.TestCase):
     @mock.patch.object(clients, 'ElasticSearchClient', autospec=True)
     def test_delete_list_general_error(self, mock_elastic_search, mock_remove):
         mock_elastic_search.return_value = mock.MagicMock()
-        mock_elastic_search.return_value.indices.delete_mapping.side_effect = INTERNAL_SERVER_ERROR_EXCEPTION
+        mock_elastic_search.return_value.indices.delete_mapping.side_effect = base.INTERNAL_SERVER_ERROR_EXCEPTION
         request = models.Request(**self.data)
 
         self.service.delete_list(request)

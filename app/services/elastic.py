@@ -56,17 +56,23 @@ class ElasticSearchService(object):
         logger.info("Bulk indexing file using index: {}, type: {}".format(request.service, request.list_id))
         elastic_search_client = clients.ElasticSearchClient()
 
-        # Why did we use collections.deque(..)?. helpers.parallel bulk(..) is a generator, meaning it is lazy and
-        # won't produce any results until you start consuming them. If you don't care about the results
-        # (which by default you don't have to since any error will cause an exception) you can use the consume
-        # function from itertools recipes (https://docs.python.org/2/library/itertools.html#recipes)
-        # Source
-        #   https://discuss.elastic.co/t/helpers-parallel-bulk-in-python-not-working/39498
-        collections.deque(
-            helpers.parallel_bulk(
-                elastic_search_client, actions, thread_count=configuration.data.BULK_PROCESSING_THREAD_COUNT,
-                index=request.service, doc_type=request.list_id),
-            maxlen=0)
+        if configuration.data.LIST_PARALLEL_BULK_PROCESSING_ENABLED:
+            # Why did we use collections.deque(..)?. helpers.parallel bulk(..) is a generator, meaning it is lazy and
+            # won't produce any results until you start consuming them. If you don't care about the results
+            # (which by default you don't have to since any error will cause an exception) you can use the consume
+            # function from itertools recipes (https://docs.python.org/2/library/itertools.html#recipes)
+            # Source
+            #   https://discuss.elastic.co/t/helpers-parallel-bulk-in-python-not-working/39498
+            collections.deque(
+                helpers.parallel_bulk(
+                    elastic_search_client, actions, thread_count=configuration.data.BULK_PROCESSING_THREAD_COUNT,
+                    chunk_size=configuration.data.BULK_PROCESSING_CHUNK_SIZE, index=request.service,
+                    doc_type=request.list_id),
+                maxlen=0)
+        else:
+            helpers.bulk(
+                elastic_search_client, actions, chunk_size=configuration.data.BULK_PROCESSING_CHUNK_SIZE,
+                index=request.service, doc_type=request.list_id)
 
         logger.info("Uploading ...Done! Refresh index")
         elastic_search_client.indices.refresh(index=request.service)

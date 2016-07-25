@@ -3,6 +3,7 @@
 import uuid
 import json
 import time
+import backoff
 import httplib
 import copy
 import urllib
@@ -11,7 +12,6 @@ import requests
 from nose.plugins import attrib
 from nose import tools
 from liblcp import urls
-from retrying import retry
 
 from tests.integration import base, testing_utilities
 
@@ -39,17 +39,17 @@ class ListsServiceIntegrationTest(base.BaseFullIntegrationTestCase):
             testing_utilities.delete_test_files(renamed_file)
 
     def _assert_list_create(self, request_data, path_params):
-            response = requests.put(base.ListPaths.create(**path_params),
-                                    json.dumps(request_data),
-                                    headers=self.headers)
-            response_content = json.loads(response.content)
-            tools.assert_equal(httplib.ACCEPTED, response.status_code)
-            tools.assert_in(base.ListPaths.create(relative_url=True, **path_params), urls.self_link(response_content))
+        response = requests.put(base.ListPaths.create(**path_params),
+                                json.dumps(request_data),
+                                headers=self.headers)
+        response_content = json.loads(response.content)
+        tools.assert_equal(httplib.ACCEPTED, response.status_code)
+        tools.assert_in(base.ListPaths.create(relative_url=True, **path_params), urls.self_link(response_content))
 
-    @retry(stop_max_attempt_number=10, wait_fixed=2000, retry_on_exception=lambda e: isinstance(e, AssertionError))
+    @backoff.on_exception(backoff.expo, AssertionError, max_tries=10)
     def _test_list_functionality(self, request_data, path_params, accounts_count, assert_create=True):
 
-        @retry(stop_max_attempt_number=10, wait_fixed=2000, retry_on_exception=lambda e: isinstance(e, AssertionError))
+        @backoff.on_exception(backoff.expo, AssertionError, max_tries=10)
         def _assert_search_for_created_list():
             response = requests.get(base.ListPaths.stats(**path_params), headers=self.headers)
             response_content = json.loads(response.content)

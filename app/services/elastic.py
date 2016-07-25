@@ -74,8 +74,7 @@ class ElasticSearchService(object):
         file_reader.close()
         return updated_path
 
-    @staticmethod
-    def delete_list(request):
+    def delete_list(self, request):
         file_path = os.path.join(configuration.data.VOLUME_MAPPINGS_FILE_UPLOAD_TARGET, request.filePath)
         try:
             logger.info("Elasticsearch is deleting index: {}, doc_type: {}".format(request.service, request.list_id))
@@ -88,18 +87,24 @@ class ElasticSearchService(object):
                 raise LookupError
             else:
                 logger.warning("Elastic search delete request exception: {}".format(e.info))
+                self.delete_file(file_path)
                 raise e
 
         if not result.get('acknowledged', False):
             logger.warning("Elastic search delete response not acknowledged successfully")
             raise Exception
 
-        try:
-            os.remove(file_path)
-        except OSError as e:
-            logger.warning("Error deleting file: {}".format(e))
+        self.delete_file(file_path)
 
         return result
+
+    @staticmethod
+    def delete_file(file_path):
+        try:
+            os.remove(file_path)
+            logger.info("File {} deleted".format(file_path))
+        except OSError as e:
+            logger.warning("Error deleting file: {}".format(e))
 
     @staticmethod
     def get_list_status(request):

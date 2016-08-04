@@ -115,4 +115,4 @@ class ListPaths(object):
     def get_list_member(cls, **kwargs):
         if kwargs.get('relative_url', False):
             return '/lists/{service}/{list_id}/{member_id}'.format(**kwargs)
-        return '{base_url}/lists/{service}/{list_id}/{member_id}'.format(**kwargs)
+        return '{base_url}/lists/{service}/{list_id}/members/{member_id}'.format(**kwargs)

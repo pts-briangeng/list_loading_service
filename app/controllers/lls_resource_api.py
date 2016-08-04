@@ -91,7 +91,7 @@ class ListStatusGetResourceController(base.BaseListResourceController, controlle
 
 class GetListMemberByIdResourceController(base.BaseListResourceController, controllers.GetResourceController):
     NOT_FOUND_DESCRIPTION = flask_errors.NotFound.description
-    __resource__ = '/lists/<service>/<list_id>/<member_id>'
+    __resource__ = '/lists/<service>/<list_id>/members/<member_id>'
 
     def __init__(self):
         super(GetListMemberByIdResourceController, self).__init__(

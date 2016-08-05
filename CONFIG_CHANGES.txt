@@ -1,29 +1,6 @@
-Teamcity Changes for build
- ------------------------------------
-
-Change the staging "Push Application Image to Registry" Step 2: "Diff Image Contents With Base Image" to the following
-Line 6
-BASE_FQIN=base-docker.points.com:80/apache_base:procs25
-
-replacing
-
-BASE_FQIN=base-docker.points.com:80/apache_base:latest
-
-
-Change reference in dev project
-https://prod-builds-1.points.com:8112/admin/settingsDiffView.html?id=buildType:Development_DevListLoadingServiceHead_PushApplicationImageToRegistry&versionBefore=12&versionAfter=13&actionId=274985
-
-13th July 2016
--------------------------------
-* Add the following item to the list_loading_service.cfg
-{noformat}
-LIST_PARALLEL_BULK_PROCESSING_ENABLED=False
-BULK_PROCESSING_CHUNK_SIZE=8*1024
-BULK_PROCESSING_THREAD_COUNT=4
-{noformat}
-
-
 04th Aug 2016
 -------------------------------
 * Add the folling item to the list_loading_service.cfg
-FILE_PATCH_LIST_MAX_SIZE = 50
+ACCOUNT_UPDATE_MAX_SIZE_ALLOWED = 50
+
+Please make sure there is a deployment after: 13th July 2016

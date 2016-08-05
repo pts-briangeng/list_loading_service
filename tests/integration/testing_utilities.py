@@ -32,4 +32,6 @@ def copy_test_file(file_name='normal.csv'):
 
 
 def delete_test_files(file_name):
-    os.remove(os.path.join(fabfile.configuration_path, '..', 'tests/samples/', file_name))
+    file_path = os.path.join(fabfile.configuration_path, '..', 'tests/samples/', file_name)
+    if os.path.isfile(file_path):
+        os.remove(file_path)

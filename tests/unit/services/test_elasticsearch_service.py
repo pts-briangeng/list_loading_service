@@ -133,7 +133,7 @@ class TestElasticSearchService(base.BaseTestElasticSearchService):
         tools.assert_equal(1, mock_elastic_search.return_value.bulk.call_count)
         tools.assert_equal(0, mock_elastic_search.return_value.indices.put_mapping.call_count)
         tools.assert_equal(0, mock_elastic_search.return_value.indices.refresh.call_count)
-        self._assert_callback(mock_requests_wrapper_post, False, 'id.csv', "TransportError(500, 'Server error')")
+        self._assert_callback(mock_requests_wrapper_post, False, "TransportError(500, 'Server error')")
 
     @mock.patch.object(decorators.logger, 'error', autospec=True)
     @mock.patch.object(decorators.requests_wrapper, 'post', autospec=True)
@@ -147,8 +147,7 @@ class TestElasticSearchService(base.BaseTestElasticSearchService):
 
         mock_logger.assert_has_calls(mock.call('An error occurred when creating a new list: File '
                                                '/content/list_upload/file.csv does not exist!'))
-        self._assert_callback(mock_requests_wrapper_post, False, 'id.csv',
-                              "File /content/list_upload/file.csv does not exist!")
+        self._assert_callback(mock_requests_wrapper_post, False, "File /content/list_upload/file.csv does not exist!")
 
     @mock.patch.object(decorators.logger, 'error', autospec=True)
     @mock.patch.object(readers, 'BulkAccountsFileReaders', autospec=True)
@@ -168,8 +167,7 @@ class TestElasticSearchService(base.BaseTestElasticSearchService):
 
         mock_logger.assert_has_calls(mock.call('An error occurred when creating a new list: File '
                                                '/content/list_upload/file.csv is empty!'))
-        self._assert_callback(mock_requests_wrapper_post, False, 'id.csv',
-                              "File /content/list_upload/file.csv is empty!")
+        self._assert_callback(mock_requests_wrapper_post, False)
 
     @mock.patch.object(decorators.logger, 'error', autospec=True)
     @mock.patch.object(readers, 'BulkAccountsFileReaders', autospec=True)
@@ -191,8 +189,7 @@ class TestElasticSearchService(base.BaseTestElasticSearchService):
 
         mock_logger.assert_has_calls(mock.call('An error occurred when creating a new list: File '
                                                '/content/list_upload/file.xlsx is empty!'))
-        self._assert_callback(mock_requests_wrapper_post, False, 'id.xlsx',
-                              "File /content/list_upload/file.xlsx is empty!")
+        self._assert_callback(mock_requests_wrapper_post, False, "File /content/list_upload/file.xlsx is empty!")
 
     @mock.patch.object(os, 'remove')
     @mock.patch.object(clients, 'ElasticSearchClient', autospec=True)

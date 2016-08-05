@@ -1,7 +1,6 @@
 import httplib
 import logging
 import os
-import shutil
 
 import collections
 from elasticsearch import helpers, exceptions
@@ -34,17 +33,13 @@ class _ElasticSearchDocument(object):
 
 class ElasticSearchService(object):
 
-    @staticmethod
     @decorators.elastic_search_callback
-    def create_list(request):
+    def create_list(self, request):
         file_path = os.path.join(configuration.data.VOLUME_MAPPINGS_FILE_UPLOAD_TARGET, request.filePath)
         if not os.path.isfile(file_path):
             raise IOError("File {} does not exist!".format(file_path))
 
-        updated_path = decorators.rename_file(file_path, request.list_id)
-        shutil.move(file_path, updated_path)
-
-        file_reader = readers.BulkAccountsFileReaders.get(updated_path)
+        file_reader = readers.BulkAccountsFileReaders.get(file_path)
         if file_reader.is_empty():
             raise EOFError("File {} is empty!".format(file_path))
 
@@ -79,7 +74,7 @@ class ElasticSearchService(object):
         elastic_search_client.indices.refresh(index=request.service)
         logger.info("Finished indexing documents")
         file_reader.close()
-        return updated_path
+        self.delete_file(file_path)
 
     def append_list(self, request):
         file_path = os.path.join(configuration.data.VOLUME_MAPPINGS_FILE_UPLOAD_TARGET, request.filePath)

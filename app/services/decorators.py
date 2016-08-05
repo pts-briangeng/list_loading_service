@@ -1,6 +1,8 @@
+import os
 import json
 import logging
 import traceback
+import configuration
 
 from liblcp import context
 from requestswrapper import requests_wrapper
@@ -8,12 +10,25 @@ from requestswrapper import requests_wrapper
 logger = logging.getLogger(__name__)
 
 
+def upload_cleanup(f):
+    def wrapper(request):
+        result = f(request)
+        try:
+            os.remove(os.path.join(configuration.data.VOLUME_MAPPINGS_FILE_UPLOAD_TARGET, request.filePath))
+            logger.info("File {} deleted".format(request.filePath))
+        except OSError as e:
+            logger.warning("Error deleting file: {}".format(e))
+        finally:
+            return result
+    return wrapper
+
+
 def elastic_search_callback(f):
 
-    def wrapper(self, request):
+    def wrapper(request):
         errors = False
         try:
-            f(self, request)
+            f(request)
         except Exception as e:
             errors = True
             logger.error('An error occurred when creating a new list: {}'.format(e.message))

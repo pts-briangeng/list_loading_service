@@ -33,8 +33,10 @@ class _ElasticSearchDocument(object):
 
 class ElasticSearchService(object):
 
+    @staticmethod
     @decorators.elastic_search_callback
-    def create_list(self, request):
+    @decorators.upload_cleanup
+    def create_list(request):
         file_path = os.path.join(configuration.data.VOLUME_MAPPINGS_FILE_UPLOAD_TARGET, request.filePath)
         if not os.path.isfile(file_path):
             raise IOError("File {} does not exist!".format(file_path))
@@ -74,9 +76,10 @@ class ElasticSearchService(object):
         elastic_search_client.indices.refresh(index=request.service)
         logger.info("Finished indexing documents")
         file_reader.close()
-        self.delete_file(file_path)
 
-    def append_list(self, request):
+    @staticmethod
+    @decorators.upload_cleanup
+    def append_list(request):
         file_path = os.path.join(configuration.data.VOLUME_MAPPINGS_FILE_UPLOAD_TARGET, request.filePath)
         if not os.path.isfile(file_path):
             raise IOError("File {} does not exist!".format(file_path))
@@ -102,15 +105,14 @@ class ElasticSearchService(object):
         succeeded = list(set(members).difference(set(failed)))
 
         file_reader.close()
-        self.delete_file(file_path)
         logger.info("Uploading ...Done! Refresh index")
         elastic_search_client.indices.refresh(index=request.service)
         logger.info("Finished indexing documents")
 
         return {'succeeded': succeeded, 'failed': failed}
 
-    def delete_list(self, request):
-        file_path = os.path.join(configuration.data.VOLUME_MAPPINGS_FILE_UPLOAD_TARGET, request.filePath)
+    @staticmethod
+    def delete_list(request):
         try:
             logger.info("Elasticsearch is deleting index: {}, doc_type: {}".format(request.service, request.list_id))
             elastic_search_client = clients.ElasticSearchClient()
@@ -122,24 +124,13 @@ class ElasticSearchService(object):
                 raise LookupError
             else:
                 logger.warning("Elastic search delete request exception: {}".format(e.info))
-                self.delete_file(file_path)
                 raise e
 
         if not result.get('acknowledged', False):
             logger.warning("Elastic search delete response not acknowledged successfully")
             raise Exception
 
-        self.delete_file(file_path)
-
         return result
-
-    @staticmethod
-    def delete_file(file_path):
-        try:
-            os.remove(file_path)
-            logger.info("File {} deleted".format(file_path))
-        except OSError as e:
-            logger.warning("Error deleting file: {}".format(e))
 
     @staticmethod
     def get_list_status(request):

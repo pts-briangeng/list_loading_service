@@ -81,10 +81,9 @@ class TestDeleteListResourceController(unittest.TestCase):
         with app.test_request_context('/index/app/type/6d04bd2d-da75-420f-a52a-d2ffa0c48c42',
                                       method='DELETE',
                                       headers=Headers(test_sandbox_headers),
-                                      data=json.dumps({'filePath': 'file'})):
+                                      data=json.dumps({})):
             response = self.controller.delete()
             tools.assert_equal(httplib.ACCEPTED, response[1])
-            tools.assert_equal(mock_service.return_value.delete_list.call_count, 1)
             mock_url_for.assert_called_once_with(
                 lls_resource_api.GetListByIdResourceController.__name__.lower(), _external=True)
 
@@ -96,7 +95,7 @@ class TestDeleteListResourceController(unittest.TestCase):
         with app.test_request_context('/index/app/type/6d04bd2d-da75-420f-a52a-d2ffa0c48c42',
                                       method='DELETE',
                                       headers=Headers(test_sandbox_headers),
-                                      data=json.dumps({'filePath': 'file'})):
+                                      data=json.dumps({})):
             response = self.controller.delete()
             tools.assert_equal(httplib.NOT_FOUND, response[1])
             tools.assert_equal(mock_service.return_value.delete_list.call_count, 1)
@@ -109,7 +108,7 @@ class TestDeleteListResourceController(unittest.TestCase):
         with app.test_request_context('/index/app/type/6d04bd2d-da75-420f-a52a-d2ffa0c48c42',
                                       method='DELETE',
                                       headers=Headers(test_sandbox_headers),
-                                      data=json.dumps({'filePath': 'file'})):
+                                      data=json.dumps({})):
             response = self.controller.delete()
             tools.assert_equal(httplib.INTERNAL_SERVER_ERROR, response[1])
             tools.assert_equal(mock_service.return_value.delete_list.call_count, 1)

@@ -201,8 +201,6 @@ class TestElasticSearchService(base.BaseTestElasticSearchService):
 
         mock_elastic_search.return_value.indices.delete_mapping.assert_called_once_with(
             doc_type='id', index='service')
-        file_path = os.path.join(configuration.data.VOLUME_MAPPINGS_FILE_UPLOAD_TARGET, request.filePath)
-        mock_remove.assert_called_once_with(file_path)
 
     @tools.raises(LookupError)
     @mock.patch.object(clients, 'ElasticSearchClient', autospec=True)
@@ -246,8 +244,6 @@ class TestElasticSearchService(base.BaseTestElasticSearchService):
 
         mock_elastic_search.return_value.indices.delete_mapping.assert_called_once_with(
             doc_type='id', index='service')
-        file_path = os.path.join(configuration.data.VOLUME_MAPPINGS_FILE_UPLOAD_TARGET, request.filePath)
-        mock_remove.assert_called_once_with(file_path)
 
     @mock.patch.object(clients, 'ElasticSearchClient', autospec=True)
     def test_list_status(self, mock_elastic_search):

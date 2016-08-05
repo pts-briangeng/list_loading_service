@@ -314,7 +314,7 @@ class TestElasticSearchService(base.BaseTestElasticSearchService):
     @mock.patch.object(readers, 'BulkAccountsFileReaders', autospec=True)
     @mock.patch.object(os.path, 'isfile', autospec=True)
     @mock.patch.object(clients, 'ElasticSearchClient', autospec=True)
-    @tools.raises(app_exceptions.FileTooBigError)
+    @tools.raises(app_exceptions.TooManyAccountsSpecifiedError)
     def test_append_list_file_too_big(self, mock_elastic_search, mock_is_file, mock_bulk_reader_get):
         mock_elastic_search.return_value = mock.MagicMock()
         request = models.Request(**self.data)

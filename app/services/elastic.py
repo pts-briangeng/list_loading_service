@@ -92,7 +92,7 @@ class ElasticSearchService(object):
             actions.append(_ElasticSearchDocument(index=request.service, type=request.list_id, account_number=line).doc)
             members.append(line)
             if len(members) > configuration.data.FILE_PATCH_LIST_MAX_SIZE:
-                raise app_exceptions.FileTooBigError()
+                raise app_exceptions.TooManyAccountsSpecifiedError()
 
         logger.info("Bulk indexing file using index: {}, type: {}".format(request.service, request.list_id))
         elastic_search_client = clients.ElasticSearchClient()

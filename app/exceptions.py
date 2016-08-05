@@ -3,15 +3,15 @@ import httplib
 from restframework import errors
 
 
-class FileTooBigError(Exception):
+class TooManyAccountsSpecifiedError(Exception):
 
-    """ There are too many lists currently being processed. """
+    """ There are too many accounts specified. """
     pass
 
 
 EXCEPTION_TRANSLATIONS = {
-    FileTooBigError: (httplib.BAD_REQUEST,
-                      errors.BAD_REQUEST, 'There are too many lists currently being processed.'),
+    TooManyAccountsSpecifiedError: (httplib.BAD_REQUEST,
+                                    errors.BAD_REQUEST, 'There are too many accounts specified.'),
     Exception: (httplib.INTERNAL_SERVER_ERROR,
                 errors.INTERNAL_SERVER_ERROR, 'Internal server error.'),
     LookupError: (httplib.NOT_FOUND,

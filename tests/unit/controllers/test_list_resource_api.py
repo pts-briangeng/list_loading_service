@@ -209,7 +209,7 @@ class TestAppendListPutResourceController(unittest.TestCase):
     @mock.patch.object(flask, 'url_for', autospec=True)
     def test_append_too_big_file(self, mock_url_for, mock_service):
         app = flask.Flask(__name__)
-        mock_service.return_value.append_list.side_effect = exceptions.FileTooBigError
+        mock_service.return_value.append_list.side_effect = exceptions.TooManyAccountsSpecifiedError
         with app.test_request_context('/index/app/type/6d04bd2d-da75-420f-a52a-d2ffa0c48c42/members',
                                       method='PUT',
                                       headers=Headers(test_sandbox_headers),
@@ -217,6 +217,6 @@ class TestAppendListPutResourceController(unittest.TestCase):
             response = self.controller.put()
             tools.assert_equal(httplib.BAD_REQUEST, response[1])
             expected_response = {'errors': [{'code': 'BAD_REQUEST',
-                                             'description': 'There are too many lists currently being processed.',
+                                             'description': 'There are too many accounts specified.',
                                              'field': None}]}
             tools.assert_equal(expected_response, response[0])

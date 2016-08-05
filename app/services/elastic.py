@@ -98,13 +98,16 @@ class ElasticSearchService(object):
         elastic_search_client = clients.ElasticSearchClient()
         result = helpers.bulk(elastic_search_client, actions, chunk_size=configuration.data.BULK_PROCESSING_CHUNK_SIZE,
                               index=request.service, doc_type=request.list_id)
-        success = [member for member in members if member not in result[1]]
+        failed = result[1]
+        succeeded = list(set(members).difference(set(failed)))
+
         file_reader.close()
         self.delete_file(file_path)
         logger.info("Uploading ...Done! Refresh index")
         elastic_search_client.indices.refresh(index=request.service)
         logger.info("Finished indexing documents")
-        return {'succeeded': success, 'failed': result[1]}
+
+        return {'succeeded': succeeded, 'failed': failed}
 
     def delete_list(self, request):
         file_path = os.path.join(configuration.data.VOLUME_MAPPINGS_FILE_UPLOAD_TARGET, request.filePath)

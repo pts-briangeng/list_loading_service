@@ -11,7 +11,7 @@ from nose import tools
 
 import base
 import configuration
-from app import models
+from app import models, exceptions as app_exceptions
 from app.services import readers, clients, decorators
 from tests import builders, mocks
 
@@ -290,3 +290,42 @@ class TestElasticSearchService(base.BaseTestElasticSearchService):
 
         tools.assert_equal({}, response)
         mock_elastic_search.return_value.exists.assert_called_once_with(doc_type='id', index='service', id='member_id')
+
+    @mock.patch.object(readers, 'BulkAccountsFileReaders', autospec=True)
+    @mock.patch.object(os, 'remove')
+    @mock.patch.object(helpers, 'bulk', autospec=True)
+    @mock.patch.object(os.path, 'isfile', autospec=True)
+    @mock.patch.object(clients, 'ElasticSearchClient', autospec=True)
+    def test_append_list(self, mock_elastic_search, mock_is_file, mock_bulk, mock_remove, mock_bulk_reader_get):
+        mock_elastic_search.return_value = mock.MagicMock()
+        request = models.Request(**self.data)
+
+        mock_csv_reader = mock.MagicMock(autospec=readers.CsvReader)
+        mock_csv_reader.is_empty.return_value = False
+        mock_csv_reader.get_rows.return_value = ["account_no_{}".format(account_number_index)
+                                                 for account_number_index in xrange(50)]
+        mock_bulk_reader_get.get.return_value = mock_csv_reader
+        failed = ["account_no_{}".format(account_number_index) for account_number_index in xrange(49)]
+        mock_bulk.return_value = (1, failed)
+
+        result = self.service.append_list(request)
+        file_path = os.path.join(configuration.data.VOLUME_MAPPINGS_FILE_UPLOAD_TARGET, request.filePath)
+        mock_remove.assert_called_once_with(file_path)
+        tools.assert_list_equal(failed, result['failed'])
+        tools.assert_list_equal(['account_no_49'], result['succeeded'])
+
+    @mock.patch.object(readers, 'BulkAccountsFileReaders', autospec=True)
+    @mock.patch.object(os.path, 'isfile', autospec=True)
+    @mock.patch.object(clients, 'ElasticSearchClient', autospec=True)
+    @tools.raises(app_exceptions.FileTooBigError)
+    def test_append_list_file_too_big(self, mock_elastic_search, mock_is_file, mock_bulk_reader_get):
+        mock_elastic_search.return_value = mock.MagicMock()
+        request = models.Request(**self.data)
+
+        mock_csv_reader = mock.MagicMock(autospec=readers.CsvReader)
+        mock_csv_reader.is_empty.return_value = False
+        mock_csv_reader.get_rows.return_value = [
+            ["account_no_{}".format(account_number_index)] for account_number_index in xrange(51)]
+        mock_bulk_reader_get.get.return_value = mock_csv_reader
+
+        self.service.append_list(request)

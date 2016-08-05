@@ -8,6 +8,7 @@ from elasticsearch import helpers, exceptions
 
 import configuration
 from app.services import clients, readers, decorators
+from app import exceptions as app_exceptions
 
 logger = logging.getLogger(__name__)
 
@@ -79,6 +80,36 @@ class ElasticSearchService(object):
         logger.info("Finished indexing documents")
         file_reader.close()
         return updated_path
+
+    def append_list(self, request):
+        file_path = os.path.join(configuration.data.VOLUME_MAPPINGS_FILE_UPLOAD_TARGET, request.filePath)
+        if not os.path.isfile(file_path):
+            raise IOError("File {} does not exist!".format(file_path))
+
+        file_reader = readers.BulkAccountsFileReaders.get(file_path)
+        if file_reader.is_empty():
+            raise EOFError("File {} is empty!".format(file_path))
+
+        actions = []
+        members = []
+
+        for line in file_reader.get_rows():
+            actions.append(_ElasticSearchDocument(index=request.service, type=request.list_id, account_number=line).doc)
+            members.append(line)
+            if len(members) > configuration.data.FILE_PATCH_LIST_MAX_SIZE:
+                raise app_exceptions.FileTooBigError()
+
+        logger.info("Bulk indexing file using index: {}, type: {}".format(request.service, request.list_id))
+        elastic_search_client = clients.ElasticSearchClient()
+        result = helpers.bulk(elastic_search_client, actions, chunk_size=configuration.data.BULK_PROCESSING_CHUNK_SIZE,
+                              index=request.service, doc_type=request.list_id)
+        success = [member for member in members if member not in result[1]]
+        file_reader.close()
+        self.delete_file(file_path)
+        logger.info("Uploading ...Done! Refresh index")
+        elastic_search_client.indices.refresh(index=request.service)
+        logger.info("Finished indexing documents")
+        return {'succeeded': success, 'failed': result[1]}
 
     def delete_list(self, request):
         file_path = os.path.join(configuration.data.VOLUME_MAPPINGS_FILE_UPLOAD_TARGET, request.filePath)

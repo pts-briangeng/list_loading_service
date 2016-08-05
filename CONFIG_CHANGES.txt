@@ -21,3 +21,9 @@ LIST_PARALLEL_BULK_PROCESSING_ENABLED=False
 BULK_PROCESSING_CHUNK_SIZE=8*1024
 BULK_PROCESSING_THREAD_COUNT=4
 {noformat}
+
+
+04th Aug 2016
+-------------------------------
+* Add the folling item to the list_loading_service.cfg
+FILE_PATCH_LIST_MAX_SIZE = 50

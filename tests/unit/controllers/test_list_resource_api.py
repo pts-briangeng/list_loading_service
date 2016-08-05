@@ -10,6 +10,7 @@ from nose import tools
 from werkzeug.datastructures import Headers
 
 import configuration
+from app import exceptions
 from app.controllers import lls_resource_api
 from tests import builders
 
@@ -176,3 +177,46 @@ class TestListMemberGetResourceController(unittest.TestCase):
             response = self.controller.get()
             tools.assert_equal(httplib.NOT_FOUND, response[1])
             tools.assert_equal(mock_service.return_value.get_list_member.call_count, 1)
+
+
+class TestAppendListPutResourceController(unittest.TestCase):
+
+    def setUp(self):
+        self.controller = lls_resource_api.AppendListPutResourceController()
+
+    def test_append_empty(self):
+        app = flask.Flask(__name__)
+        with app.test_request_context('/index/app/type/6d04bd2d-da75-420f-a52a-d2ffa0c48c42/members',
+                                      method='PUT',
+                                      headers=Headers(test_sandbox_headers),
+                                      data={}):
+            response = self.controller.put()
+            tools.assert_equal(httplib.BAD_REQUEST, response[1])
+
+    @mock.patch('app.controllers.lls_resource_api.services.ElasticSearch', autospec=True)
+    @mock.patch.object(flask, 'url_for', autospec=True)
+    def test_append(self, mock_url_for, mock_service):
+        app = flask.Flask(__name__)
+        mock_service.return_value.append_list.return_value = {}
+        with app.test_request_context('/index/app/type/6d04bd2d-da75-420f-a52a-d2ffa0c48c42/members',
+                                      method='PUT',
+                                      headers=Headers(test_sandbox_headers),
+                                      data=json.dumps({'filePath': '/test/file'})):
+            response = self.controller.put()
+            tools.assert_equal(httplib.OK, response[1])
+
+    @mock.patch('app.controllers.lls_resource_api.services.ElasticSearch', autospec=True)
+    @mock.patch.object(flask, 'url_for', autospec=True)
+    def test_append_too_big_file(self, mock_url_for, mock_service):
+        app = flask.Flask(__name__)
+        mock_service.return_value.append_list.side_effect = exceptions.FileTooBigError
+        with app.test_request_context('/index/app/type/6d04bd2d-da75-420f-a52a-d2ffa0c48c42/members',
+                                      method='PUT',
+                                      headers=Headers(test_sandbox_headers),
+                                      data=json.dumps({'filePath': '/test/file'})):
+            response = self.controller.put()
+            tools.assert_equal(httplib.BAD_REQUEST, response[1])
+            expected_response = {'errors': [{'code': 'BAD_REQUEST',
+                                             'description': 'There are too many lists currently being processed.',
+                                             'field': None}]}
+            tools.assert_equal(expected_response, response[0])

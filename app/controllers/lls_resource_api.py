@@ -8,7 +8,7 @@ from werkzeug import exceptions as flask_errors
 
 from app import exceptions, models, services
 from app.controllers import base
-from app.controllers.schemas import put_list, delete_list
+from app.controllers.schemas import put_list, delete_list, append_list
 
 logger = logging.getLogger(__name__)
 
@@ -32,6 +32,7 @@ class CreateListPutResourceController(base.BaseListResourceController, controlle
 
 
 class GetListByIdResourceController(base.BaseListResourceController, controllers.GetResourceController):
+
     NOT_FOUND_DESCRIPTION = flask_errors.NotFound.description
     __resource__ = '/lists/<service>/<list_id>/'
 
@@ -90,6 +91,7 @@ class ListStatusGetResourceController(base.BaseListResourceController, controlle
 
 
 class GetListMemberByIdResourceController(base.BaseListResourceController, controllers.GetResourceController):
+
     NOT_FOUND_DESCRIPTION = flask_errors.NotFound.description
     __resource__ = '/lists/<service>/<list_id>/members/<member_id>'
 
@@ -113,3 +115,21 @@ class GetListMemberByIdResourceController(base.BaseListResourceController, contr
         response_dict = self.create_restful_response_payload(response_model, **kwargs)
         response_headers = self.create_response_headers(response_dict)
         return response_dict, httplib.OK, response_headers
+
+
+class AppendListPutResourceController(base.BaseListResourceController, controllers.PutResourceController):
+
+    __resource__ = '/lists/<service>/<list_id>/members'
+
+    def __init__(self):
+        super(AppendListPutResourceController, self).__init__(schema=append_list.REQUEST,
+                                                              exception_translations=exceptions.EXCEPTION_TRANSLATIONS)
+        self.http_successful_response_status = httplib.OK
+
+    @property
+    def resource_by_id_resource_controller(self):
+        return AppendListPutResourceController
+
+    def process_request_model(self, request_model, **kwargs):
+        request = models.Request(url=self.request_url, **dict(request_model, **kwargs))
+        return services.ElasticSearch().append_list(request)

@@ -33,7 +33,6 @@ class CreateListServiceTest(base.BaseIntegrationLiveStubServerTestCase):
     @mock.patch.object(readers, 'BulkAccountsFileReaders', autospec=True)
     @mock.patch.object(decorators.requests_wrapper, 'post', autospec=True)
     def test_create_list(self, mock_requests_wrapper_post, mock_file_readers):
-
         mock_csv_reader = mock.MagicMock(autospec=readers.CsvReader)
         mock_csv_reader.is_empty.return_value = False
         mock_csv_reader.get_rows.return_value = generator("account_no")
@@ -98,7 +97,7 @@ class CreateListServiceTest(base.BaseIntegrationLiveStubServerTestCase):
         # mock put mapping
         self.queue_stub_response({"status_code": httplib.CREATED})
         # mock get index
-        self.queue_stub_response({"status_code": httplib.OK})
+        self.queue_stub_response({"status_code": httplib.INTERNAL_SERVER_ERROR})
 
         self.service.create_list(request)
 

@@ -38,12 +38,7 @@ class ElasticSearchService(object):
     @decorators.upload_cleanup
     def create_list(request):
         file_path = os.path.join(configuration.data.VOLUME_MAPPINGS_FILE_UPLOAD_TARGET, request.filePath)
-        if not os.path.isfile(file_path):
-            raise IOError("File {} does not exist!".format(file_path))
-
         file_reader = readers.BulkAccountsFileReaders.get(file_path)
-        if file_reader.is_empty():
-            raise EOFError("File {} is empty!".format(file_path))
 
         actions = (
             _ElasticSearchDocument(
@@ -81,12 +76,9 @@ class ElasticSearchService(object):
     @decorators.upload_cleanup
     def append_list(request):
         file_path = os.path.join(configuration.data.VOLUME_MAPPINGS_FILE_UPLOAD_TARGET, request.filePath)
-        if not os.path.isfile(file_path):
-            raise IOError("File {} does not exist!".format(file_path))
-
         file_reader = readers.BulkAccountsFileReaders.get(file_path)
-        if file_reader.is_empty():
-            raise EOFError("File {} is empty!".format(file_path))
+        if file_reader.is_exceed_max_line_limit(configuration.data.ACCOUNTS_UPDATE_MAX_SIZE_ALLOWED):
+            raise app_exceptions.TooManyAccountsSpecifiedError()
 
         actions = []
         members = []
@@ -94,8 +86,6 @@ class ElasticSearchService(object):
         for line in file_reader.get_rows():
             actions.append(_ElasticSearchDocument(index=request.service, type=request.list_id, account_number=line).doc)
             members.append(line)
-            if len(members) > configuration.data.ACCOUNTS_UPDATE_MAX_SIZE_ALLOWED:
-                raise app_exceptions.TooManyAccountsSpecifiedError()
 
         logger.info("Bulk indexing file using index: {}, type: {}".format(request.service, request.list_id))
         elastic_search_client = clients.ElasticSearchClient()

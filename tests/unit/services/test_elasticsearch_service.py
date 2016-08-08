@@ -1,9 +1,11 @@
+import __builtin__
 import copy
 import httplib
 import json
 import os
 import types
 import unittest
+import subprocess
 
 import mock
 from elasticsearch import helpers, exceptions
@@ -25,14 +27,13 @@ class TestElasticSearchService(base.BaseTestElasticSearchService):
 
     @unittest.skipIf(
         configuration.data.LIST_PARALLEL_BULK_PROCESSING_ENABLED is True, "Bulk parallel processing not enabled")
-    @mock.patch.object(os, 'rename', autospec=True)
     @mock.patch.object(readers, 'BulkAccountsFileReaders', autospec=True)
     @mock.patch.object(decorators.requests_wrapper, 'post', autospec=True)
     @mock.patch.object(helpers, 'bulk', autospec=True)
     @mock.patch.object(clients, 'ElasticSearchClient', autospec=True)
     @mock.patch.object(os.path, 'isfile', autospec=True)
     def test_create_list_with_csv(self, mock_is_file, mock_elastic_search, mock_bulk, mock_requests_wrapper_post,
-                                  mock_bulk_reader_get, mock_os_rename):
+                                  mock_bulk_reader_get):
 
         mock_elastic_search.return_value = mock.MagicMock()
         mock_elastic_search.return_value.indices.exists.return_value = False
@@ -58,14 +59,13 @@ class TestElasticSearchService(base.BaseTestElasticSearchService):
 
     @unittest.skipIf(
         configuration.data.LIST_PARALLEL_BULK_PROCESSING_ENABLED is True, "Bulk parallel processing not enabled")
-    @mock.patch.object(os, 'rename', autospec=True)
     @mock.patch.object(readers, 'BulkAccountsFileReaders', autospec=True)
     @mock.patch.object(decorators.requests_wrapper, 'post', autospec=True)
     @mock.patch.object(helpers, 'bulk', autospec=True)
     @mock.patch.object(clients, 'ElasticSearchClient', autospec=True)
     @mock.patch.object(os.path, 'isfile', autospec=True)
     def test_elastic_search_operation_excel(self, mock_is_file, mock_elastic_search, mock_bulk,
-                                            mock_requests_wrapper_post, mock_bulk_reader_get, mock_os_rename):
+                                            mock_requests_wrapper_post, mock_bulk_reader_get):
         mock_elastic_search.return_value = mock.MagicMock()
         mock_requests_wrapper_post.return_value = mocks.MockHttpResponse(httplib.OK, {})
         data = copy.deepcopy(self.data)
@@ -99,13 +99,12 @@ class TestElasticSearchService(base.BaseTestElasticSearchService):
 
         mock_requests_wrapper_post.assert_has_calls([])
 
-    @mock.patch.object(os, 'rename', autospec=True)
     @mock.patch.object(readers, 'BulkAccountsFileReaders', autospec=True)
     @mock.patch.object(decorators.requests_wrapper, 'post', autospec=True)
     @mock.patch.object(clients, 'ElasticSearchClient', autospec=True)
     @mock.patch.object(os.path, 'isfile', autospec=True)
     def test_create_throws_error_on_bulk_call(self, mock_is_file, mock_elastic_search, mock_requests_wrapper_post,
-                                              mock_bulk_reader_get, mock_os_rename):
+                                              mock_bulk_reader_get):
 
         mock_serializer = mock.MagicMock()
         mock_serializer.dumps = lambda *args: json.dumps(args[0])
@@ -149,19 +148,15 @@ class TestElasticSearchService(base.BaseTestElasticSearchService):
                                                '/content/list_upload/file.csv does not exist!'))
         self._assert_callback(mock_requests_wrapper_post, False, "File /content/list_upload/file.csv does not exist!")
 
+    @mock.patch.object(__builtin__, 'open', autospec=True)
+    @mock.patch.object(subprocess, 'check_output', autospec=True)
     @mock.patch.object(decorators.logger, 'error', autospec=True)
-    @mock.patch.object(readers, 'BulkAccountsFileReaders', autospec=True)
-    @mock.patch.object(os, 'rename', autospec=True)
     @mock.patch.object(decorators.requests_wrapper, 'post', autospec=True)
     @mock.patch.object(os.path, 'isfile', autospec=True)
-    def test_create_list_logs_and_returns_error_on_empty_csv_file(
-            self, mock_is_file, mock_requests_wrapper_post, mock_os_rename, mock_bulk_reader_get, mock_logger):
+    def test_create_list_logs_and_returns_error_on_empty_csv_file(self, mock_is_file, mock_requests_wrapper_post,
+                                                                  mock_logger, mock_subprocess_check_output, mock_open):
         request = models.Request(**self.data)
-
-        mock_csv_reader = mock.MagicMock(autospec=readers.CsvReader)
-        mock_csv_reader.is_empty.return_value = True
-        mock_csv_reader.get_rows.return_value = ["account_no"]
-        mock_bulk_reader_get.get.return_value = mock_csv_reader
+        mock_subprocess_check_output.return_value = "0 filename"
 
         self.service.create_list(request)
 
@@ -170,20 +165,17 @@ class TestElasticSearchService(base.BaseTestElasticSearchService):
         self._assert_callback(mock_requests_wrapper_post, False)
 
     @mock.patch.object(decorators.logger, 'error', autospec=True)
-    @mock.patch.object(readers, 'BulkAccountsFileReaders', autospec=True)
-    @mock.patch.object(os, 'rename', autospec=True)
+    @mock.patch.object(readers, 'ExcelReader', autospec=True)
     @mock.patch.object(decorators.requests_wrapper, 'post', autospec=True)
     @mock.patch.object(os.path, 'isfile', autospec=True)
-    def test_create_list_logs_and_returns_error_on_empty_xlsx_file(
-            self, mock_is_file, mock_requests_wrapper_post, mock_os_rename, mock_bulk_reader_get, mock_logger):
+    def test_create_list_logs_and_returns_error_on_empty_xlsx_file(self, mock_is_file, mock_requests_wrapper_post,
+                                                                   mock_excel_reader, mock_logger):
         data = copy.deepcopy(self.data)
         data['filePath'] = 'file.xlsx'
         request = models.Request(**data)
+        file_path = os.path.join(configuration.data.VOLUME_MAPPINGS_FILE_UPLOAD_TARGET, data['filePath'])
 
-        mock_csv_reader = mock.MagicMock(autospec=readers.ExcelReader)
-        mock_csv_reader.is_empty.return_value = True
-        mock_csv_reader.get_rows.return_value = ["account_no"]
-        mock_bulk_reader_get.get.return_value = mock_csv_reader
+        mock_excel_reader.side_effect = EOFError("File {} is empty!".format(file_path))
 
         self.service.create_list(request)
 
@@ -301,6 +293,8 @@ class TestElasticSearchService(base.BaseTestElasticSearchService):
         failed = ["account_no_{}".format(account_number_index) for account_number_index in xrange(49)]
         mock_bulk.return_value = (1, failed)
 
+        mock_csv_reader.is_exceed_max_line_limit.return_value = False
+
         result = self.service.append_list(request)
         file_path = os.path.join(configuration.data.VOLUME_MAPPINGS_FILE_UPLOAD_TARGET, request.filePath)
         mock_remove.assert_called_once_with(file_path)
@@ -317,8 +311,7 @@ class TestElasticSearchService(base.BaseTestElasticSearchService):
 
         mock_csv_reader = mock.MagicMock(autospec=readers.CsvReader)
         mock_csv_reader.is_empty.return_value = False
-        mock_csv_reader.get_rows.return_value = [
-            ["account_no_{}".format(account_number_index)] for account_number_index in xrange(51)]
+        mock_csv_reader.is_exceed_max_line_limit.return_value = True
         mock_bulk_reader_get.get.return_value = mock_csv_reader
 
         self.service.append_list(request)

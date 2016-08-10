@@ -1,7 +1,6 @@
 import abc
 import csv
 import os
-import subprocess
 
 import openpyxl
 
@@ -50,7 +49,7 @@ class CsvReader(FileReader):
         return open(self.filename, 'rU')
 
     def _get_number_of_lines(self):
-        return int(subprocess.check_output(['wc', '-l', self.filename]).strip().split(' ')[0])
+        return sum(1 for _ in self.get_rows())
 
     def close(self):
         self.descriptor.close()

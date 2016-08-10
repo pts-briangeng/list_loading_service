@@ -2,7 +2,6 @@ import csv
 import os
 import types
 import unittest
-import subprocess
 
 import mock
 import openpyxl
@@ -24,13 +23,11 @@ class TestElasticSearchFileReaders(unittest.TestCase):
         readers.FileReader('/content/list_upload/id.csv')
 
     @mock.patch.object(os.path, 'isfile', autospec=True)
-    @mock.patch.object(subprocess, 'check_output', autospec=True)
     @mock.patch.object(csv, 'reader', autospec=True)
     @mock.patch.object(readers, 'open', create=True)
-    def test_reads_csv_file_correctly(self, mock_open, mock_csv_reader, mock_subprocess_check_output, mock_is_file):
+    def test_reads_csv_file_correctly(self, mock_open, mock_csv_reader, mock_is_file):
         mock_open.return_value = mock.MagicMock(spec=file)
-        mock_csv_reader.return_value = mocks.generator(['account_no'])
-        mock_subprocess_check_output.return_value = "100 filename"
+        mock_csv_reader.side_effect = [mocks.generator(['account_no']), mocks.generator(['account_no'])]
 
         csv_reader = readers.CsvReader('/content/list_upload/id.csv')
         tools.assert_equals(mocks.Any(types.GeneratorType), csv_reader.get_rows())
@@ -54,22 +51,23 @@ class TestElasticSearchFileReaders(unittest.TestCase):
         tools.assert_equals("account_no", next(xl_reader.get_rows()))
         tools.assert_is_none(xl_reader.close())
 
-    @mock.patch.object(subprocess, 'check_output', autospec=True)
+    @mock.patch.object(csv, 'reader', autospec=True)
     @mock.patch.object(os.path, 'isfile', autospec=True)
     @mock.patch.object(openpyxl, 'load_workbook', autospec=True)
     @mock.patch.object(readers, 'open', create=True)
-    def test_get_correct_reader_based_on_extension(self, mock_open, mock_load_workbook, mock_is_file,
-                                                   mock_subprocess_check_output):
+    def test_get_correct_reader_based_on_extension(self, mock_open, mock_load_workbook, mock_is_file, mock_csv_reader):
         mock_open.return_value = mock.MagicMock(spec=file)
-        mock_subprocess_check_output.return_value = "100 filename"
 
         mock_cell = mock.MagicMock()
         mock_cell.value = 'account_no'
         mock_load_workbook.return_value.active.rows = mocks.generator([mock_cell])
-
         tools.assert_true(
             isinstance(readers.BulkAccountsFileReaders.get('/content/list_upload/id.xlsx'), readers.ExcelReader))
+
+        mock_csv_reader.return_value = mocks.generator(['account_no'])
         tools.assert_true(
             isinstance(readers.BulkAccountsFileReaders.get('/content/list_upload/id.csv'), readers.CsvReader))
+
+        mock_csv_reader.return_value = mocks.generator(['account_no'])
         tools.assert_true(
             isinstance(readers.BulkAccountsFileReaders.get('/content/list_upload/id.txt'), readers.CsvReader))

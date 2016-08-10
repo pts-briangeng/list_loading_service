@@ -29,6 +29,7 @@ class CreateListEndpointTest(base.BaseIntegrationLiveStubServerTestCase):
         self.data = {'filePath': '/test/file'}
 
     def test_create_list(self):
+        self.queue_stub_response({"status_code": httplib.OK})
         test_file = testing_utilities.copy_test_file()
         response = requests.put(
             base.ListPaths.create(**PATH_PARAMS),

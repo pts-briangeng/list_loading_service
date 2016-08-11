@@ -76,7 +76,7 @@ class ListsServiceIntegrationTest(base.BaseFullIntegrationTestCase):
 
         def _assert_list_delete():
             response = requests.delete(base.ListPaths.delete(
-                **path_params), data=json.dumps(request_data), headers=self.headers)
+                **path_params), data=json.dumps({}), headers=self.headers)
             response_content = json.loads(response.content)
 
             tools.assert_equal(httplib.ACCEPTED, response.status_code)
@@ -91,7 +91,7 @@ class ListsServiceIntegrationTest(base.BaseFullIntegrationTestCase):
 
         def _assert_deleted_list_cannot_be_deleted():
             response = requests.delete(base.ListPaths.delete(
-                **path_params), data=json.dumps(request_data), headers=self.headers)
+                **path_params), data=json.dumps({}), headers=self.headers)
             tools.assert_equal(httplib.NOT_FOUND, response.status_code)
 
         if assert_create:

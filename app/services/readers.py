@@ -49,7 +49,8 @@ class CsvReader(FileReader):
         return open(self.filename, 'rU')
 
     def _get_number_of_lines(self):
-        return sum(1 for _ in self.get_rows())
+        with open(self.filename) as f:
+            return sum(1 for _ in f)
 
     def close(self):
         self.descriptor.close()

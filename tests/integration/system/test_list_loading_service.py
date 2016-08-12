@@ -26,7 +26,7 @@ class ListsServiceIntegrationTest(base.BaseFullIntegrationTestCase):
     def setUp(self):
         super(ListsServiceIntegrationTest, self).setUp()
         self.headers = testing_utilities.generate_headers(base_url='http://live.lcpenv')
-        self.renamed_files = ['edaa3541-7376-4eb3-8047-aaf78af900da.csv']
+        self.test_files = []
         self.path_params = {
             'base_url': 'http://0.0.0.0:5000',
             'service': 'offers',
@@ -35,8 +35,8 @@ class ListsServiceIntegrationTest(base.BaseFullIntegrationTestCase):
         }
 
     def tearDown(self):
-        for renamed_file in self.renamed_files:
-            testing_utilities.delete_test_files(renamed_file)
+        for test_file in self.test_files:
+            testing_utilities.delete_test_files(test_file)
 
     def _assert_list_create(self, request_data, path_params):
         response = requests.put(base.ListPaths.create(**path_params),
@@ -45,6 +45,14 @@ class ListsServiceIntegrationTest(base.BaseFullIntegrationTestCase):
         response_content = json.loads(response.content)
         tools.assert_equal(httplib.ACCEPTED, response.status_code)
         tools.assert_in(base.ListPaths.create(relative_url=True, **path_params), urls.self_link(response_content))
+
+    def _assert_append_to_list(self, request_data, path_params):
+        response = requests.put(base.ListPaths.append(**path_params),
+                                json.dumps(request_data),
+                                headers=self.headers)
+        response_content = json.loads(response.content)
+        tools.assert_equal(httplib.OK, response.status_code)
+        tools.assert_in(base.ListPaths.append(relative_url=True, **path_params), urls.self_link(response_content))
 
     @backoff.on_exception(backoff.expo, AssertionError, max_tries=10)
     def _test_list_functionality(self, request_data, path_params, accounts_count, assert_create=True):
@@ -108,20 +116,20 @@ class ListsServiceIntegrationTest(base.BaseFullIntegrationTestCase):
         path_params = copy.deepcopy(self.path_params)
         path_params['member_id'] = u'اختبار'.encode('UTF-8')
 
-        request_data = {'filePath': testing_utilities.copy_test_file('normal.csv')}
+        request_data = {'filePath': self._get_test_file('normal.csv')}
 
         self._test_list_functionality(request_data, path_params, 9)
 
     def test_dos_csv(self):
-        request_data = {'filePath': testing_utilities.copy_test_file('dos.csv')}
+        request_data = {'filePath': self._get_test_file('dos.csv')}
         self._test_list_functionality(request_data, self.path_params, 9)
 
     def test_mac_csv(self):
-        request_data = {'filePath': testing_utilities.copy_test_file('mac.csv')}
+        request_data = {'filePath': self._get_test_file('mac.csv')}
         self._test_list_functionality(request_data, self.path_params, 9)
 
     def test_windows_csv(self):
-        request_data = {'filePath': testing_utilities.copy_test_file('windows.csv')}
+        request_data = {'filePath': self._get_test_file('windows.csv')}
         self._test_list_functionality(request_data, self.path_params, 9)
 
     def test_list_functionality_xlsx(self):
@@ -131,9 +139,12 @@ class ListsServiceIntegrationTest(base.BaseFullIntegrationTestCase):
         path_params['list_id'] = 'c7df9810-90bb-4597-a5ab-c41869bf72e0'
         path_params['member_id'] = u'آخر النهر'.encode('UTF-8')
 
-        request_data = {'filePath': testing_utilities.copy_test_file('accounts_list.xlsx')}
+        request_data = {'filePath': self._get_test_file('accounts_list.xlsx')}
 
         self._test_list_functionality(request_data, path_params, 9)
+
+    def test_append_to_list(self):
+        self._assert_append_to_list({'filePath': self._get_test_file('normal.csv')}, self.path_params)
 
     def test_load(self):
         list_requests = []
@@ -143,9 +154,13 @@ class ListsServiceIntegrationTest(base.BaseFullIntegrationTestCase):
             path_params = copy.deepcopy(self.path_params)
             path_params['list_id'] = file_id
             self.renamed_files.append('{}.csv'.format(file_id))
-            request_data = {'filePath': testing_utilities.copy_test_file('normal_large.csv')}
+            request_data = {'filePath': self._get_test_file('normal_large.csv')}
             list_requests.append((request_data, path_params, 50000))
             self._assert_list_create(request_data, path_params)
 
         for list_request in list_requests:
             self._test_list_functionality(*list_request, assert_create=False)
+
+    def _get_test_file(self, file_type):
+        self.test_files.append(testing_utilities.copy_test_file(file_type))
+        return self.test_files[-1]

@@ -1,10 +1,8 @@
 import httplib
 import json
 import os
-import unittest
 
 import requests
-from liblcp import urls
 from nose import tools
 from nose.plugins import attrib
 

@@ -34,21 +34,6 @@ class AppendListEndpointTest(base.BaseIntegrationLiveStubServerTestCase):
     def tearDown(self):
         testing_utilities.delete_test_files(self.test_file)
 
-    @unittest.skip("BG: will be fixed soon")
-    def test_append_list(self):
-        self.queue_stub_response({"status_code": httplib.OK})
-        self.queue_stub_response({"status_code": httplib.OK})
-        self.queue_stub_response({"status_code": httplib.OK})
-
-        response = requests.put(
-            base.ListPaths.append(**PATH_PARAMS),
-            json.dumps(self.data),
-            headers=self.headers)
-        response_content = json.loads(response.content)
-
-        tools.assert_equal(httplib.OK, response.status_code)
-        tools.assert_in(base.ListPaths.append(relative_url=True, **PATH_PARAMS), urls.self_link(response_content))
-
     def test_append_list_missing_file(self):
         data = {}
         response = requests.put(base.ListPaths.append(**PATH_PARAMS), json.dumps(data), headers=self.headers)

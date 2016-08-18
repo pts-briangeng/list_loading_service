@@ -4,6 +4,8 @@ import os
 
 import openpyxl
 
+import configuration
+
 
 class FileReader(object):
     __metaclass__ = abc.ABCMeta
@@ -12,28 +14,29 @@ class FileReader(object):
         self.filename = filename
         if not os.path.isfile(filename):
             raise IOError("File {} does not exist!".format(filename))
-        self.descriptor = self._get_descriptor()
-        self.line_in_file = self._get_number_of_lines()
-        if self.is_empty():
-            raise EOFError("File {} is empty!".format(filename))
-
-    @abc.abstractmethod
-    def _get_descriptor(self):
-        pass
-
-    @abc.abstractmethod
-    def _get_number_of_lines(self):
-        pass
+        self.descriptor = None
 
     @abc.abstractmethod
     def get_rows(self):
         pass
 
-    def is_empty(self):
-        return self.line_in_file == 0
+    @staticmethod
+    def count(descriptor=None, max_limit_count=1):
+        index = 0
+        for index, row in enumerate(descriptor, start=1):
+            if index <= max_limit_count:
+                continue
+            else:
+                break
+        return True if index < max_limit_count - 1 else False
 
-    def is_exceed_max_line_limit(self, max_limit):
-        return self.line_in_file > max_limit
+    def is_empty(self, descriptor=None):
+        return self.count(descriptor=descriptor, max_limit_count=1)
+
+    @abc.abstractmethod
+    def exceeds_allowed_row_count(self, descriptor=None):
+        return not self.count(
+            descriptor=descriptor, max_limit_count=configuration.data.ACCOUNTS_UPDATE_MAX_SIZE_ALLOWED)
 
     @abc.abstractmethod
     def close(self):
@@ -44,18 +47,18 @@ class CsvReader(FileReader):
 
     def __init__(self, filename):
         super(CsvReader, self).__init__(filename)
-
-    def _get_descriptor(self):
-        return open(self.filename, 'rU')
-
-    def _get_number_of_lines(self):
-        with open(self.filename) as f:
-            return sum(1 for _ in f)
+        self.descriptor = open(self.filename, 'rU')
+        if super(CsvReader, self).is_empty(self.descriptor):
+            raise EOFError("File {} is empty!".format(filename))
 
     def close(self):
         self.descriptor.close()
 
+    def exceeds_allowed_row_count(self, **kwargs):
+        return super(CsvReader, self).exceeds_allowed_row_count(csv.reader(self.descriptor))
+
     def get_rows(self):
+        self.descriptor = open(self.filename, 'rU')
         for row in csv.reader(self.descriptor):
             yield row[0]
 
@@ -64,15 +67,13 @@ class ExcelReader(FileReader):
 
     def __init__(self, filename):
         super(ExcelReader, self).__init__(filename)
-        if self.is_empty():
+        workbook = openpyxl.load_workbook(self.filename, read_only=True)
+        self.descriptor = workbook.active
+        if super(ExcelReader, self).is_empty(self.descriptor.rows):
             raise EOFError("File {} is empty!".format(filename))
 
-    def _get_number_of_lines(self):
-        return sum(1 for _ in self.descriptor.rows)
-
-    def _get_descriptor(self):
-        workbook = openpyxl.load_workbook(self.filename, read_only=True)
-        return workbook.active
+    def exceeds_allowed_row_count(self, **kwargs):
+        return super(ExcelReader, self).exceeds_allowed_row_count(self.descriptor.rows)
 
     def get_rows(self):
         for row in self.descriptor.rows:

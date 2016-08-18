@@ -5,7 +5,6 @@ import json
 import os
 import types
 import unittest
-import subprocess
 
 import mock
 from elasticsearch import helpers, exceptions
@@ -21,6 +20,10 @@ configuration.configure_from(os.path.join(configuration.CONFIGURATION_PATH, 'lis
 
 
 class TestElasticSearchService(base.BaseTestElasticSearchService):
+
+    @classmethod
+    def setUpClass(cls):
+        configuration.configure_from(os.path.join(configuration.CONFIGURATION_PATH, 'list_loading_service.cfg'))
 
     def setUp(self):
         super(TestElasticSearchService, self).setUp()
@@ -149,14 +152,15 @@ class TestElasticSearchService(base.BaseTestElasticSearchService):
         self._assert_callback(mock_requests_wrapper_post, False, "File /content/list_upload/file.csv does not exist!")
 
     @mock.patch.object(__builtin__, 'open', autospec=True)
-    @mock.patch.object(subprocess, 'check_output', autospec=True)
+    @mock.patch.object(readers, 'CsvReader', autospec=True)
     @mock.patch.object(decorators.logger, 'error', autospec=True)
     @mock.patch.object(decorators.requests_wrapper, 'post', autospec=True)
     @mock.patch.object(os.path, 'isfile', autospec=True)
-    def test_create_list_logs_and_returns_error_on_empty_csv_file(self, mock_is_file, mock_requests_wrapper_post,
-                                                                  mock_logger, mock_subprocess_check_output, mock_open):
+    def test_create_list_logs_and_returns_error_on_empty_csv_file(
+            self, mock_is_file, mock_requests_wrapper_post, mock_logger, mock_csv_reader, mock_open):
         request = models.Request(**self.data)
-        mock_subprocess_check_output.return_value = "0 filename"
+        file_path = os.path.join(configuration.data.VOLUME_MAPPINGS_FILE_UPLOAD_TARGET, self.data['filePath'])
+        mock_csv_reader.side_effect = EOFError("File {} is empty!".format(file_path))
 
         self.service.create_list(request)
 
@@ -168,8 +172,8 @@ class TestElasticSearchService(base.BaseTestElasticSearchService):
     @mock.patch.object(readers, 'ExcelReader', autospec=True)
     @mock.patch.object(decorators.requests_wrapper, 'post', autospec=True)
     @mock.patch.object(os.path, 'isfile', autospec=True)
-    def test_create_list_logs_and_returns_error_on_empty_xlsx_file(self, mock_is_file, mock_requests_wrapper_post,
-                                                                   mock_excel_reader, mock_logger):
+    def test_create_list_logs_and_returns_error_on_empty_xlsx_file(
+            self, mock_is_file, mock_requests_wrapper_post, mock_excel_reader, mock_logger):
         data = copy.deepcopy(self.data)
         data['filePath'] = 'file.xlsx'
         request = models.Request(**data)
@@ -287,8 +291,10 @@ class TestElasticSearchService(base.BaseTestElasticSearchService):
 
         mock_csv_reader = mock.MagicMock(autospec=readers.CsvReader)
         mock_csv_reader.is_empty.return_value = False
-        mock_csv_reader.get_rows.return_value = ["account_no_{}".format(account_number_index)
-                                                 for account_number_index in xrange(50)]
+        mock_csv_reader.exceeds_allowed_row_count.return_value = False
+        mock_csv_reader.get_rows.return_value = [
+            "account_no_{}".format(account_number_index) for account_number_index in xrange(50)
+        ]
         mock_bulk_reader_get.get.return_value = mock_csv_reader
         failed = ["account_no_{}".format(account_number_index) for account_number_index in xrange(49)]
         mock_bulk.return_value = (1, failed)
@@ -296,6 +302,7 @@ class TestElasticSearchService(base.BaseTestElasticSearchService):
         mock_csv_reader.is_exceed_max_line_limit.return_value = False
 
         result = self.service.append_list(request)
+
         file_path = os.path.join(configuration.data.VOLUME_MAPPINGS_FILE_UPLOAD_TARGET, request.filePath)
         mock_remove.assert_called_once_with(file_path)
         tools.assert_list_equal(failed, result['failed'])

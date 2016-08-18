@@ -77,7 +77,7 @@ class ElasticSearchService(object):
     def append_list(request):
         file_path = os.path.join(configuration.data.VOLUME_MAPPINGS_FILE_UPLOAD_TARGET, request.filePath)
         file_reader = readers.BulkAccountsFileReaders.get(file_path)
-        if file_reader.is_exceed_max_line_limit(configuration.data.ACCOUNTS_UPDATE_MAX_SIZE_ALLOWED):
+        if file_reader.exceeds_allowed_row_count():
             raise app_exceptions.TooManyAccountsSpecifiedError()
 
         actions = []

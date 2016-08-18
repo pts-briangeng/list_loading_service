@@ -42,7 +42,7 @@ class ListsServiceIntegrationTest(base.BaseFullIntegrationTestCase):
         response = requests.put(base.ListPaths.create(**path_params),
                                 json.dumps(request_data),
                                 headers=self.headers)
-        response_content = json.loads(response.content)
+        response_content = response.json()
         tools.assert_equal(httplib.ACCEPTED, response.status_code)
         tools.assert_in(base.ListPaths.create(relative_url=True, **path_params), urls.self_link(response_content))
 
@@ -50,17 +50,17 @@ class ListsServiceIntegrationTest(base.BaseFullIntegrationTestCase):
         response = requests.put(base.ListPaths.append(**path_params),
                                 json.dumps(request_data),
                                 headers=self.headers)
-        response_content = json.loads(response.content)
+        response_content = response.json()
         tools.assert_equal(httplib.OK, response.status_code)
         tools.assert_in(base.ListPaths.append(relative_url=True, **path_params), urls.self_link(response_content))
 
     @backoff.on_exception(backoff.expo, AssertionError, max_tries=10)
-    def _test_list_functionality(self, request_data, path_params, accounts_count, assert_create=True):
+    def _assert_list_functionality(self, request_data, path_params, accounts_count, assert_create=True):
 
         @backoff.on_exception(backoff.expo, AssertionError, max_tries=10)
         def _assert_search_for_created_list():
             response = requests.get(base.ListPaths.stats(**path_params), headers=self.headers)
-            response_content = json.loads(response.content)
+            response_content = response.json()
 
             tools.assert_equal(httplib.OK, response.status_code)
             tools.assert_in(base.ListPaths.stats(
@@ -71,7 +71,7 @@ class ListsServiceIntegrationTest(base.BaseFullIntegrationTestCase):
             response = requests.get(base.ListPaths.get_list_member(**path_params), headers=self.headers)
 
             tools.assert_equal(httplib.OK, response.status_code)
-            response_content = json.loads(response.content)
+            response_content = response.json()
             tools.assert_in(urllib.quote(base.ListPaths.get_list_member(relative_url=True, **path_params)),
                             urls.self_link(response_content).encode('UTF-8'))
 
@@ -85,7 +85,7 @@ class ListsServiceIntegrationTest(base.BaseFullIntegrationTestCase):
         def _assert_list_delete():
             response = requests.delete(base.ListPaths.delete(
                 **path_params), data=json.dumps({}), headers=self.headers)
-            response_content = json.loads(response.content)
+            response_content = response.json()
 
             tools.assert_equal(httplib.ACCEPTED, response.status_code)
             tools.assert_in(base.ListPaths.create(
@@ -118,19 +118,19 @@ class ListsServiceIntegrationTest(base.BaseFullIntegrationTestCase):
 
         request_data = {'filePath': self._get_test_file('normal.csv')}
 
-        self._test_list_functionality(request_data, path_params, 9)
+        self._assert_list_functionality(request_data, path_params, 9)
 
     def test_dos_csv(self):
         request_data = {'filePath': self._get_test_file('dos.csv')}
-        self._test_list_functionality(request_data, self.path_params, 9)
+        self._assert_list_functionality(request_data, self.path_params, 9)
 
     def test_mac_csv(self):
         request_data = {'filePath': self._get_test_file('mac.csv')}
-        self._test_list_functionality(request_data, self.path_params, 9)
+        self._assert_list_functionality(request_data, self.path_params, 9)
 
     def test_windows_csv(self):
         request_data = {'filePath': self._get_test_file('windows.csv')}
-        self._test_list_functionality(request_data, self.path_params, 9)
+        self._assert_list_functionality(request_data, self.path_params, 9)
 
     def test_list_functionality_xlsx(self):
         self.renamed_files = ['c7df9810-90bb-4597-a5ab-c41869bf72e0.xlsx']
@@ -141,7 +141,7 @@ class ListsServiceIntegrationTest(base.BaseFullIntegrationTestCase):
 
         request_data = {'filePath': self._get_test_file('accounts_list.xlsx')}
 
-        self._test_list_functionality(request_data, path_params, 9)
+        self._assert_list_functionality(request_data, path_params, 9)
 
     def test_append_to_list(self):
         self._assert_append_to_list({'filePath': self._get_test_file('normal.csv')}, self.path_params)
@@ -159,7 +159,7 @@ class ListsServiceIntegrationTest(base.BaseFullIntegrationTestCase):
             self._assert_list_create(request_data, path_params)
 
         for list_request in list_requests:
-            self._test_list_functionality(*list_request, assert_create=False)
+            self._assert_list_functionality(*list_request, assert_create=False)
 
     def _get_test_file(self, file_type):
         self.test_files.append(testing_utilities.copy_test_file(file_type))

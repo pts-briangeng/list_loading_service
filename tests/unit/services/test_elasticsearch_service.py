@@ -306,7 +306,7 @@ class TestElasticSearchService(base.BaseTestElasticSearchService):
         file_path = os.path.join(configuration.data.VOLUME_MAPPINGS_FILE_UPLOAD_TARGET, request.filePath)
         mock_remove.assert_called_once_with(file_path)
         tools.assert_list_equal(failed, result['failed'])
-        tools.assert_list_equal(['account_no_49'], result['succeeded'])
+        tools.assert_list_equal(['account_no_49'], result['success'])
 
     @mock.patch.object(readers, 'BulkAccountsFileReaders', autospec=True)
     @mock.patch.object(os.path, 'isfile', autospec=True)

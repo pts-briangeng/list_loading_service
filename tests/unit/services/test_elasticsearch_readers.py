@@ -71,7 +71,9 @@ class TestElasticSearchFileReaders(unittest.TestCase):
         mock_open.return_value = iter(accounts)
         mock_csv_reader.return_value = mocks.generator(accounts)
 
-        tools.assert_true(readers.CsvReader('/content/list_upload/id.csv').exceeds_allowed_row_count())
+        csv_reader = readers.CsvReader('/content/list_upload/id.csv')
+        tools.assert_true(csv_reader.exceeds_allowed_row_count(
+            max_limit_count=configuration.data.ACCOUNTS_UPDATE_MAX_SIZE_ALLOWED))
 
     @mock.patch.object(os.path, 'isfile', autospec=True)
     @mock.patch.object(openpyxl, 'load_workbook', autospec=True)
@@ -95,7 +97,9 @@ class TestElasticSearchFileReaders(unittest.TestCase):
         mock_cell.value = 'account_no'
         mock_load_workbook.return_value.active.rows = mocks.generator([mock_cell for _ in xrange(2)])
 
-        tools.assert_true(readers.ExcelReader('/content/list_upload/id.xlsx').exceeds_allowed_row_count())
+        excel_reader = readers.ExcelReader('/content/list_upload/id.xlsx')
+        tools.assert_true(excel_reader.exceeds_allowed_row_count(
+            max_limit_count=configuration.data.ACCOUNTS_UPDATE_MAX_SIZE_ALLOWED))
 
     @mock.patch.object(os.path, 'isfile', autospec=True)
     @mock.patch.object(openpyxl, 'load_workbook', autospec=True)

@@ -77,7 +77,7 @@ class ElasticSearchService(object):
     def append_list(request):
         file_path = os.path.join(configuration.data.VOLUME_MAPPINGS_FILE_UPLOAD_TARGET, request.filePath)
         file_reader = readers.BulkAccountsFileReaders.get(file_path)
-        if file_reader.exceeds_allowed_row_count():
+        if file_reader.exceeds_allowed_row_count(max_limit_count=configuration.data.ACCOUNTS_UPDATE_MAX_SIZE_ALLOWED):
             raise app_exceptions.TooManyAccountsSpecifiedError()
 
         actions = []
@@ -92,14 +92,14 @@ class ElasticSearchService(object):
         result = helpers.bulk(elastic_search_client, actions, chunk_size=configuration.data.BULK_PROCESSING_CHUNK_SIZE,
                               index=request.service, doc_type=request.list_id)
         failed = result[1]
-        succeeded = list(set(members).difference(set(failed)))
+        success = list(set(members).difference(set(failed)))
 
         file_reader.close()
         logger.info("Uploading ...Done! Refresh index")
         elastic_search_client.indices.refresh(index=request.service)
         logger.info("Finished indexing documents")
 
-        return {'succeeded': succeeded, 'failed': failed}
+        return {'success': success, 'failed': failed}
 
     @staticmethod
     def delete_list(request):

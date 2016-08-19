@@ -4,8 +4,6 @@ import os
 
 import openpyxl
 
-import configuration
-
 
 class FileReader(object):
     __metaclass__ = abc.ABCMeta
@@ -34,9 +32,8 @@ class FileReader(object):
         return self.count(descriptor=descriptor, max_limit_count=1)
 
     @abc.abstractmethod
-    def exceeds_allowed_row_count(self, descriptor=None):
-        return not self.count(
-            descriptor=descriptor, max_limit_count=configuration.data.ACCOUNTS_UPDATE_MAX_SIZE_ALLOWED)
+    def exceeds_allowed_row_count(self, descriptor=None, max_limit_count=1):
+        return not self.count(descriptor=descriptor, max_limit_count=max_limit_count)
 
     @abc.abstractmethod
     def close(self):
@@ -55,7 +52,8 @@ class CsvReader(FileReader):
         self.descriptor.close()
 
     def exceeds_allowed_row_count(self, **kwargs):
-        return super(CsvReader, self).exceeds_allowed_row_count(csv.reader(self.descriptor))
+        return super(CsvReader, self).exceeds_allowed_row_count(
+            csv.reader(self.descriptor), kwargs.get("max_limit_count"))
 
     def get_rows(self):
         self.descriptor = open(self.filename, 'rU')
@@ -73,7 +71,7 @@ class ExcelReader(FileReader):
             raise EOFError("File {} is empty!".format(filename))
 
     def exceeds_allowed_row_count(self, **kwargs):
-        return super(ExcelReader, self).exceeds_allowed_row_count(self.descriptor.rows)
+        return super(ExcelReader, self).exceeds_allowed_row_count(self.descriptor.rows, kwargs.get("max_limit_count"))
 
     def get_rows(self):
         for row in self.descriptor.rows:

@@ -32,7 +32,6 @@ class _ElasticSearchDocument(object):
 
 
 class ElasticSearchService(object):
-
     @staticmethod
     @decorators.elastic_search_callback
     @decorators.upload_cleanup
@@ -70,7 +69,7 @@ class ElasticSearchService(object):
                 chunk_size=configuration.data.BULK_PROCESSING_CHUNK_SIZE, index=request.service,
                 doc_type=request.list_id)
 
-        success, fail = bulk_return if stats_only else (None, len(bulk_return), )
+        success, fail = bulk_return if stats_only else (None, len(bulk_return),)
         logger.info("Uploading for list '{}'. Stats: Success: {} , Failed: {}.".format(request.list_id, success, fail))
         logger.info("Done! .Refreshing index...")
         elastic_search_client.indices.refresh(index=request.service)

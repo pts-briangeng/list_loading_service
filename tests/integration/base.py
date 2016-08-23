@@ -98,8 +98,8 @@ class ListPaths(object):
     @classmethod
     def append(cls, **kwargs):
         if kwargs.get('relative_url', False):
-            return '/lists/{service}/{list_id}/members'.format(**kwargs)
-        return '{base_url}/lists/{service}/{list_id}/members'.format(**kwargs)
+            return '/lists/{service}/{list_id}/members/'.format(**kwargs)
+        return '{base_url}/lists/{service}/{list_id}/members/'.format(**kwargs)
 
     @classmethod
     def stats(cls, **kwargs):

@@ -303,7 +303,7 @@ class TestElasticSearchService(base.BaseTestElasticSearchService):
 
         mock_csv_reader.is_exceed_max_line_limit.return_value = False
 
-        result = self.service.append_list(request)
+        result = self.service.modify_list_members(request)
 
         file_path = os.path.join(configuration.data.VOLUME_MAPPINGS_FILE_UPLOAD_TARGET, request.filePath)
         mock_remove.assert_called_once_with(file_path)
@@ -323,4 +323,4 @@ class TestElasticSearchService(base.BaseTestElasticSearchService):
         mock_csv_reader.is_exceed_max_line_limit.return_value = True
         mock_bulk_reader_get.get.return_value = mock_csv_reader
 
-        self.service.append_list(request)
+        self.service.modify_list_members(request)

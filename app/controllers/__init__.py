@@ -6,5 +6,6 @@ __all__ = (
     api.GetListByIdResourceController,
     api.GetListMemberByIdResourceController,
     api.ListStatusGetResourceController,
-    api.AppendListPutResourceController
+    api.ListMemberAppendPutResourceController,
+    api.ListMemberDeletePutResourceController
 )

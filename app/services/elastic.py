@@ -1,27 +1,32 @@
+import collections
 import httplib
 import logging
 import os
 
-import collections
 from elasticsearch import helpers, exceptions
 
 import configuration
+from app import exceptions as app_exceptions, operations
 from app.services import clients, readers, decorators
-from app import exceptions as app_exceptions
 
 logger = logging.getLogger(__name__)
 
 
 class _ElasticSearchDocument(object):
 
-    def __init__(self, index, type, account_number):
+    def __init__(self, action, index, type, account_number):
+        self.action = action
+        if self.action not in operations.ElasticSearchPermittedOperations.__all__:
+            raise ValueError("Incorrect action '{}' specified when executing a Elastic Bulk operation. Permitted "
+                             "actions : {}".format(action, operations.ElasticSearchPermittedOperations.__all__))
         self.index = index
         self.type = type
         self.account_number = account_number
 
     @property
     def doc(self):
-        return {
+        es_document = {
+            "_op_type": self.action,
             "_index": self.index,
             "_type": self.type,
             "_id": self.account_number,
@@ -29,6 +34,9 @@ class _ElasticSearchDocument(object):
                 "accountNumber": self.account_number
             }
         }
+        if self.action == operations.ElasticSearchPermittedOperations.DELETE:
+            del es_document["_source"]
+        return es_document
 
 
 class ElasticSearchService(object):
@@ -37,12 +45,13 @@ class ElasticSearchService(object):
     @decorators.elastic_search_callback
     @decorators.upload_cleanup
     def create_list(request, stats_only=True):
+        logger.info("Creating a new list Params: {}".format(request.unwrap()))
         file_path = os.path.join(configuration.data.VOLUME_MAPPINGS_FILE_UPLOAD_TARGET, request.filePath)
         file_reader = readers.BulkAccountsFileReaders.get(file_path)
 
         actions = (
             _ElasticSearchDocument(
-                index=request.service, type=request.list_id, account_number=line).doc
+                action=request.action, index=request.service, type=request.list_id, account_number=line).doc
             for line in file_reader.get_rows()
         )
 
@@ -80,7 +89,8 @@ class ElasticSearchService(object):
 
     @staticmethod
     @decorators.upload_cleanup
-    def append_list(request, stats_only=False):
+    def modify_list_members(request, stats_only=False):
+        logger.info("List Modification with action '{}' started...".format(request.action))
         file_path = os.path.join(configuration.data.VOLUME_MAPPINGS_FILE_UPLOAD_TARGET, request.filePath)
         file_reader = readers.BulkAccountsFileReaders.get(file_path)
         if file_reader.exceeds_allowed_row_count(max_limit_count=configuration.data.ACCOUNTS_UPDATE_MAX_SIZE_ALLOWED):
@@ -90,7 +100,9 @@ class ElasticSearchService(object):
         members = []
 
         for line in file_reader.get_rows():
-            actions.append(_ElasticSearchDocument(index=request.service, type=request.list_id, account_number=line).doc)
+            actions.append(
+                _ElasticSearchDocument(
+                    action=request.action, index=request.service, type=request.list_id, account_number=line).doc)
             members.append(line)
 
         logger.info("Bulk indexing file using index: {}, type: {}".format(request.service, request.list_id))
@@ -102,7 +114,7 @@ class ElasticSearchService(object):
         success = list(set(members).difference(set(failed)))
 
         file_reader.close()
-        logger.info("Uploading ...Done! Refresh index")
+        logger.info("Modification completed with action '{}' ...Done! Refresh index".format(request.action))
         elastic_search_client.indices.refresh(index=request.service)
         logger.info("Finished indexing documents")
 
@@ -111,7 +123,7 @@ class ElasticSearchService(object):
     @staticmethod
     def delete_list(request):
         try:
-            logger.info("Elasticsearch is deleting index: {}, doc_type: {}".format(request.service, request.list_id))
+            logger.info("Elastic Search is deleting index: {}, doc_type: {}".format(request.service, request.list_id))
             elastic_search_client = clients.ElasticSearchClient()
             result = elastic_search_client.indices.delete_mapping(index=request.service, doc_type=request.list_id)
             logger.info("Elastic search delete response {}".format(result))

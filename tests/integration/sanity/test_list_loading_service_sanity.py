@@ -48,8 +48,8 @@ def delete_list(variation_id):
 
 def check_membership(account_number, variation_id):
     print "Testing if a member exists on the created list ..."
-    check_membership_url = '/lists/{}/{}/{}'.format(LIST_LOADING_SERVICE_INDEX_OFFERS_SANITY, variation_id,
-                                                    account_number)
+    check_membership_url = '/lists/{}/{}/members/{}'.format(
+        LIST_LOADING_SERVICE_INDEX_OFFERS_SANITY, variation_id, account_number)
     headers = testing_utilities.generate_headers()
     return requests.get(urlparse.urljoin(configuration.data.list_loading_service_base_url, check_membership_url),
                         headers=headers)

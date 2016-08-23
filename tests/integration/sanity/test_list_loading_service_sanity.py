@@ -41,9 +41,8 @@ def delete_list(variation_id):
     print "Testing deleting created list ..."
     delete_url = '/lists/{}/{}/'.format(LIST_LOADING_SERVICE_INDEX_OFFERS_SANITY, variation_id)
     headers = testing_utilities.generate_headers()
-    post_data = {"filePath": TEST_FILE_PATH}
-    return requests.delete(urlparse.urljoin(configuration.data.list_loading_service_base_url, delete_url),
-                           data=json.dumps(post_data), headers=headers)
+    return requests.delete(
+        urlparse.urljoin(configuration.data.list_loading_service_base_url, delete_url), data='{}', headers=headers)
 
 
 def check_membership(account_number, variation_id):

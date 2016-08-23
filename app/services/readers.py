@@ -26,7 +26,7 @@ class FileReader(object):
                 continue
             else:
                 break
-        return True if index < max_limit_count - 1 else False
+        return index < (max_limit_count - 1)
 
     def is_empty(self, descriptor=None):
         return self.count(descriptor=descriptor, max_limit_count=1)

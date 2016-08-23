@@ -49,7 +49,7 @@ class ElasticSearchService(object):
         logger.info("Bulk indexing file using index: {}, type: {}".format(request.service, request.list_id))
         elastic_search_client = clients.ElasticSearchClient()
 
-        bulk_return = (None, None)
+        bulk_return = (None, None) if stats_only else []
         if configuration.data.LIST_PARALLEL_BULK_PROCESSING_ENABLED:
             # Why did we use collections.deque(..)?. helpers.parallel bulk(..) is a generator, meaning it is lazy and
             # won't produce any results until you start consuming them. If you don't care about the results
@@ -71,8 +71,7 @@ class ElasticSearchService(object):
                 doc_type=request.list_id)
 
         success, fail = bulk_return if stats_only else (None, len(bulk_return), )
-        logger.info("Uploading for list '{}'. Stats: Success: {} , Failed: {} .Refreshing index...".format(
-            request.list_id, success, fail))
+        logger.info("Uploading for list '{}'. Stats: Success: {} , Failed: {}.".format(request.list_id, success, fail))
         logger.info("Done! .Refreshing index...")
         elastic_search_client.indices.refresh(index=request.service)
         logger.info("Finished indexing documents")

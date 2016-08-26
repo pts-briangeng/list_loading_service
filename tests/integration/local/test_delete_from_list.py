@@ -16,11 +16,11 @@ PATH_PARAMS = {
 
 
 @attrib.attr('local_integration')
-class AppendListEndpointTest(base.BaseIntegrationLiveStubServerTestCase):
+class ListMemberDeletePutResourceControllerTest(base.BaseIntegrationLiveStubServerTestCase):
 
     @classmethod
     def setUpClass(cls, **kwargs):
-        super(AppendListEndpointTest, cls).setUpClass(**kwargs)
+        super(ListMemberDeletePutResourceControllerTest, cls).setUpClass(**kwargs)
         base.BaseIntegrationTestCase.setUpClass()
 
     def setUp(self):
@@ -32,9 +32,9 @@ class AppendListEndpointTest(base.BaseIntegrationLiveStubServerTestCase):
     def tearDown(self):
         testing_utilities.delete_test_files(self.test_file)
 
-    def test_append_list_missing_file(self):
+    def test_delete_from_list_missing_file(self):
         data = {}
-        response = requests.put(base.ListPaths.append(**PATH_PARAMS), json.dumps(data), headers=self.headers)
+        response = requests.put(base.ListPaths.delete_from_list(**PATH_PARAMS), json.dumps(data), headers=self.headers)
         response_content = json.loads(response.content)
 
         tools.assert_equal(httplib.BAD_REQUEST, response.status_code)
@@ -42,8 +42,9 @@ class AppendListEndpointTest(base.BaseIntegrationLiveStubServerTestCase):
         tools.assert_equal('MISSING_FIELD', response_content['errors'][0]['code'])
         tools.assert_equal("'filePath' is required.", response_content['errors'][0]['description'])
 
-    def test_append_list_big_file(self):
-        response = requests.put(base.ListPaths.append(**PATH_PARAMS), json.dumps(self.data), headers=self.headers)
+    def test_delete_from_list_big_file(self):
+        response = requests.put(base.ListPaths.delete_from_list(**PATH_PARAMS), json.dumps(self.data),
+                                headers=self.headers)
         response_content = json.loads(response.content)
 
         tools.assert_equal(httplib.BAD_REQUEST, response.status_code)

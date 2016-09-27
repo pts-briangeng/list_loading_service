@@ -1,7 +1,8 @@
+import os
 import json
 import logging
-import os
 import traceback
+import configuration
 
 from liblcp import context
 from requestswrapper import requests_wrapper
@@ -9,13 +10,17 @@ from requestswrapper import requests_wrapper
 logger = logging.getLogger(__name__)
 
 
-def rename_file(request_file, request_list):
-    def rreplace(s, old, new, occurrence):
-        li = s.rsplit(old, occurrence)
-        return new.join(li)
-
-    file_name, _ = os.path.splitext(os.path.basename(request_file))
-    return rreplace(request_file, file_name, request_list, 1)
+def upload_cleanup(f):
+    def wrapper(request):
+        result = f(request)
+        try:
+            os.remove(os.path.join(configuration.data.VOLUME_MAPPINGS_FILE_UPLOAD_TARGET, request.filePath))
+            logger.info("File {} deleted".format(request.filePath))
+        except OSError as e:
+            logger.warning("Error deleting file: {}".format(e))
+        finally:
+            return result
+    return wrapper
 
 
 def elastic_search_callback(f):
@@ -32,7 +37,6 @@ def elastic_search_callback(f):
             if request.callbackUrl:
                 data = {
                     'success': not errors,
-                    'file': rename_file(request.filePath, request.list_id),
                     'links': {
                         'self': {
                             'href': request.url

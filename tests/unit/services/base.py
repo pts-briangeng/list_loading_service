@@ -50,10 +50,9 @@ class BaseTestElasticSearchService(unittest.TestCase):
         configuration.configure_from(os.path.join(configuration.CONFIGURATION_PATH, 'list_loading_service.cfg'))
 
     @staticmethod
-    def _assert_callback(mock_requests_wrapper_post, success, file, error=None):
+    def _assert_callback(mock_requests_wrapper_post, success, error=None):
         data = {
             'success': success,
-            'file': file,
             'links': {
                 'self': {
                     'href': 'url'

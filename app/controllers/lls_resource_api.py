@@ -6,9 +6,9 @@ import traceback
 from restframework import controllers
 from werkzeug import exceptions as flask_errors
 
-from app import exceptions, models, services
+from app import exceptions, models, services, operations
 from app.controllers import base
-from app.controllers.schemas import put_list, delete_list
+from app.controllers.schemas import put_list, post_empty, append_list, delete_list
 
 logger = logging.getLogger(__name__)
 
@@ -26,12 +26,15 @@ class CreateListPutResourceController(base.BaseListResourceController, controlle
         return CreateListPutResourceController
 
     def process_request_model(self, request_model, **kwargs):
-        request = models.Request(url=self.request_url, **dict(request_model, **kwargs))
+        request = models.Request(
+            action=operations.ElasticSearchPermittedOperations.CREATE, url=self.request_url,
+            **dict(request_model, **kwargs))
         multiprocessing.Process(target=services.ElasticSearch().create_list, args=(request,)).start()
         return {}
 
 
 class GetListByIdResourceController(base.BaseListResourceController, controllers.GetResourceController):
+
     NOT_FOUND_DESCRIPTION = flask_errors.NotFound.description
     __resource__ = '/lists/<service>/<list_id>/'
 
@@ -51,8 +54,8 @@ class DeleteListResourceController(base.BaseListResourceController, controllers.
     __resource__ = '/lists/<service>/<list_id>/'
 
     def __init__(self):
-        super(DeleteListResourceController, self).__init__(schema=delete_list.REQUEST,
-                                                           exception_translations=exceptions.EXCEPTION_TRANSLATIONS)
+        super(DeleteListResourceController, self).__init__(
+            schema=post_empty.REQUEST, exception_translations=exceptions.EXCEPTION_TRANSLATIONS)
         self.http_successful_response_status = httplib.ACCEPTED
 
     @property
@@ -81,8 +84,8 @@ class ListStatusGetResourceController(base.BaseListResourceController, controlle
             request = models.Request(url=self.request_url, **kwargs)
             response_model = services.ElasticSearch().get_list_status(request)
         except Exception as e:
-            logger.exception("An error occurred in get stats for the list {} - {}".format(kwargs.get('list_id'),
-                                                                                          traceback.format_exc()))
+            logger.exception("An error occurred in get stats for the list {} - {}".format(
+                kwargs.get('list_id'), traceback.format_exc()))
             return self.translate_exceptions(e)
         response_dict = self.create_restful_response_payload(response_model, **kwargs)
         response_headers = self.create_response_headers(response_dict)
@@ -90,8 +93,9 @@ class ListStatusGetResourceController(base.BaseListResourceController, controlle
 
 
 class GetListMemberByIdResourceController(base.BaseListResourceController, controllers.GetResourceController):
+
     NOT_FOUND_DESCRIPTION = flask_errors.NotFound.description
-    __resource__ = '/lists/<service>/<list_id>/<member_id>'
+    __resource__ = '/lists/<service>/<list_id>/members/<member_id>'
 
     def __init__(self):
         super(GetListMemberByIdResourceController, self).__init__(
@@ -106,10 +110,49 @@ class GetListMemberByIdResourceController(base.BaseListResourceController, contr
             request = models.Request(url=self.request_url, **kwargs)
             response_model = services.ElasticSearch().get_list_member(request)
         except Exception as e:
-            logger.exception(u"An error occurred in get member {} for the list {} - {}".format(kwargs.get('member_id'),
-                                                                                               kwargs.get('list_id'),
-                                                                                               traceback.format_exc()))
+            logger.exception(u"An error occurred in get member {} for the list {} - {}".format(
+                kwargs.get('member_id'), kwargs.get('list_id'), traceback.format_exc()))
             return self.translate_exceptions(e)
         response_dict = self.create_restful_response_payload(response_model, **kwargs)
         response_headers = self.create_response_headers(response_dict)
         return response_dict, httplib.OK, response_headers
+
+
+class ListMemberAppendPutResourceController(base.BaseListResourceController, controllers.PutResourceController):
+
+    __resource__ = '/lists/<service>/<list_id>/members/'
+
+    def __init__(self):
+        super(ListMemberAppendPutResourceController, self).__init__(
+            schema=append_list.REQUEST, exception_translations=exceptions.EXCEPTION_TRANSLATIONS)
+        self.http_successful_response_status = httplib.OK
+
+    @property
+    def resource_by_id_resource_controller(self):
+        return ListMemberAppendPutResourceController
+
+    def process_request_model(self, request_model, **kwargs):
+        request = models.Request(
+            action=operations.ElasticSearchPermittedOperations.INDEX, url=self.request_url,
+            **dict(request_model, **kwargs))
+        return services.ElasticSearch().modify_list_members(request)
+
+
+class ListMemberDeletePutResourceController(base.BaseListResourceController, controllers.DeleteResourceController):
+
+    __resource__ = '/lists/<service>/<list_id>/members/'
+
+    def __init__(self):
+        super(ListMemberDeletePutResourceController, self).__init__(
+            schema=delete_list.REQUEST, exception_translations=exceptions.EXCEPTION_TRANSLATIONS)
+        self.http_successful_response_status = httplib.OK
+
+    @property
+    def resource_by_id_resource_controller(self):
+        return ListMemberDeletePutResourceController
+
+    def process_request_model(self, request_model, **kwargs):
+        request = models.Request(
+            action=operations.ElasticSearchPermittedOperations.DELETE, url=self.request_url,
+            **dict(request_model, **kwargs))
+        return services.ElasticSearch().modify_list_members(request)

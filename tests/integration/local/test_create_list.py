@@ -29,6 +29,9 @@ class CreateListEndpointTest(base.BaseIntegrationLiveStubServerTestCase):
         self.data = {'filePath': '/test/file'}
 
     def test_create_list(self):
+        self.queue_stub_response({"status_code": httplib.OK})
+        self.queue_stub_response({"status_code": httplib.OK})
+        self.queue_stub_response({"status_code": httplib.OK})
         test_file = testing_utilities.copy_test_file()
         response = requests.put(
             base.ListPaths.create(**PATH_PARAMS),
@@ -38,6 +41,7 @@ class CreateListEndpointTest(base.BaseIntegrationLiveStubServerTestCase):
 
         tools.assert_equal(httplib.ACCEPTED, response.status_code)
         tools.assert_in(base.ListPaths.create(relative_url=True, **PATH_PARAMS), urls.self_link(response_content))
+        testing_utilities.delete_test_files(test_file)
 
     def test_create_list_with_callback_url(self):
         self.queue_stub_response({"status_code": httplib.OK})

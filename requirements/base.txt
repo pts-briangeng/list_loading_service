@@ -3,21 +3,21 @@
 
 # External Libraries
 aspectlib==1.4.2
-docker-py==1.8.1
+docker-py==1.9.0
 elasticsearch==1.9.0
-Fabric==1.11.1
+Fabric==1.12.0
 flask-restful==0.3.5
 Flask==0.10.1
 jsonpickle==0.9.3
 jsonschema==2.5.1
-newrelic==2.66.0.49
-openpyxl==2.3.3
-pexpect==4.2.0
+newrelic==2.68.0.50
+openpyxl==2.3.5
+pexpect==4.2.1
 PyYAML==3.11
-requests==2.10.0
+requests==2.11.1
 
 # Internal Points Libraries
-fabrika==3.4.2
+fabrika==4.0.0
 liblcp==11.5.1
 requestswrapper==1.0.3
 restframework==2.1.0

@@ -42,9 +42,10 @@ class TestElasticSearchServiceParallelProcessing(base.BaseTestElasticSearchServi
         request = models.Request(**self.data)
         mock_csv_reader = mock.MagicMock(autospec=readers.CsvReader)
         mock_csv_reader.is_empty.return_value = False
-        mock_csv_reader.get_rows.return_value = [
-            ["account_no_{}".format(account_number_index)] for account_number_index in xrange(10000)]
+        accounts_list = [["account_no_{}".format(account_number_index)] for account_number_index in xrange(10000)]
+        mock_csv_reader.get_rows.return_value = accounts_list
         mock_bulk_reader_get.get.return_value = mock_csv_reader
+        mock_bulk.return_value = (accounts_list, None,)
 
         self.service.create_list(request)
 
@@ -53,7 +54,7 @@ class TestElasticSearchServiceParallelProcessing(base.BaseTestElasticSearchServi
         mock_bulk.assert_called_with(mock_elastic_search.return_value,
                                      mocks.Any(types.GeneratorType),
                                      thread_count=4,
-                                     index='service',
+                                     index='service', stats_only=True,
                                      chunk_size=configuration.data.BULK_PROCESSING_CHUNK_SIZE,
                                      doc_type='id')
         mock_elastic_search.return_value.indices.refresh.assert_called_once_with(index='service')
@@ -77,9 +78,10 @@ class TestElasticSearchServiceParallelProcessing(base.BaseTestElasticSearchServi
         request = models.Request(**data)
         mock_xl_reader = mock.MagicMock(autospec=readers.ExcelReader)
         mock_xl_reader.is_empty.return_value = False
-        mock_xl_reader.get_rows.return_value = [
-            ["account_no_{}".format(account_number_index)] for account_number_index in xrange(10000)]
+        accounts_list = [["account_no_{}".format(account_number_index)] for account_number_index in xrange(10000)]
+        mock_xl_reader.get_rows.return_value = accounts_list
         mock_bulk_reader_get.get.return_value = mock_xl_reader
+        mock_bulk.return_value = (accounts_list, None,)
 
         self.service.create_list(request)
 
@@ -88,7 +90,7 @@ class TestElasticSearchServiceParallelProcessing(base.BaseTestElasticSearchServi
         mock_bulk.assert_called_with(mock_elastic_search.return_value,
                                      mocks.Any(types.GeneratorType),
                                      thread_count=4,
-                                     index='service',
+                                     index='service', stats_only=True,
                                      chunk_size=configuration.data.BULK_PROCESSING_CHUNK_SIZE,
                                      doc_type='id')
         mock_elastic_search.return_value.indices.refresh.assert_called_with(index='service')

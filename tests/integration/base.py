@@ -96,6 +96,12 @@ class ListPaths(object):
         return '{base_url}/lists/{service}/{list_id}'.format(**kwargs)
 
     @classmethod
+    def append(cls, **kwargs):
+        if kwargs.get('relative_url', False):
+            return '/lists/{service}/{list_id}/members/'.format(**kwargs)
+        return '{base_url}/lists/{service}/{list_id}/members/'.format(**kwargs)
+
+    @classmethod
     def stats(cls, **kwargs):
         if kwargs.get('relative_url', False):
             return '/lists/{service}/{list_id}/statistics'.format(**kwargs)
@@ -114,5 +120,11 @@ class ListPaths(object):
     @classmethod
     def get_list_member(cls, **kwargs):
         if kwargs.get('relative_url', False):
-            return '/lists/{service}/{list_id}/{member_id}'.format(**kwargs)
-        return '{base_url}/lists/{service}/{list_id}/{member_id}'.format(**kwargs)
+            return '/lists/{service}/{list_id}/members/{member_id}'.format(**kwargs)
+        return '{base_url}/lists/{service}/{list_id}/members/{member_id}'.format(**kwargs)
+
+    @classmethod
+    def delete_from_list(cls, **kwargs):
+        if kwargs.get('relative_url', False):
+            return '{base_url}/lists/<service>/<list_id>/members/'.format(**kwargs)
+        return '{base_url}/lists/<service>/<list_id>/members/'.format(**kwargs)

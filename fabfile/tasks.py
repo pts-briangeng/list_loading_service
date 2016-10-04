@@ -134,7 +134,6 @@ class ListLoadingServiceTestInContainerTask(fabrika.tasks.docker.TestInContainer
                     execute(lcpenv_tasks.destroy_lcp)
 
 
-
 class ListLoadingServiceTestUnitsTask(fabrika.tasks.testing.TestUnitsTask):
 
     def __init__(self, app_package_name, coverage_options=None):

@@ -54,6 +54,45 @@ generate_vagrantfile = lcpenv_tasks.generate_vagrantfile
 local("mkdir -p list_loading_service_logs")
 
 
+@contextlib.contextmanager
+def container_profile(configuration_profile_path):
+    print("Creating configuration profile ....")
+
+    def backed_up_configuration(profile_path):
+        return profile_path + '.orig'
+
+    def _ip():
+        return [(s.connect(('8.8.8.8', 80)), s.getsockname()[0], s.close())
+                for s in [socket.socket(socket.AF_INET, socket.SOCK_DGRAM)]][0][1]
+
+    print("Backing up current configuration ...{}".format(
+        os.path.basename(backed_up_configuration(configuration_profile_path))))
+    shutil.copyfile(configuration_profile_path, backed_up_configuration(configuration_profile_path))
+
+    app_configuration = {}
+    execfile(configuration_profile_path, app_configuration)
+    del app_configuration['__builtins__']
+
+    for key, value in app_configuration.iteritems():
+        app_configuration[key] = (json.loads(json.dumps(value).replace('build_agent', _ip()))
+                                  if not isinstance(value, basestring) else value.replace('build_agent', _ip()))
+
+    with open(configuration_profile_path, 'w') as config_fp:
+        for key, value in app_configuration.iteritems():
+            config_fp.write("{} = {}\n".format(key, value)
+                            if not isinstance(value, basestring) else '{} = "{}"\n'.format(key, value))
+    try:
+        yield
+    except:
+        print("Error {}".format(traceback.format_exc()))
+        pass
+    finally:
+        print("Reverting to original configuration profile ....{}".format(os.path.basename(configuration_profile_path)))
+        shutil.copyfile(backed_up_configuration(configuration_profile_path), configuration_profile_path)
+        os.remove(backed_up_configuration(configuration_profile_path))
+        print("Done!")
+
+
 class ListLoadingServiceTestInContainerTask(fabrika.tasks.docker.TestInContainerTask, fabrika.tasks.testing.TestTask):
 
     def run(self, repo_type=DEFAULT_REGISTRY, tag=DEFAULT_TAG, host=None, keeplcp=False,
@@ -95,49 +134,6 @@ class ListLoadingServiceTestInContainerTask(fabrika.tasks.docker.TestInContainer
                     execute(lcpenv_tasks.destroy_lcp)
 
 
-@contextlib.contextmanager
-def container_profile(configuration_profile_path):
-    print("Creating configuration profile ....")
-
-    def backed_up_configuration(profile_path):
-        return profile_path + '.orig'
-
-    def _ip():
-        return [(s.connect(('8.8.8.8', 80)), s.getsockname()[0], s.close())
-                for s in [socket.socket(socket.AF_INET, socket.SOCK_DGRAM)]][0][1]
-
-    print("Backing up current configuration ...{}".format(
-        os.path.basename(backed_up_configuration(configuration_profile_path))))
-    shutil.copyfile(configuration_profile_path, backed_up_configuration(configuration_profile_path))
-
-    app_configuration = {}
-    execfile(configuration_profile_path, app_configuration)
-    del app_configuration['__builtins__']
-
-    for key, value in app_configuration.iteritems():
-        app_configuration[key] = (json.loads(json.dumps(value).replace('build_agent', _ip()))
-                                  if not isinstance(value, basestring) else value.replace('build_agent', _ip()))
-
-    with open(configuration_profile_path, 'w') as config_fp:
-        for key, value in app_configuration.iteritems():
-            config_fp.write("{} = {}\n".format(key, value)
-                            if not isinstance(value, basestring) else '{} = "{}"\n'.format(key, value))
-    try:
-        yield
-    except:
-        print("Error {}".format(traceback.format_exc()))
-        pass
-    finally:
-        print("Reverting to original configuration profile ....{}".format(os.path.basename(configuration_profile_path)))
-        shutil.copyfile(backed_up_configuration(configuration_profile_path), configuration_profile_path)
-        os.remove(backed_up_configuration(configuration_profile_path))
-        print("Done!")
-
-
-test_in_container_task = ListLoadingServiceTestInContainerTask(
-    'list_loading_service', service_ready_endpoint='/_', service_ready_status=httplib.NOT_FOUND)
-
-
 class ListLoadingServiceTestUnitsTask(fabrika.tasks.testing.TestUnitsTask):
 
     def __init__(self, app_package_name, coverage_options=None):
@@ -166,12 +162,17 @@ clean_task = CleanTask()
 complexity_task = fabrika.tasks.analysis.ComplexityTask()
 create_app_image_task = fabrika.tasks.docker.CreateAppImageTask('list_loading_service')
 flake8_task = fabrika.tasks.analysis.Flake8Task()
-package_task = fabrika.tasks.build.PackageTask()
+package_task = fabrika.tasks.build.PackageTask(includes=['*.py', '*.txt', '*.xml'], debug=False)
+
 push_task = fabrika.tasks.docker.PushToRegistryTask('list_loading_service')
 runserver_task = fabrika.tasks.testing.RunServerTask(api_builder.build_server, configuration_path)
 test_units_task = ListLoadingServiceTestUnitsTask('list_loading_service', COVERAGE_OPTIONS)
 remove_images_task = fabrika.tasks.docker.RemoveImagesTask('list_loading_service')
 remove_containers_task = fabrika.tasks.docker.RemoveContainersTask('list_loading_service')
+
+test_in_container_task = ListLoadingServiceTestInContainerTask(
+    'list_loading_service', service_ready_endpoint='/_', service_ready_status=httplib.NOT_FOUND,
+    package_task=package_task)
 
 
 @task()

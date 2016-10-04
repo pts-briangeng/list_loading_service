@@ -2,20 +2,20 @@
 project: ListLoadService-RC
 wrapup: ProductionBuilds_ReleaseCandidates_ProdOffersServiceRc_WrapUpBuild
 buildSys: eBuild
-lastDeployed: 2697
+lastDeployed: 2970
 
 [Build_Request_Values]
 product: ListLoadService-RC
 target_environment: production
-# change_req_#: 731
+# change_req_#: 997
 
 [Change_Request_Values]
-summary: List Load Service - Bug Fixes
-description: Tickets Included in this release </br>DBGTLCP-2090 As Roz, I can an upload a 5 million user list within 50&#37; less time than today
+summary: List Load Service - Lists v2
+description: Tickets Included in this release </br>DBGTLCP-28 As Simone, I can append to a list on an offer. (API)</br>DBGTLCP-30 : As Simone, I can delete one or more members from the list without a new upload of a whole list. (API)
 approver: Ferdinand Cardoso
-deploy_date: 2016-07-19 10:00:00
+deploy_date: 2016-10-05 10:00:00
 build_instructions:
 qa_instructions:
 dba_instructions: None.
-ops_instructions: docker run -i -t -v /config/offers/production:/content/configuration rc-docker.points.com:80/list_loading_service_rc_deploy_rc:50 deploy-deployment-image.sh --fab-directory=/content/fabfile --environment=production --user={{user name}} --run-tests
-rollback_instructions: Please follow the deployment instructions of http://tor-build.points.com/ebuild/show_build.php?num=2697
+ops_instructions: docker run -i -t -v /config/offers/production:/content/configuration rc-docker.points.com:80/list_loading_service_rc_deploy_rc:51 deploy-deployment-image.sh --fab-directory=/content/fabfile --environment=production --user={{user name}} --run-tests
+rollback_instructions: Please follow the deployment instructions of http://tor-build.points.com/ebuild/show_build.php?num=2970

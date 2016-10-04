@@ -51,17 +51,6 @@ class ListsServiceIntegrationTest(base.BaseFullIntegrationTestCase):
         request_data = {'filePath': self._get_test_file('windows.csv')}
         asserts.assert_list_functionality(request_data, self.path_params, 9, self.headers)
 
-    def test_list_functionality_xlsx(self):
-        self.renamed_files = ['c7df9810-90bb-4597-a5ab-c41869bf72e0.xlsx']
-
-        path_params = copy.deepcopy(self.path_params)
-        path_params['list_id'] = 'c7df9810-90bb-4597-a5ab-c41869bf72e0'
-        path_params['member_id'] = u'آخر النهر'.encode('UTF-8')
-
-        request_data = {'filePath': self._get_test_file('accounts_list.xlsx')}
-
-        asserts.assert_list_functionality(request_data, path_params, 9, self.headers)
-
     def test_append_to_list(self):
         asserts.assert_append_to_list({'filePath': self._get_test_file('normal.csv')}, self.path_params, self.headers)
 
@@ -91,6 +80,17 @@ class ListsServiceIntegrationTest(base.BaseFullIntegrationTestCase):
 
         for list_request in list_requests:
             asserts.assert_list_functionality(*list_request, headers=self.headers, assert_create=False)
+
+    def test_list_functionality_xlsx(self):
+        self.renamed_files = ['c7df9810-90bb-4597-a5ab-c41869bf72e0.xlsx']
+
+        path_params = copy.deepcopy(self.path_params)
+        path_params['list_id'] = 'c7df9810-90bb-4597-a5ab-c41869bf72e0'
+        path_params['member_id'] = u'آخر النهر'.encode('UTF-8')
+
+        request_data = {'filePath': self._get_test_file('accounts_list.xlsx')}
+
+        asserts.assert_list_functionality(request_data, path_params, 9, self.headers)
 
     def _get_test_file(self, file_type):
         self.test_files.append(testing_utilities.copy_test_file(file_type))

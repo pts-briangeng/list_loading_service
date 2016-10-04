@@ -27,7 +27,7 @@ class CreateListPutResourceController(base.BaseListResourceController, controlle
 
     def process_request_model(self, request_model, **kwargs):
         request = models.Request(
-            action=operations.ElasticSearchPermittedOperations.CREATE, url=self.request_url,
+            action=operations.ElasticSearchPermittedOperations.INDEX, url=self.request_url,
             **dict(request_model, **kwargs))
         multiprocessing.Process(target=services.ElasticSearch().create_list, args=(request,)).start()
         return {}

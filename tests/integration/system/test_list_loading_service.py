@@ -106,7 +106,6 @@ class ListsServiceIntegrationTest(base.BaseFullIntegrationTestCase):
         }
 
         response = requests.delete(base.ListPaths.delete(**path_params), data=json.dumps({}), headers=self.headers)
-        response_content = response.json()
 
         tools.assert_equal(httplib.NOT_FOUND, response.status_code)
 

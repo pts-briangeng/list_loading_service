@@ -12,6 +12,10 @@ COUNT_LIST_ZERO_RESPONSE = {
     "count": 0
 }
 
+COUNT_LIST_ONE_RESPONSE = {
+    "count": 1
+}
+
 HTTP_RESPONSE = {
     "status_code": httplib.OK,
     "Content-Type": "application/json",
@@ -26,6 +30,11 @@ class CountListResponseJsonBuilder(base.BaseBuilder):
 
     def with_count_zero(self):
         list_status_response = copy.deepcopy(COUNT_LIST_ZERO_RESPONSE)
+        self.collection.append(list_status_response)
+        return self
+
+    def with_count_one(self):
+        list_status_response = copy.deepcopy(COUNT_LIST_ONE_RESPONSE)
         self.collection.append(list_status_response)
         return self
 

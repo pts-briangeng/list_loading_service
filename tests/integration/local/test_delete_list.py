@@ -63,3 +63,16 @@ class DeleteListEndpointTest(base.BaseIntegrationLiveStubServerTestCase):
         tools.assert_equal(httplib.ACCEPTED, response.status_code)
         tools.assert_in(base.ListPaths.delete(relative_url=True, **PATH_PARAMS), urls.self_link(response_content))
         tools.assert_true(response_content['acknowledged'])
+
+    def test_delete_list_with_count_initally_one(self):
+        self.queue_stub_response(builders.ESCountResponseBuilder().with_count_zero().http_response())
+        self.queue_stub_response(builders.ESCountResponseBuilder().with_count_one().http_response())
+        self.queue_stub_response(builders.ESDeleteResponseBuilder().with_ok_response().http_response())
+        response = requests.delete(base.ListPaths.delete(**PATH_PARAMS),
+                                   headers=self.headers,
+                                   data=json.dumps(self.data))
+        response_content = json.loads(response.content)
+
+        tools.assert_equal(httplib.ACCEPTED, response.status_code)
+        tools.assert_in(base.ListPaths.delete(relative_url=True, **PATH_PARAMS), urls.self_link(response_content))
+        tools.assert_true(response_content['acknowledged'])

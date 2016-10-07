@@ -2,6 +2,7 @@ import collections
 import httplib
 import logging
 import os
+import time
 
 from elasticsearch import helpers, exceptions
 
@@ -121,12 +122,83 @@ class ElasticSearchService(object):
         return {'success': success, 'failed': failed}
 
     @staticmethod
+    def delete_by_query(index, doc_type, **kargs):
+        elastic_search_client = kargs.get("client")
+        if elastic_search_client is None:
+            elastic_search_client = clients.ElasticSearchClient()
+
+        query = kargs.get("query", {"match_all": {}})
+
+        url = "/{}/{}/_query".format(index, doc_type)
+        status, result = elastic_search_client.transport.perform_request("DELETE", url, body={"query": query})
+
+        return (status, result)
+
+    @staticmethod
+    def poll_count(index, doc_type, **kargs):
+        elastic_search_client = kargs.get("client")
+        if elastic_search_client is None:
+            elastic_search_client = clients.ElasticSearchClient()
+
+        query = kargs.get("query", {"match_all": {}})
+        max_attempts = kargs.get("max_attempts", 3)
+        interval = kargs.get("interval", 5)
+        break_on_exception = kargs.get("break_on_exception", exceptions.NotFoundError)
+        break_on_count = kargs.get("break_on_count", 0)
+
+        if break_on_count is None:
+            raise ValueError("poll_count: break_on_count set to None")
+
+        try:
+            max_attempts = int(max_attempts)
+            if max_attempts < 1:
+                raise ValueError
+        except (ValueError, TypeError) as e:
+            raise ValueError("poll_count: max_attempts value '{}' is invalid", max_attempts)
+
+        try:
+            interval = int(interval)
+        except (ValueError, TypeError) as e:
+            interval = 0
+
+        count = None
+        err = None
+        for attempt in range(0, max_attempts):
+            err = None
+            try:
+                result = elastic_search_client.count(index=index, doc_type=doc_type, body={"query": query})
+                count = result.get("count")
+            except Exception as e:
+                err = e
+
+            if isinstance(err, exceptions.TransportError) and err.status_code == httplib.NOT_FOUND:
+                count = 0
+
+            if count == break_on_count or (
+               break_on_exception is not None and isinstance(err, break_on_exception)):
+                break
+
+            if attempt < max_attempts - 1 and interval > 0:
+                time.sleep(int(interval))
+
+        return (count, err)
+
+    @staticmethod
     def delete_list(request):
         try:
-            logger.info("Elastic Search is deleting index: {}, doc_type: {}".format(request.service, request.list_id))
-            elastic_search_client = clients.ElasticSearchClient()
-            result = elastic_search_client.indices.delete_mapping(index=request.service, doc_type=request.list_id)
-            logger.info("Elastic search delete response {}".format(result))
+            logger.info("Elastic Search is deleting /{}/{}".format(request.service, request.list_id))
+
+            client = clients.ElasticSearchClient()
+            status, result = ElasticSearchService.delete_by_query(request.service, request.list_id, client=client)
+            logger.info("Elastic search delete response {}: {}".format(status, result))
+
+            count, count_err = ElasticSearchService.poll_count(request.service, request.list_id, client=client)
+
+            if count != 0:
+                if count_err is not None:
+                    raise count_err
+                else:
+                    raise Exception("{} in /{}/{} after delete request", count, request.service, request.list_id)
         except exceptions.TransportError as e:
             if e.status_code == httplib.NOT_FOUND:
                 logger.warning("Elastic search delete request not found")
@@ -135,9 +207,7 @@ class ElasticSearchService(object):
                 logger.warning("Elastic search delete request exception: {}".format(e.info))
                 raise e
 
-        if not result.get('acknowledged', False):
-            logger.warning("Elastic search delete response not acknowledged successfully")
-            raise Exception
+        result["acknowledged"] = True
 
         return result
 

@@ -193,18 +193,22 @@ class TestElasticSearchService(base.BaseTestElasticSearchService):
     @mock.patch.object(clients, 'ElasticSearchClient', autospec=True)
     def test_delete_list(self, mock_elastic_search, mock_remove):
         mock_elastic_search.return_value = mock.MagicMock()
+        mock_result = (200, base.DELETE_BY_QUERY_RESPONSE_BODY)
+        mock_elastic_search.return_value.transport.perform_request.return_value = mock_result
+        mock_elastic_search.return_value.count.return_value = {"count": 0}
         request = models.Request(**self.data)
 
         self.service.delete_list(request)
 
-        mock_elastic_search.return_value.indices.delete_mapping.assert_called_once_with(
-            doc_type='id', index='service')
+        mock_elastic_search.return_value.transport.perform_request.assert_called_once_with(
+            'DELETE', '/service/id/_query', body={'query': {'match_all': {}}})
 
     @tools.raises(LookupError)
     @mock.patch.object(clients, 'ElasticSearchClient', autospec=True)
-    def test_delete_list_not_found(self, mock_elastic_search):
+    def test_delete_list_index_not_found(self, mock_elastic_search):
         mock_elastic_search.return_value = mock.MagicMock()
-        mock_elastic_search.return_value.indices.delete_mapping.side_effect = base.NOT_FOUND_EXCEPTION
+        mock_elastic_search.return_value.transport.perform_request.side_effect = base.NOT_FOUND_EXCEPTION
+        mock_elastic_search.return_value.count.return_value = {"count": 0}
         request = models.Request(**self.data)
 
         self.service.delete_list(request)
@@ -214,7 +218,9 @@ class TestElasticSearchService(base.BaseTestElasticSearchService):
     @mock.patch.object(clients, 'ElasticSearchClient', autospec=True)
     def test_delete_list_general_error(self, mock_elastic_search, mock_remove):
         mock_elastic_search.return_value = mock.MagicMock()
-        mock_elastic_search.return_value.indices.delete_mapping.side_effect = base.INTERNAL_SERVER_ERROR_EXCEPTION
+        mock_result = (200, base.DELETE_BY_QUERY_RESPONSE_BODY)
+        mock_elastic_search.return_value.transport.perform_request.return_value = mock_result
+        mock_elastic_search.return_value.transport.perform_request.side_effect = base.INTERNAL_SERVER_ERROR_EXCEPTION
         request = models.Request(**self.data)
 
         self.service.delete_list(request)
@@ -230,18 +236,6 @@ class TestElasticSearchService(base.BaseTestElasticSearchService):
         request = models.Request(**self.data)
 
         self.service.delete_list(request)
-
-    @mock.patch.object(os, 'remove')
-    @mock.patch.object(clients, 'ElasticSearchClient', autospec=True)
-    def test_delete_list_os_raises_exception(self, mock_elastic_search, mock_remove):
-        mock_elastic_search.return_value = mock.MagicMock()
-        request = models.Request(**self.data)
-        mock_remove.side_effect = OSError
-
-        self.service.delete_list(request)
-
-        mock_elastic_search.return_value.indices.delete_mapping.assert_called_once_with(
-            doc_type='id', index='service')
 
     @mock.patch.object(clients, 'ElasticSearchClient', autospec=True)
     def test_list_status(self, mock_elastic_search):
@@ -324,3 +318,83 @@ class TestElasticSearchService(base.BaseTestElasticSearchService):
         mock_bulk_reader_get.get.return_value = mock_csv_reader
 
         self.service.modify_list_members(request)
+
+    @mock.patch.object(clients, 'ElasticSearchClient', autospec=True)
+    def test_list_delete_index_not_found_in_count(self, mock_elastic_search):
+        mock_elastic_search.return_value = mock.MagicMock()
+        request = models.Request(**self.data)
+
+        mock_result = (200, base.DELETE_BY_QUERY_RESPONSE_BODY)
+        mock_elastic_search.return_value.transport.perform_request.return_value = mock_result
+        mock_elastic_search.return_value.count.side_effect = base.NOT_FOUND_EXCEPTION
+
+        self.service.delete_list(request)
+
+        mock_elastic_search.return_value.count.assert_called_once()
+
+    @mock.patch.object(clients, 'ElasticSearchClient', autospec=True)
+    @tools.raises(exceptions.TransportError)
+    def test_count_raises_general_error(self, mock_elastic_search):
+        mock_elastic_search.return_value = mock.MagicMock()
+        request = models.Request(**self.data)
+
+        mock_result = (200, base.DELETE_BY_QUERY_RESPONSE_BODY)
+        mock_elastic_search.return_value.transport.perform_request.return_value = mock_result
+        mock_elastic_search.return_value.count.side_effect = base.INTERNAL_SERVER_ERROR_EXCEPTION
+
+        self.service.delete_list(request)
+
+    @mock.patch.object(clients, 'ElasticSearchClient', autospec=True)
+    @tools.raises(Exception)
+    def test_documents_remain_after_list_delete(self, mock_elastic_search):
+        mock_elastic_search.return_value = mock.MagicMock()
+        request = models.Request(**self.data)
+
+        mock_result = (200, base.DELETE_BY_QUERY_RESPONSE_BODY)
+        mock_elastic_search.return_value.transport.perform_request.return_value = mock_result
+        mock_elastic_search.return_value.count.return_value = {"count": 1}
+
+        self.service.delete_list(request)
+
+    @mock.patch.object(clients, 'ElasticSearchClient', autospec=True)
+    @tools.raises(ValueError)
+    def test_poll_count_no_breaking_count_raises_exception(self, mock_elastic_search):
+        mock_elastic_search.return_value = mock.MagicMock()
+        request = models.Request(**self.data)
+
+        count, count_err = self.service.poll_count(index=request.service, doc_type=request.list_id, break_on_count=None)
+
+    @mock.patch.object(clients, 'ElasticSearchClient', autospec=True)
+    def test_poll_count_does_not_reach_breaking_count(self, mock_elastic_search):
+        mock_elastic_search.return_value = mock.MagicMock()
+        request = models.Request(**self.data)
+
+        mock_elastic_search.return_value.count.return_value = {"count": 1}
+
+        count, count_err = self.service.poll_count(index=request.service, doc_type=request.list_id)
+
+        tools.assert_equal(len(mock_elastic_search.return_value.count.mock_calls), 3)
+        tools.assert_equal(count, 1)
+
+    @mock.patch.object(clients, 'ElasticSearchClient', autospec=True)
+    @tools.raises(ValueError)
+    def test_poll_count_max_attempts_none(self, mock_elastic_search):
+        mock_elastic_search.return_value = mock.MagicMock()
+        request = models.Request(**self.data)
+
+        count, count_err = self.service.poll_count(index=request.service, doc_type=request.list_id, max_attempts=None)
+
+    @mock.patch.object(clients, 'ElasticSearchClient', autospec=True)
+    @tools.raises(ValueError)
+    def test_poll_count_max_attempts_negative(self, mock_elastic_search):
+        mock_elastic_search.return_value = mock.MagicMock()
+        request = models.Request(**self.data)
+
+        count, count_err = self.service.poll_count(index=request.service, doc_type=request.list_id, max_attempts=-1)
+
+    @mock.patch.object(clients, 'ElasticSearchClient', autospec=True)
+    def test_poll_count_interval_invalid(self, mock_elastic_search):
+        mock_elastic_search.return_value = mock.MagicMock()
+        request = models.Request(**self.data)
+
+        count, count_err = self.service.poll_count(index=request.service, doc_type=request.list_id, interval=None)

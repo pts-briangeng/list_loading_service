@@ -3,21 +3,13 @@ import httplib
 
 from tests.builders import base
 
-DELETE_LIST_OK_RESPONSE = {
-  "_indices": {
-    "offers": {
-      "_shards": {
-        "total": 5,
-        "successful": 5,
-        "failed": 0
-      }
-    }
-  }
+COUNT_LIST_ERROR_RESPONSE = {
+    "error": "IndexMissingException[[offers] missing]",
+    "status": 404
 }
 
-DELETE_LIST_ERROR_RESPONSE = {
-    "error": "TypeMissingException[[_all] type[[test]] missing: No index has the type.]",
-    "status": 404
+COUNT_LIST_ZERO_RESPONSE = {
+    "count": 0
 }
 
 HTTP_RESPONSE = {
@@ -28,17 +20,17 @@ HTTP_RESPONSE = {
 }
 
 
-class DeleteListResponseJsonBuilder(base.BaseBuilder):
+class CountListResponseJsonBuilder(base.BaseBuilder):
     def __init__(self):
-        super(DeleteListResponseJsonBuilder, self).__init__()
+        super(CountListResponseJsonBuilder, self).__init__()
 
-    def with_ok_response(self):
-        list_status_response = copy.deepcopy(DELETE_LIST_OK_RESPONSE)
+    def with_count_zero(self):
+        list_status_response = copy.deepcopy(COUNT_LIST_ZERO_RESPONSE)
         self.collection.append(list_status_response)
         return self
 
     def with_error_response(self):
-        list_status_response = copy.deepcopy(DELETE_LIST_ERROR_RESPONSE)
+        list_status_response = copy.deepcopy(COUNT_LIST_ERROR_RESPONSE)
         self.collection.append(list_status_response)
         return self
 

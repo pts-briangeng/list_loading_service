@@ -96,7 +96,7 @@ class ListsServiceIntegrationTest(base.BaseFullIntegrationTestCase):
         request_data = {'filePath': self._get_test_file('accounts_list.xlsx')}
 
         asserts.assert_list_functionality(request_data, path_params, 9, self.headers)
-        
+
     def test_delete_list_index_does_not_exist(self):
         path_params = {
             'base_url': 'http://0.0.0.0:5000',

@@ -77,7 +77,7 @@ class TestDeleteListResourceController(unittest.TestCase):
     def test_delete(self, mock_url_for, mock_service):
         app = flask.Flask(__name__)
         mock_service.return_value.delete_list.return_value = (builders.ESDeleteResponseBuilder()
-                                                              .with_acknowledged_response().http_response()['response'])
+                                                              .with_ok_response().http_response()['response'])
         with app.test_request_context('/index/app/type/6d04bd2d-da75-420f-a52a-d2ffa0c48c42',
                                       method='DELETE',
                                       headers=Headers(test_sandbox_headers),

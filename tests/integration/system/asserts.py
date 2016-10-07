@@ -77,11 +77,6 @@ def assert_deleted_list_cannot_be_accessed(path_params, headers):
     tools.assert_equal(httplib.NOT_FOUND, response.status_code)
 
 
-def assert_deleted_list_cannot_be_deleted(path_params, headers):
-    response = requests.delete(base.ListPaths.delete(**path_params), data=json.dumps({}), headers=headers)
-    tools.assert_equal(httplib.NOT_FOUND, response.status_code)
-
-
 @backoff.on_exception(backoff.expo, AssertionError, max_tries=10)
 def assert_list_functionality(request_data, path_params, accounts_count, headers, assert_create=True):
 
@@ -93,4 +88,3 @@ def assert_list_functionality(request_data, path_params, accounts_count, headers
     assert_member_not_found_in_list(path_params, headers)
     assert_list_delete(path_params, headers)
     assert_deleted_list_cannot_be_accessed(path_params, headers)
-    assert_deleted_list_cannot_be_deleted(path_params, headers)

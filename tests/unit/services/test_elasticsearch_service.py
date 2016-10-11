@@ -362,7 +362,8 @@ class TestElasticSearchService(base.BaseTestElasticSearchService):
         mock_elastic_search.return_value = mock.MagicMock()
         request = models.Request(**self.data)
 
-        count, count_err = self.service.poll_count(request.service, request.list_id, None, break_on_count=None)
+        client = clients.ElasticSearchClient()
+        self.service._ElasticSearchService__poll_count(request.service, request.list_id, client, break_on_count=None)
 
     @mock.patch.object(clients, 'ElasticSearchClient', autospec=True)
     def test_poll_count_does_not_reach_breaking_count(self, mock_elastic_search):
@@ -371,26 +372,29 @@ class TestElasticSearchService(base.BaseTestElasticSearchService):
 
         mock_elastic_search.return_value.count.return_value = {"count": 1}
 
-        count = self.service.poll_count(request.service, request.list_id, None)
+        client = clients.ElasticSearchClient()
+        count = self.service._ElasticSearchService__poll_count(request.service, request.list_id, client)
 
         tools.assert_equal(len(mock_elastic_search.return_value.count.mock_calls), 3)
         tools.assert_equal(count, 1)
 
     @mock.patch.object(clients, 'ElasticSearchClient', autospec=True)
     @tools.raises(app_exceptions.PollCountException)
-    def test_poll_count_max_attempts_none(self, mock_elastic_search):
+    def test_poll_count_max_tries_none(self, mock_elastic_search):
         mock_elastic_search.return_value = mock.MagicMock()
         request = models.Request(**self.data)
 
-        self.service.poll_count(request.service, request.list_id, None, max_attempts=None)
+        client = clients.ElasticSearchClient()
+        self.service._ElasticSearchService__poll_count(request.service, request.list_id, client, max_tries=None)
 
     @mock.patch.object(clients, 'ElasticSearchClient', autospec=True)
     @tools.raises(app_exceptions.PollCountException)
-    def test_poll_count_max_attempts_negative(self, mock_elastic_search):
+    def test_poll_count_max_tries_negative(self, mock_elastic_search):
         mock_elastic_search.return_value = mock.MagicMock()
         request = models.Request(**self.data)
 
-        self.service.poll_count(request.service, request.list_id, None, max_attempts=-1)
+        client = clients.ElasticSearchClient()
+        self.service._ElasticSearchService__poll_count(request.service, request.list_id, client, max_tries=-1)
 
     @mock.patch.object(clients, 'ElasticSearchClient', autospec=True)
     @tools.raises(app_exceptions.PollCountException)
@@ -398,4 +402,5 @@ class TestElasticSearchService(base.BaseTestElasticSearchService):
         mock_elastic_search.return_value = mock.MagicMock()
         request = models.Request(**self.data)
 
-        self.service.poll_count(request.service, request.list_id, None, interval=None)
+        client = clients.ElasticSearchClient()
+        self.service._ElasticSearchService__poll_count(request.service, request.list_id, client, interval=None)

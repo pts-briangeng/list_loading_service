@@ -29,7 +29,7 @@ class DeleteListEndpointTest(base.BaseIntegrationLiveStubServerTestCase):
         self.data = {}
 
     def test_delete_list(self):
-        self.queue_stub_response(builders.ESCountResponseBuilder().with_count_zero().http_response())
+        self.queue_stub_response(builders.ESCountResponseBuilder().with_count(0).http_response())
         self.queue_stub_response(builders.ESDeleteResponseBuilder().with_ok_response().http_response())
         response = requests.delete(base.ListPaths.delete(**PATH_PARAMS),
                                    headers=self.headers,
@@ -65,8 +65,8 @@ class DeleteListEndpointTest(base.BaseIntegrationLiveStubServerTestCase):
         tools.assert_true(response_content['acknowledged'])
 
     def test_delete_list_with_count_initally_one(self):
-        self.queue_stub_response(builders.ESCountResponseBuilder().with_count_zero().http_response())
-        self.queue_stub_response(builders.ESCountResponseBuilder().with_count_one().http_response())
+        self.queue_stub_response(builders.ESCountResponseBuilder().with_count(0).http_response())
+        self.queue_stub_response(builders.ESCountResponseBuilder().with_count(1).http_response())
         self.queue_stub_response(builders.ESDeleteResponseBuilder().with_ok_response().http_response())
         response = requests.delete(base.ListPaths.delete(**PATH_PARAMS),
                                    headers=self.headers,

@@ -29,8 +29,6 @@ HTTP_RESPONSE = {
 
 
 class DeleteListResponseJsonBuilder(base.BaseBuilder):
-    def __init__(self):
-        super(DeleteListResponseJsonBuilder, self).__init__()
 
     def with_ok_response(self):
         list_status_response = copy.deepcopy(DELETE_LIST_OK_RESPONSE)

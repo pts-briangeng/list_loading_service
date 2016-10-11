@@ -8,14 +8,6 @@ COUNT_LIST_ERROR_RESPONSE = {
     "status": 404
 }
 
-COUNT_LIST_ZERO_RESPONSE = {
-    "count": 0
-}
-
-COUNT_LIST_ONE_RESPONSE = {
-    "count": 1
-}
-
 HTTP_RESPONSE = {
     "status_code": httplib.OK,
     "Content-Type": "application/json",
@@ -25,16 +17,10 @@ HTTP_RESPONSE = {
 
 
 class CountListResponseJsonBuilder(base.BaseBuilder):
-    def __init__(self):
-        super(CountListResponseJsonBuilder, self).__init__()
-
-    def with_count_zero(self):
-        list_status_response = copy.deepcopy(COUNT_LIST_ZERO_RESPONSE)
-        self.collection.append(list_status_response)
-        return self
-
-    def with_count_one(self):
-        list_status_response = copy.deepcopy(COUNT_LIST_ONE_RESPONSE)
+    def with_count(self, count=0):
+        list_status_response = copy.deepcopy({
+            "count": count
+        })
         self.collection.append(list_status_response)
         return self
 

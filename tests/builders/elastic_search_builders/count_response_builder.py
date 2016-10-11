@@ -43,7 +43,7 @@ class CountListResponseJsonBuilder(base.BaseBuilder):
         self.collection.append(list_status_response)
         return self
 
-    def build(self, with_errors):
+    def build(self):
         return self.collection
 
     def http_response(self):

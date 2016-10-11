@@ -122,66 +122,47 @@ class ElasticSearchService(object):
         return {'success': success, 'failed': failed}
 
     @staticmethod
-    def delete_by_query(index, doc_type, **kargs):
-        elastic_search_client = kargs.get("client")
-        if elastic_search_client is None:
-            elastic_search_client = clients.ElasticSearchClient()
-
-        query = kargs.get("query", {"match_all": {}})
+    def delete_by_query(index, doc_type, client, query={"match_all": {}}):
+        client = client or clients.ElasticSearchClient()
 
         url = "/{}/{}/_query".format(index, doc_type)
-        status, result = elastic_search_client.transport.perform_request("DELETE", url, body={"query": query})
+        status, result = client.transport.perform_request("DELETE", url, body={"query": query})
 
         return (status, result)
 
     @staticmethod
-    def poll_count(index, doc_type, **kargs):
-        elastic_search_client = kargs.get("client")
-        if elastic_search_client is None:
-            elastic_search_client = clients.ElasticSearchClient()
+    def poll_count(index, doc_type, client, query={"match_all": {}}, max_attempts=3, interval=5, break_on_count=0):
+        client = client or clients.ElasticSearchClient()
 
-        query = kargs.get("query", {"match_all": {}})
-        max_attempts = kargs.get("max_attempts", 3)
-        interval = kargs.get("interval", 5)
-        break_on_exception = kargs.get("break_on_exception", exceptions.NotFoundError)
-        break_on_count = kargs.get("break_on_count", 0)
+        if break_on_count is None or break_on_count < 0:
+            raise app_exceptions.PollCountException("break_on_count value '{}' invalid".format(break_on_count))
 
-        if break_on_count is None:
-            raise ValueError("poll_count: break_on_count set to None")
+        if max_attempts < 1:
+            raise app_exceptions.PollCountException("max_attempts value '{}' invalid".format(max_attempts))
 
-        try:
-            max_attempts = int(max_attempts)
-            if max_attempts < 1:
-                raise ValueError
-        except (ValueError, TypeError) as e:
-            raise ValueError("poll_count: max_attempts value '{}' is invalid", max_attempts)
-
-        try:
-            interval = int(interval)
-        except (ValueError, TypeError) as e:
-            interval = 0
+        if interval < 0:
+            raise app_exceptions.PollCountException("interval value '{}' invalid".format(max_attempts))
 
         count = None
-        err = None
         for attempt in range(0, max_attempts):
-            err = None
             try:
-                result = elastic_search_client.count(index=index, doc_type=doc_type, body={"query": query})
+                result = client.count(index=index, doc_type=doc_type, body={"query": query})
                 count = result.get("count")
-            except Exception as e:
-                err = e
+            except exceptions.TransportError as e:
+                if e.status_code == httplib.NOT_FOUND:
+                    # Index does not exist, so we know the count is 0
+                    count = 0
+                elif attempt == max_attempts - 1:
+                    # If this is the last attempt, raise the error
+                    raise
 
-            if isinstance(err, exceptions.TransportError) and err.status_code == httplib.NOT_FOUND:
-                count = 0
-
-            if count == break_on_count or (
-               break_on_exception is not None and isinstance(err, break_on_exception)):
+            if count == break_on_count:
                 break
 
-            if attempt < max_attempts - 1 and interval > 0:
-                time.sleep(int(interval))
+            if attempt < (max_attempts - 1) and interval:
+                time.sleep(interval)
 
-        return (count, err)
+        return count
 
     @staticmethod
     def delete_list(request):
@@ -189,16 +170,13 @@ class ElasticSearchService(object):
             logger.info("Elastic Search is deleting /{}/{}".format(request.service, request.list_id))
 
             client = clients.ElasticSearchClient()
-            status, result = ElasticSearchService.delete_by_query(request.service, request.list_id, client=client)
+            status, result = ElasticSearchService.delete_by_query(request.service, request.list_id, client)
             logger.info("Elastic search delete response {}: {}".format(status, result))
 
-            count, count_err = ElasticSearchService.poll_count(request.service, request.list_id, client=client)
-
-            if count != 0:
-                if count_err is not None:
-                    raise count_err
-                else:
-                    raise Exception("{} in /{}/{} after delete request", count, request.service, request.list_id)
+            count = ElasticSearchService.poll_count(request.service, request.list_id, client)
+            if count:
+                # Count is positive
+                raise app_exceptions.PollCountException("There are {} lists of the given index and type".format(count))
         except exceptions.TransportError as e:
             if e.status_code == httplib.NOT_FOUND:
                 logger.warning("Elastic search delete request not found")

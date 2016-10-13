@@ -42,6 +42,7 @@ class _ElasticSearchDocument(object):
 
 
 class ElasticSearchService(object):
+
     @staticmethod
     @decorators.elastic_search_callback
     @decorators.upload_cleanup
@@ -141,30 +142,21 @@ class ElasticSearchService(object):
 
         if break_on_count is None or break_on_count < 0:
             raise app_exceptions.PollCountException("break_on_count value '{}' invalid".format(break_on_count))
-
         if max_tries < 1:
             raise app_exceptions.PollCountException("max_tries value '{}' invalid".format(max_tries))
-
         if interval < 0:
             raise app_exceptions.PollCountException("interval value '{}' invalid".format(interval))
 
-        ElasticSearchService.__poll_count.count = None
-
-        def check_count(count):
-            return count != break_on_count
-
-        @backoff.on_predicate(backoff.constant, check_count, max_tries=max_tries, interval=interval)
+        @backoff.on_predicate(
+            backoff.constant, lambda count: count != break_on_count, max_tries=max_tries, interval=interval)
         def call_count():
             try:
                 result = client.count(index=index, doc_type=doc_type, body={"query": query})
                 return result.get("count")
             except exceptions.TransportError as e:
                 if e.status_code == httplib.NOT_FOUND:
-                    # If the index was not found, we know the count is 0
-                    return 0
-                else:
-                    raise
-
+                    return 0  # If the index was not found, we know the count is 0
+                raise
         return call_count()
 
     @staticmethod

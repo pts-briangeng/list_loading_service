@@ -17,7 +17,7 @@ PyYAML==3.12
 requests==2.11.1
 
 # Internal Points Libraries
-fabrika==4.0.0
+fabrika==4.0.1
 liblcp==11.6.0
 requestswrapper==1.0.3
 restframework==3.0.0

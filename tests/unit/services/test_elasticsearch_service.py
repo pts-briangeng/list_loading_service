@@ -149,8 +149,8 @@ class TestElasticSearchService(base.BaseTestElasticSearchService):
 
         self.service.create_list(request)
 
-        mock_logger.assert_has_calls(mock.call('An error occurred when creating a new list: File '
-                                               '/content/list_upload/file.csv does not exist!'))
+        mock_logger.assert_has_calls([mock.call('An error occurred when creating a new list: File '
+                                                '/content/list_upload/file.csv does not exist!')])
         self._assert_callback(mock_requests_wrapper_post, False, "File /content/list_upload/file.csv does not exist!")
 
     @mock.patch.object(__builtin__, 'open', autospec=True)
@@ -166,8 +166,8 @@ class TestElasticSearchService(base.BaseTestElasticSearchService):
 
         self.service.create_list(request)
 
-        mock_logger.assert_has_calls(mock.call('An error occurred when creating a new list: File '
-                                               '/content/list_upload/file.csv is empty!'))
+        mock_logger.assert_has_calls([mock.call('An error occurred when creating a new list: File '
+                                                '/content/list_upload/file.csv is empty!')])
         self._assert_callback(mock_requests_wrapper_post, False)
 
     @mock.patch.object(decorators.logger, 'error', autospec=True)
@@ -185,30 +185,28 @@ class TestElasticSearchService(base.BaseTestElasticSearchService):
 
         self.service.create_list(request)
 
-        mock_logger.assert_has_calls(mock.call('An error occurred when creating a new list: File '
-                                               '/content/list_upload/file.xlsx is empty!'))
+        mock_logger.assert_has_calls([mock.call('An error occurred when creating a new list: File '
+                                                '/content/list_upload/file.xlsx is empty!')])
         self._assert_callback(mock_requests_wrapper_post, False, "File /content/list_upload/file.xlsx is empty!")
 
     @mock.patch.object(os, 'remove')
     @mock.patch.object(clients, 'ElasticSearchClient', autospec=True)
     def test_delete_list(self, mock_elastic_search, mock_remove):
-        mock_elastic_search.return_value = mock.MagicMock()
-        mock_result = (200, base.DELETE_BY_QUERY_RESPONSE_BODY)
-        mock_elastic_search.return_value.transport.perform_request.return_value = mock_result
-        mock_elastic_search.return_value.count.return_value = {"count": 0}
+        mock_elastic_search = mock_elastic_search.return_value
+        mock_elastic_search.delete_by_query.return_value = base.DELETE_BY_QUERY_RESPONSE_BODY
+        mock_elastic_search.count.return_value = {"count": 0}
         request = models.Request(**self.data)
 
         self.service.delete_list(request)
 
-        mock_elastic_search.return_value.transport.perform_request.assert_called_once_with(
-            'DELETE', '/service/id/_query', body={'query': {'match_all': {}}})
+        mock_elastic_search.delete_by_query.assert_called_once_with('service', 'id', body={'query': {'match_all': {}}})
 
     @tools.raises(LookupError)
     @mock.patch.object(clients, 'ElasticSearchClient', autospec=True)
     def test_delete_list_index_not_found(self, mock_elastic_search):
-        mock_elastic_search.return_value = mock.MagicMock()
-        mock_elastic_search.return_value.transport.perform_request.side_effect = base.NOT_FOUND_EXCEPTION
-        mock_elastic_search.return_value.count.return_value = {"count": 0}
+        mock_elastic_search = mock_elastic_search.return_value
+        mock_elastic_search.delete_by_query.side_effect = base.NOT_FOUND_EXCEPTION
+        mock_elastic_search.count.return_value = {"count": 0}
         request = models.Request(**self.data)
 
         self.service.delete_list(request)
@@ -217,10 +215,8 @@ class TestElasticSearchService(base.BaseTestElasticSearchService):
     @mock.patch.object(os, 'remove')
     @mock.patch.object(clients, 'ElasticSearchClient', autospec=True)
     def test_delete_list_general_error(self, mock_elastic_search, mock_remove):
-        mock_elastic_search.return_value = mock.MagicMock()
-        mock_result = (200, base.DELETE_BY_QUERY_RESPONSE_BODY)
-        mock_elastic_search.return_value.transport.perform_request.return_value = mock_result
-        mock_elastic_search.return_value.transport.perform_request.side_effect = base.INTERNAL_SERVER_ERROR_EXCEPTION
+        mock_elastic_search = mock_elastic_search.return_value
+        mock_elastic_search.delete_by_query.side_effect = base.INTERNAL_SERVER_ERROR_EXCEPTION
         request = models.Request(**self.data)
 
         self.service.delete_list(request)
@@ -230,9 +226,9 @@ class TestElasticSearchService(base.BaseTestElasticSearchService):
     @tools.raises(Exception)
     @mock.patch.object(clients, 'ElasticSearchClient', autospec=True)
     def test_delete_list_not_acknowledged(self, mock_elastic_search):
-        mock_elastic_search.return_value = mock.MagicMock()
-        mock_elastic_search.return_value.indices.delete_mapping.return_value = (
-            builders.ESDeleteResponseBuilder().with_unacknowledged_response().http_response()['response'])
+        mock_elastic_search = mock_elastic_search.return_value
+        mock_elastic_search.indices.delete_mapping.return_value = (
+            builders.ESDeleteResponseBuilder().with_error_response().http_response()['response'])
         request = models.Request(**self.data)
 
         self.service.delete_list(request)

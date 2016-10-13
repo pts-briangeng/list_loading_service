@@ -123,13 +123,6 @@ class ElasticSearchService(object):
         return {'success': success, 'failed': failed}
 
     @staticmethod
-    @decorators.elastic_search_query_params('query')
-    def __delete_by_query(index, doc_type, client, **kwargs):
-        query = kwargs.get('query', {"match_all": {}})
-        return client.transport.perform_request(
-            "DELETE", "/{}/{}/_query".format(index, doc_type), body={"query": query})
-
-    @staticmethod
     @decorators.elastic_search_query_params('query', 'max_tries', 'interval', 'break_on_count')
     def __poll_count(index, doc_type, client, **kwargs):
         query = kwargs.get('query', {"match_all": {}})
@@ -162,8 +155,8 @@ class ElasticSearchService(object):
             logger.info("Elastic Search is deleting /{}/{}".format(request.service, request.list_id))
 
             client = clients.ElasticSearchClient()
-            status, result = ElasticSearchService.__delete_by_query(request.service, request.list_id, client)
-            logger.info("Elastic search delete response {}: {}".format(status, result))
+            result = client.delete_by_query(request.service, request.list_id, body={"query": {"match_all": {}}})
+            logger.info("Elastic search delete response: {}".format(result))
 
             count = ElasticSearchService.__poll_count(request.service, request.list_id, client)
             if count:

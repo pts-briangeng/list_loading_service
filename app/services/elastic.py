@@ -126,11 +126,8 @@ class ElasticSearchService(object):
     @decorators.elastic_search_query_params('query')
     def __delete_by_query(index, doc_type, client, **kwargs):
         query = kwargs.get('query', {"match_all": {}})
-
-        url = "/{}/{}/_query".format(index, doc_type)
-        status, result = client.transport.perform_request("DELETE", url, body={"query": query})
-
-        return (status, result)
+        return client.transport.perform_request(
+            "DELETE", "/{}/{}/_query".format(index, doc_type), body={"query": query})
 
     @staticmethod
     @decorators.elastic_search_query_params('query', 'max_tries', 'interval', 'break_on_count')
@@ -170,18 +167,17 @@ class ElasticSearchService(object):
 
             count = ElasticSearchService.__poll_count(request.service, request.list_id, client)
             if count:
-                # Count is positive
-                raise app_exceptions.PollCountException("There are {} lists of the given index and type".format(count))
+                raise app_exceptions.PollCountException(
+                    "There are '{}' account numbers present in the given index '{}' and type '{}'".format(
+                        count, request.service, request.list_id))
         except exceptions.TransportError as e:
             if e.status_code == httplib.NOT_FOUND:
                 logger.warning("Elastic search delete request not found")
                 raise LookupError
-            else:
-                logger.warning("Elastic search delete request exception: {}".format(e.info))
-                raise e
+            logger.warning("Elastic search delete request exception: {}".format(e.info))
+            raise e
 
         result["acknowledged"] = True
-
         return result
 
     @staticmethod

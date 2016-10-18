@@ -3,6 +3,11 @@ import httplib
 from restframework import errors
 
 
+class PollCountException(Exception):
+    def __init__(self, message):
+        self.message = message
+
+
 class TooManyAccountsSpecifiedError(Exception):
 
     """ There are too many accounts specified. """

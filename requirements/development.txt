@@ -13,5 +13,5 @@ nose-parallel==0.2.0
 nose==1.3.7
 
 # Internal Points Libraries
-lcpenv==3.13.2
+lcpenv==3.13.3
 teamcity-messages==1.20

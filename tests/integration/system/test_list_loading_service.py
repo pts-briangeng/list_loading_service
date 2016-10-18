@@ -8,6 +8,11 @@ from nose.plugins import attrib
 from tests.integration import base, testing_utilities
 from tests.integration.system import asserts
 
+import json
+import httplib
+import requests
+from nose import tools
+
 
 @attrib.attr('system_integration')
 class ListsServiceIntegrationTest(base.BaseFullIntegrationTestCase):
@@ -91,6 +96,18 @@ class ListsServiceIntegrationTest(base.BaseFullIntegrationTestCase):
         request_data = {'filePath': self._get_test_file('accounts_list.xlsx')}
 
         asserts.assert_list_functionality(request_data, path_params, 9, self.headers)
+
+    def test_delete_list_index_does_not_exist(self):
+        path_params = {
+            'base_url': 'http://0.0.0.0:5000',
+            'service': 'nonexistentindex',
+            'list_id': 'edaa3541-7376-4eb3-8047-aaf78af900da',
+            'member_id': 'dff85334-2af5-492c-827d-efb7c98b2917'
+        }
+
+        response = requests.delete(base.ListPaths.delete(**path_params), data=json.dumps({}), headers=self.headers)
+
+        tools.assert_equal(httplib.NOT_FOUND, response.status_code)
 
     def _get_test_file(self, file_type):
         self.test_files.append(testing_utilities.copy_test_file(file_type))

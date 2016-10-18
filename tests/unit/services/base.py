@@ -34,6 +34,19 @@ INTERNAL_SERVER_ERROR_EXCEPTION = exceptions.TransportError(httplib.INTERNAL_SER
                                                             })
 
 
+DELETE_BY_QUERY_RESPONSE_BODY = {
+                                  "_indices": {
+                                    "service": {
+                                      "_shards": {
+                                        "total": 5,
+                                        "successful": 5,
+                                        "failed": 0
+                                      }
+                                    }
+                                  }
+                                }
+
+
 class BaseTestElasticSearchService(unittest.TestCase):
 
     def setUp(self):

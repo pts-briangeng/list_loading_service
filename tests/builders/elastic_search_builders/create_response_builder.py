@@ -15,9 +15,6 @@ HTTP_RESPONSE = {
 
 class CreateListResponseJsonBuilder(base.BaseBuilder):
 
-    def _init_(self):
-        super(CreateListResponseJsonBuilder, self).__init__()
-
     def with_items(self, **data):
         response = base.mock_json(copy.deepcopy(RESPONSE), **data)
         response['items'] = []

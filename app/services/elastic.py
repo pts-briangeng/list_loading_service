@@ -9,6 +9,8 @@ import configuration
 from app import exceptions as app_exceptions, operations
 from app.services import clients, readers, decorators
 
+import backoff
+
 logger = logging.getLogger(__name__)
 
 
@@ -121,24 +123,54 @@ class ElasticSearchService(object):
         return {'success': success, 'failed': failed}
 
     @staticmethod
+    @decorators.elastic_search_query_params('query', 'max_tries', 'interval', 'break_on_count')
+    def __poll_count(index, doc_type, client, **kwargs):
+        query = kwargs.get('query', {"match_all": {}})
+        max_tries = kwargs.get('max_tries', 3)
+        interval = kwargs.get('interval', 5)
+        break_on_count = kwargs.get('break_on_count', 0)
+
+        if break_on_count is None or break_on_count < 0:
+            raise app_exceptions.PollCountException("break_on_count value '{}' invalid".format(break_on_count))
+        if max_tries < 1:
+            raise app_exceptions.PollCountException("max_tries value '{}' invalid".format(max_tries))
+        if interval < 0:
+            raise app_exceptions.PollCountException("interval value '{}' invalid".format(interval))
+
+        @backoff.on_predicate(
+            backoff.constant, lambda count: count != break_on_count, max_tries=max_tries, interval=interval)
+        def call_count():
+            try:
+                result = client.count(index=index, doc_type=doc_type, body={"query": query})
+                return result.get("count")
+            except exceptions.TransportError as e:
+                if e.status_code == httplib.NOT_FOUND:
+                    return 0  # If the index was not found, we know the count is 0
+                raise
+        return call_count()
+
+    @staticmethod
     def delete_list(request):
         try:
-            logger.info("Elastic Search is deleting index: {}, doc_type: {}".format(request.service, request.list_id))
-            elastic_search_client = clients.ElasticSearchClient()
-            result = elastic_search_client.indices.delete_mapping(index=request.service, doc_type=request.list_id)
-            logger.info("Elastic search delete response {}".format(result))
+            logger.info("Elastic Search is deleting /{}/{}".format(request.service, request.list_id))
+
+            client = clients.ElasticSearchClient()
+            result = client.delete_by_query(request.service, request.list_id, body={"query": {"match_all": {}}})
+            logger.info("Elastic search delete response: {}".format(result))
+
+            count = ElasticSearchService.__poll_count(request.service, request.list_id, client)
+            if count:
+                raise app_exceptions.PollCountException(
+                    "There are '{}' account numbers present in the given index '{}' and type '{}'".format(
+                        count, request.service, request.list_id))
         except exceptions.TransportError as e:
             if e.status_code == httplib.NOT_FOUND:
                 logger.warning("Elastic search delete request not found")
                 raise LookupError
-            else:
-                logger.warning("Elastic search delete request exception: {}".format(e.info))
-                raise e
+            logger.warning("Elastic search delete request exception: {}".format(e.info))
+            raise e
 
-        if not result.get('acknowledged', False):
-            logger.warning("Elastic search delete response not acknowledged successfully")
-            raise Exception
-
+        result["acknowledged"] = True
         return result
 
     @staticmethod

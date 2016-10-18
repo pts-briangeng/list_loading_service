@@ -7,6 +7,8 @@ import configuration
 from liblcp import context
 from requestswrapper import requests_wrapper
 
+import functools
+
 logger = logging.getLogger(__name__)
 
 
@@ -51,4 +53,17 @@ def elastic_search_callback(f):
                 requests_wrapper.post(url=request.callbackUrl, data=json.dumps(data),
                                       headers=dict(context.get_headers(), **{'Content-Type': 'application/json'}))
 
+    return wrapper
+
+
+def elastic_search_query_params(*params):
+
+    def wrapper(f):
+        @functools.wraps(f)
+        def inner_wrapper(*args, **kwargs):
+            filtered_kwargs = {param: kwargs.get(param, None) for param in params if param in kwargs}
+
+            return f(*args, **filtered_kwargs)
+
+        return inner_wrapper
     return wrapper

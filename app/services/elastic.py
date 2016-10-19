@@ -147,6 +147,8 @@ class ElasticSearchService(object):
                 if e.status_code == httplib.NOT_FOUND:
                     return 0  # If the index was not found, we know the count is 0
                 raise
+
+        logger.info("Polling list count...")
         return call_count()
 
     @staticmethod
@@ -169,8 +171,6 @@ class ElasticSearchService(object):
                 raise LookupError
             logger.warning("Elastic search delete request exception: {}".format(e.info))
             raise e
-
-        result["acknowledged"] = True
         return result
 
     @staticmethod

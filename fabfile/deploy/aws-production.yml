@@ -13,6 +13,12 @@
       mode: roundrobin
     seed_sanity_test_file:
       node: list-loading-service1.aws-prd.points.com
+    elastic_search_lb_config_node:
+      load_balancer_host: tp-es.prd.points.com
+      load_balancer_port: 9200
+      node_port: 9200
+      nodes: [tp-es1.points.com, tp-es2.points.com, tp-es3.points.com]
+      mode: roundrobin
 
 10.104.144.11:
   roles:

@@ -13,6 +13,12 @@
       mode: roundrobin
     seed_sanity_test_file:
       node: list-loading-service-aws-st-1.lxc.points.com
+    elastic_search_lb_config_node:
+      load_balancer_host: list-loading-service-tor-st-es.lxc.points.com
+      load_balancer_port: 9200
+      node_port: 9200
+      nodes: [tor-st-es1.points.com, tor-st-es2.points.com, tor-st-es3.points.com]
+      mode: roundrobin
 
 10.103.144.11:
   roles:

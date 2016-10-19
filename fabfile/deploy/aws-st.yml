@@ -1,0 +1,23 @@
+10.103.16.11:
+  roles:
+    docker_host:
+      node: list-loading-aws-st-1.lxc.points.com
+      dns1: 192.168.253.3
+      dns2: 192.168.253.2
+      dependencies: ['list-loading-service-tor-st-es.lxc.points.com']
+    lb_config_node:
+      load_balancer_host: list-loading-aws-st.lxc.points.com
+      load_balancer_port: 2000
+      node_port: 8080
+      nodes: [list-loading-aws-st-1.lxc.points.com, list-loading-aws-st-2.lxc.points.com]
+      mode: roundrobin
+    seed_sanity_test_file:
+      node: list-loading-service-aws-st-1.lxc.points.com
+
+10.103.144.11:
+  roles:
+    docker_host:
+      node: list-loading-aws-st-2.lxc.points.com
+      dns1: 192.168.253.3
+      dns2: 192.168.253.2
+      dependencies: ['list-loading-service-tor-st-es.lxc.points.com']

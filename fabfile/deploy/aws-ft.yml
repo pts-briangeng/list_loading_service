@@ -6,7 +6,7 @@ aws-ft-app-us-east-1a-01.lxc.points.com:
       dns2: 192.168.253.2
       dependencies: ['http://tor-ft-es.lxc.points.com:9200']
     lb_config_node:
-      load_balancer_host: list-loading-aws-ft.lxc.points.com
+      load_balancer_host: list-loading-service-aws-ft.lxc.points.com
       load_balancer_port: 2000
       node_port: 8080
       nodes: [list-loading-aws-ft-1.lxc.points.com,  list-loading-aws-ft-2.lxc.points.com]

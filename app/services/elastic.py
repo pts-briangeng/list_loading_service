@@ -171,6 +171,8 @@ class ElasticSearchService(object):
                 raise LookupError
             logger.warning("Elastic search delete request exception: {}".format(e.info))
             raise e
+
+        result["acknowledged"] = True
         return result
 
     @staticmethod

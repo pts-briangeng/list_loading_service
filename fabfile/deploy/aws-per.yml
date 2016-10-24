@@ -1,4 +1,4 @@
-10.102.16.11:
+aws-per-web-us-east-1a-01.points.com:
   roles:
     docker_host:
       node: list-loading-aws-per-1.lxc.points.com
@@ -9,7 +9,7 @@
       load_balancer_host: list-loading-aws-per.lxc.points.com
       load_balancer_port: 2000
       node_port: 8080
-      nodes: [list-loading-service-aws-per-1.lxc.points.com, list-loading-service-aws-per-2.lxc.points.com]
+      nodes: [list-loading-aws-per-1.lxc.points.com,  list-loading-aws-per-2.lxc.points.com]
       mode: roundrobin
     seed_sanity_test_file:
       node: list-loading-service-aws-per-1.lxc.points.com
@@ -20,7 +20,7 @@
       nodes: [tor-per-es1.points.com, tor-per-es2.points.com, tor-per-es3.points.com]
       mode: roundrobin
 
-10.102.144.11:
+aws-per-web-us-east-1a-01.points.com:
   roles:
     docker_host:
       node: list-loading-aws-per-2.lxc.points.com

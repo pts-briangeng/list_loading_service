@@ -1,0 +1,45 @@
+aws-per-app-us-east-1a-01.lxc.points.com:
+  roles:
+    docker_host:
+      node: list-loading-service-aws-per-1.lxc.points.com
+      dns1: 192.168.253.3
+      dns2: 192.168.253.2
+      dependencies: ['http://tor-per-es.lxc.points.com:9200']
+    lb_config_node:
+      load_balancer_host: list-loading-service-aws-per.lxc.points.com
+      load_balancer_port: 2000
+      node_port: 8080
+      nodes: [list-loading-service-aws-per-1.lxc.points.com,  list-loading-service-aws-per-2.lxc.points.com, list-loading-service-aws-per-3.lxc.points.com, list-loading-service-aws-per-4.lxc.points.com]
+      mode: roundrobin
+    seed_sanity_test_file:
+      node: list-loading-service-aws-per-1.lxc.points.com
+    elastic_search_lb_config_node:
+      load_balancer_host: tor-per-es.lxc.points.com
+      load_balancer_port: 9200
+      node_port: 9200
+      nodes: [tor-per-es1.points.com, tor-per-es2.points.com, tor-per-es3.points.com]
+      mode: roundrobin
+
+aws-per-app-us-east-1a-02.lxc.points.com:
+  roles:
+    docker_host:
+      node: list-loading-service-aws-per-2.lxc.points.com
+      dns1: 192.168.253.3
+      dns2: 192.168.253.2
+      dependencies: ['http://tor-per-es.lxc.points.com:9200']
+
+aws-per-app-us-east-1b-01.lxc.points.com:
+  roles:
+    docker_host:
+      node: list-loading-service-aws-per-3.lxc.points.com
+      dns1: 192.168.253.3
+      dns2: 192.168.253.2
+      dependencies: ['http://tor-per-es.lxc.points.com:9200']
+
+aws-per-app-us-east-1b-02.lxc.points.com:
+  roles:
+    docker_host:
+      node: list-loading-service-aws-per-4.lxc.points.com
+      dns1: 192.168.253.3
+      dns2: 192.168.253.2
+      dependencies: ['http://tor-per-es.lxc.points.com:9200']

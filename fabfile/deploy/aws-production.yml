@@ -1,15 +1,15 @@
 10.104.16.11:
   roles:
     docker_host:
-      node: list-loading-aws-1.prd.points.com
+      node: list-loading-service-aws-1.prd.points.com
       dns1: 10.69.129.2
       dns2: 10.69.129.3
       dependencies: ['http://tp-es.prd.points.com']
     lb_config_node:
-      load_balancer_host: list-loading-aws.prd.points.com
+      load_balancer_host: list-loading-service-aws.prd.points.com
       load_balancer_port: 2000
       node_port: 8080
-      nodes: [list-loading-aws-1.prd.points.com, list-loading-aws-2.prd.points.com]
+      nodes: [list-loading-service-aws-1.prd.points.com, list-loading-service-aws-2.prd.points.com]
       mode: roundrobin
     seed_sanity_test_file:
       node: list-loading-service1.aws-prd.points.com
@@ -23,7 +23,7 @@
 10.104.144.11:
   roles:
     docker_host:
-      node: list-loading-aws-2.prd.points.com
+      node: list-loading-service-aws-2.prd.points.com
       dns1: 10.69.129.2
       dns2: 10.69.129.3
       dependencies: ['http://tp-es.prd.points.com']

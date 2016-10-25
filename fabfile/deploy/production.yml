@@ -9,12 +9,6 @@ tp-list-loading-service1.points.com:
       load_balancer_port: 2000
       node_port: 8080
       nodes: [list-loading-service1.prd.points.com, list-loading-service2.prd.points.com, list-loading-service3.prd.points.com, list-loading-service4.prd.points.com]
-    elastic_search_lb_config_node:
-      load_balancer_host: es-list-loading-service.prd.points.com
-      load_balancer_port: 9200
-      node_port: 9200
-      nodes: [tp-es1.points.com, tp-es2.points.com, tp-es3.points.com]
-      mode: roundrobin
     seed_sanity_test_file:
       node: list-loading-service1.prd.points.com
 

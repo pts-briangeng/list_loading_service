@@ -10,12 +10,6 @@ tor-ft-docker1.points.com:
       node_port: 8080
       nodes: [list-loading-service-ft-1.lxc.points.com, list-loading-service-ft-2.lxc.points.com]
       mode: roundrobin
-    elastic_search_lb_config_node:
-      load_balancer_host: list-loading-service-tor-ft-es.lxc.points.com
-      load_balancer_port: 9200
-      node_port: 9200
-      nodes: [tor-ft-es1.points.com, tor-ft-es2.points.com, tor-ft-es3.points.com]
-      mode: roundrobin
     seed_sanity_test_file:
       node: list-loading-service-ft-1.lxc.points.com
 

@@ -53,7 +53,6 @@ def _initialize_environment(environment):
 def full_deploy(environment, full_image_name, configuration_dir, run_migrate=False, enable_nscd=None):
     _initialize_environment(environment)
     fabric_api.execute(deploy_docker_image, environment, full_image_name, configuration_dir, enable_nscd=enable_nscd)
-    fabric_api.execute(setup_elastic_search_service_load_balancer)
     fabric_api.execute(setup_lls_service_load_balancer)
     fabric_api.execute(seed_test_file)
 
@@ -96,12 +95,6 @@ def seed_test_file():
 def setup_lls_service_load_balancer():
     print(">>>>>>> setting up load balancer on host {}".format(fabric_api.env.host_string))
     set_load_balancer(FABRIC_ROLE_LOAD_BALANCER)
-
-
-@roles(FABRIC_ROLE_ELASTIC_SEARCH_LOAD_BALANCER)
-def setup_elastic_search_service_load_balancer():
-    print(">>>>>>> setting up search service load balancer on host {}".format(fabric_api.env.host_string))
-    set_load_balancer(FABRIC_ROLE_ELASTIC_SEARCH_LOAD_BALANCER)
 
 
 def _process_nscd_mapping(volume_mappings, configuration, override):

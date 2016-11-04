@@ -68,8 +68,7 @@ class ElasticSearchService(object):
             #   https://discuss.elastic.co/t/helpers-parallel-bulk-in-python-not-working/39498
             collections.deque(
                 helpers.parallel_bulk(
-                    elastic_search_client, actions, stats_only=stats_only,
-                    thread_count=configuration.data.BULK_PROCESSING_THREAD_COUNT,
+                    elastic_search_client, actions, thread_count=configuration.data.BULK_PROCESSING_THREAD_COUNT,
                     chunk_size=configuration.data.BULK_PROCESSING_CHUNK_SIZE, index=request.service,
                     doc_type=request.list_id),
                 maxlen=0)

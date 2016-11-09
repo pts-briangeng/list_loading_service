@@ -54,7 +54,7 @@ class TestElasticSearchServiceParallelProcessing(base.BaseTestElasticSearchServi
         mock_bulk.assert_called_with(mock_elastic_search.return_value,
                                      mocks.Any(types.GeneratorType),
                                      thread_count=4,
-                                     index='service', stats_only=True,
+                                     index='service',
                                      chunk_size=configuration.data.BULK_PROCESSING_CHUNK_SIZE,
                                      doc_type='id')
         mock_elastic_search.return_value.indices.refresh.assert_called_once_with(index='service')
@@ -90,7 +90,7 @@ class TestElasticSearchServiceParallelProcessing(base.BaseTestElasticSearchServi
         mock_bulk.assert_called_with(mock_elastic_search.return_value,
                                      mocks.Any(types.GeneratorType),
                                      thread_count=4,
-                                     index='service', stats_only=True,
+                                     index='service',
                                      chunk_size=configuration.data.BULK_PROCESSING_CHUNK_SIZE,
                                      doc_type='id')
         mock_elastic_search.return_value.indices.refresh.assert_called_with(index='service')

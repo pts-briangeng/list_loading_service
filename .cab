@@ -1,21 +1,21 @@
 [TC_Values]
 project: ListLoadService-RC
-wrapup: ProductionBuilds_ReleaseCandidates_ProdOffersServiceRc_WrapUpBuild
+wrapup: ProductionBuilds_ReleaseCandidates_ProdListLoadingServiceRc_WrapUpBuild
 buildSys: eBuild
-lastDeployed: 2970
+lastDeployed: 3048
 
 [Build_Request_Values]
 product: ListLoadService-RC
 target_environment: production
-# change_req_#: 997
+# change_req_#: 1075
 
 [Change_Request_Values]
-summary: List Load Service - Lists v2
-description: Tickets Included in this release </br>DBGTLCP-28 As Simone, I can append to a list on an offer. (API)</br>DBGTLCP-30 : As Simone, I can delete one or more members from the list without a new upload of a whole list. (API)
+summary: List Loading Service - Lists v2
+description: Tickets Included in this release </br>DBGTLCP-2536 : Remove dependency on Elastic Mapping Type for List loading service</br>PSOFFERS-153 : Investigate List Loading Issue</br> PSOFFERS-173 : Fix Bulk processing of Lists
 approver: Ferdinand Cardoso
-deploy_date: 2016-10-05 10:00:00
+deploy_date: 2016-11-14 10:00:00
 build_instructions:
 qa_instructions:
 dba_instructions: None.
-ops_instructions: docker run -i -t -v /config/offers/production:/content/configuration rc-docker.points.com:80/list_loading_service_rc_deploy_rc:51 deploy-deployment-image.sh --fab-directory=/content/fabfile --environment=production --user={{user name}} --run-tests
-rollback_instructions: Please follow the deployment instructions of http://tor-build.points.com/ebuild/show_build.php?num=2970
+ops_instructions: docker run -i -t -v /config/offers/production:/content/configuration rc-docker.points.com:80/list_loading_service_rc_deploy_rc:58 deploy-deployment-image.sh --fab-directory=/content/fabfile --environment=production --user={{user name}} --run-tests
+rollback_instructions: Please follow the deployment instructions of http://tor-build.points.com/ebuild/show_build.php?num=3048
